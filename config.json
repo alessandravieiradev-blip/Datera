@@ -1,0 +1,11 @@
+{
+    "tableName": "clientes",
+    "spreadsheetId": "seu_id_aqui",
+    "credentialsPath": "./credentials.json",
+    "mode": "raw",
+    "dbHost": "localhost",
+    "dbPort": 3306,
+    "dbUser": "usuario",
+    "dbPassword": "senha",
+    "dbName": "banco"
+}
