@@ -9,7 +9,7 @@ Ainda tá em desenvolvimento, então essa doc é pra você entender o que já d�
 ```bash
 npm install
 cp .env.example .env
-cp credentials.json.exemple credentials.json
+cp credentials.json.example credentials.json
 ```
 
 Depois:
