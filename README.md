@@ -10,14 +10,15 @@ Ainda tá em desenvolvimento, então essa doc é pra você entender o que já d�
 npm install
 cp .env.example .env
 cp credentials.json.example credentials.json
+cp config.json.example config.json
 ```
 
 Depois:
 1. Preencha o `.env` com os dados de um banco MySQL de teste (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, etc) e, se for testar o Google Sheets, com o ID de uma planilha (`GOOGLE_SPREADSHEET_ID`).
 2. Se for testar o Google Sheets, troque o conteúdo de `credentials.json` pela chave de uma service account real do Google.
-3. Edite o `config.json` (nome da tabela, planilha, etc — não precisa se for só rodar os testes unitários).
+3. Edite o `config.json` (nome da tabela, planilha, coluna de dedupe se for usar esse modo, etc — não precisa se for só rodar os testes unitários).
 
-Nenhum desses dois arquivos (`.env`, `credentials.json`) vai pro git, então pode preencher sem medo.
+Nenhum desses três arquivos (`.env`, `credentials.json`, `config.json`) vai pro git, então pode preencher sem medo.
 
 ## O que já dá pra rodar
 
