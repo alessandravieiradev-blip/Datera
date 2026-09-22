@@ -1,21 +1,6 @@
 # ETL MySQL → Google Sheets
 
-> Automação em TypeScript que lê dados de uma tabela ou view do MySQL e exporta para uma planilha do Google Sheets, com suporte a diferentes modos de tratamento dos dados antes da escrita.
-
-![status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
-![node](https://img.shields.io/badge/node-%3E%3D18-green)
-
----
-
-## Funcionalidades
-
-- Leitura paginada de tabelas/views do MySQL (com retry automático em caso de queda de conexão)
-- Escrita em lote no Google Sheets
-- Modo `dedupe`: remove linhas duplicadas com base numa coluna configurável
-- Configuração via `.env` + `config.json`, com CLI pra sobrescrever na hora de rodar
-- Testes unitários com Vitest
-
----
+Automação em TypeScript que lê dados de uma tabela ou view do MySQL e exporta para uma planilha do Google Sheets, com opções de tratamento dos dados antes da escrita.
 
 ## Instalação
 
@@ -23,13 +8,9 @@
 npm install
 ```
 
-Isso instala todas as dependências listadas no `package.json` (incluindo `googleapis`, `commander`, `mysql2`, `zod`, entre outras).
+## Configuração
 
----
-
-## Configuração inicial
-
-O projeto usa três arquivos de configuração que **não vão pro git** (por segurança) — você parte de um exemplo (`.example`) e cria sua própria cópia local:
+O projeto usa três arquivos que não vão pro git. Copie os exemplos e preencha com dados reais:
 
 ```bash
 cp .env.example .env
@@ -37,75 +18,68 @@ cp credentials.json.example credentials.json
 cp config.json.example config.json
 ```
 
-Depois de copiar, você precisa **preencher cada um** com dados reais. Segue o que cada campo espera:
-
-### 1️⃣ `.env`
+**`.env`**
 
 | Variável | O que colocar |
 |---|---|
-| `DB_HOST` | Endereço do servidor MySQL (ex: `localhost` ou um IP/domínio) |
-| `DB_PORT` | Porta do MySQL (padrão `3306`, só muda se o seu servidor usar outra) |
+| `DB_HOST` | Endereço do servidor MySQL |
+| `DB_PORT` | Porta do MySQL (padrão `3306`) |
 | `DB_USER` | Usuário de acesso ao banco |
-| `DB_PASSWORD` | Senha desse usuário — se tiver caractere especial (`#`, `@`, etc), coloque entre aspas |
-| `DB_NAME` | Nome do banco de dados |
-| `DB_TABLE` | Nome da tabela ou view que você quer ler |
-| `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` | Caminho pro arquivo de credenciais — deixe `./credentials.json`, já é o padrão |
-| `GOOGLE_SPREADSHEET_ID` | O ID da planilha de destino — é o trecho da URL entre `/d/` e `/edit` (ex: em `docs.google.com/spreadsheets/d/1BxiMVs0.../edit`, o ID é `1BxiMVs0...`) |
+| `DB_PASSWORD` | Senha do usuário (se tiver caractere especial, coloque entre aspas) |
+| `DB_NAME` | Nome do banco |
+| `DB_TABLE` | Nome da tabela ou view a ser lida |
+| `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` | Caminho pro arquivo de credenciais (`./credentials.json` por padrão) |
+| `GOOGLE_SPREADSHEET_ID` | ID da planilha de destino — o trecho da URL entre `/d/` e `/edit` |
 
-### 2️⃣ `credentials.json`
+**`credentials.json`**
 
-Substitua todo o conteúdo pelo **arquivo JSON de chave da service account**, baixado do Google Cloud Console (IAM e administrador → Contas de serviço → Chaves → Adicionar chave → JSON).
+Substitua o conteúdo pela chave JSON de uma service account do Google Cloud. Depois de criar a service account, compartilhe a planilha manualmente com o e-mail dela, com permissão de Editor — sem isso a escrita falha por falta de permissão.
 
-> ⚠️ Depois de gerar a service account, **compartilhe a planilha manualmente** com o e-mail dela (algo como `nome@projeto.iam.gserviceaccount.com`), dando papel de **Editor** — sem isso, a escrita na planilha falha por falta de permissão.
-
-### 3️⃣ `config.json`
+**`config.json`**
 
 | Campo | O que colocar |
 |---|---|
-| `tableName` | Mesmo nome que você colocou em `DB_TABLE` (serve de reserva caso o `.env` não defina) |
-| `spreadsheetId` | Mesmo ID que você colocou em `GOOGLE_SPREADSHEET_ID` |
-| `credentialsPath` | Geralmente `./credentials.json` |
-| `mode` | `"raw"` (sem tratamento) ou `"dedupe"` (remove duplicatas) |
-| `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env` (servem de reserva) |
-| `dedupeColumn` | *(só se `mode` for `"dedupe"`)* nome da coluna usada pra identificar duplicatas |
-| `dedupeStrategy` | *(opcional, só no modo `dedupe`)* `"keep-first"` (mantém a primeira ocorrência) ou `"keep-last"` (mantém a última) — padrão é `"keep-first"` |
+| `tableName`, `spreadsheetId`, `credentialsPath` | Mesmos valores do `.env` (servem de reserva caso o `.env` não defina) |
+| `mode` | `"raw"` ou `"dedupe"` |
+| `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env` |
+| `dedupeColumn` | Só se `mode` for `"dedupe"` — coluna usada pra identificar duplicatas |
+| `dedupeStrategy` | Opcional, só no modo `dedupe` — `"keep-first"` ou `"keep-last"` (padrão: `"keep-first"`) |
 
-> Sempre que um valor existir tanto no `.env` quanto no `config.json`, o **`.env` tem prioridade**. O `config.json` funciona como reserva.
+Quando um valor existe tanto no `.env` quanto no `config.json`, o `.env` tem prioridade.
 
----
+## Modos de execução
 
-## Rodando o ETL
+- **`raw`** — modo padrão, escreve os dados como vieram do banco, sem tratamento nenhum.
+- **`dedupe`** — remove linhas duplicadas com base numa coluna configurável, mantendo a primeira ou a última ocorrência conforme `dedupeStrategy`.
+
+## Rodando
 
 ```bash
 npm start
 ```
 
-Roda o fluxo completo: lê do banco → aplica o modo configurado → escreve na planilha.
+Lê do banco, aplica o modo configurado e escreve na planilha.
 
-Pra sobrescrever o modo direto pelo terminal, sem editar o `config.json`:
+Pra sobrescrever o modo sem editar o `config.json`:
 ```bash
 npm start -- --mode dedupe
 ```
 
-Pra usar um arquivo de config diferente do padrão:
+Pra usar um arquivo de config diferente:
 ```bash
 npm start -- --config ./outro-config.json
 ```
-
----
 
 ## Testes
 
 | Comando | O que faz |
 |---|---|
-| `npm test` | Roda os testes unitários (Vitest) — não precisa de banco nem planilha reais |
+| `npm test` | Testes unitários (Vitest), sem precisar de banco ou planilha reais |
 | `npm run test:config` | Carrega e valida o `config.json` |
-| `npm run test:connection` | Conecta no banco MySQL real e mostra as 3 primeiras linhas |
+| `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas |
 | `npm run test:sheet` | Escreve duas linhas de teste numa planilha real |
 
----
-
-## 📁 Estrutura do projeto
+## Estrutura
 
 ```
 src/
@@ -122,11 +96,9 @@ src/
 scripts/              # scripts manuais de smoke test (banco, config, sheets)
 ```
 
----
+## Ainda falta
 
-## Roteiro (o que ainda falta)
-
-- [ ] Modo de unificação/merge de duplicatas (combinar dados em vez de só descartar)
-- [ ] Validação de dados (ex: CPF) e separação de linhas válidas/inválidas em abas diferentes
-- [ ] Pipeline de filtros configurável e plugável (hoje os modos são um `switch` fixo no `index.ts`)
-- [ ] Build de produção (hoje roda tudo via `tsx`, sem gerar TS compilado)
+- Modo de merge de duplicatas (combinar dados em vez de só descartar)
+- Validação de dados (ex: CPF) e separação de linhas válidas/inválidas em abas diferentes
+- Pipeline de filtros configurável (hoje os modos são um switch fixo no `index.ts`)
+- Build de produção (hoje roda tudo via `tsx`)
