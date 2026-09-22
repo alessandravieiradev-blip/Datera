@@ -1,45 +1,111 @@
 # ETL MySQL → Google Sheets
 
-Esse projeto lê dados de uma tabela do MySQL e joga numa planilha do Google Sheets. Tem uma opção de remover linhas duplicadas antes de escrever.
+> Automação em TypeScript que lê dados de uma tabela ou view do MySQL e exporta para uma planilha do Google Sheets, com suporte a diferentes modos de tratamento dos dados antes da escrita.
 
-Ainda tá em desenvolvimento, então essa doc é pra você entender o que já dá pra rodar.
+![status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![node](https://img.shields.io/badge/node-%3E%3D18-green)
 
-## Como instalar e rodar
+---
+
+## Funcionalidades
+
+- Leitura paginada de tabelas/views do MySQL (com retry automático em caso de queda de conexão)
+- Escrita em lote no Google Sheets
+- Modo `dedupe`: remove linhas duplicadas com base numa coluna configurável
+- Configuração via `.env` + `config.json`, com CLI pra sobrescrever na hora de rodar
+- Testes unitários com Vitest
+
+---
+
+## Instalação
 
 ```bash
 npm install
+```
+
+Isso instala todas as dependências listadas no `package.json` (incluindo `googleapis`, `commander`, `mysql2`, `zod`, entre outras).
+
+---
+
+## Configuração inicial
+
+O projeto usa três arquivos de configuração que **não vão pro git** (por segurança) — você parte de um exemplo (`.example`) e cria sua própria cópia local:
+
+```bash
 cp .env.example .env
 cp credentials.json.example credentials.json
 cp config.json.example config.json
 ```
 
-Depois:
-1. Preencha o `.env` com os dados de um banco MySQL de teste (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, etc) e, se for testar o Google Sheets, com o ID de uma planilha (`GOOGLE_SPREADSHEET_ID`).
-2. Se for testar o Google Sheets, troque o conteúdo de `credentials.json` pela chave de uma service account real do Google.
-3. Edite o `config.json` (nome da tabela, planilha, coluna de dedupe se for usar esse modo, etc — não precisa se for só rodar os testes unitários).
+Depois de copiar, você precisa **preencher cada um** com dados reais. Segue o que cada campo espera:
 
-Nenhum desses três arquivos (`.env`, `credentials.json`, `config.json`) vai pro git, então pode preencher sem medo.
+### 1️⃣ `.env`
 
-## O que já dá pra rodar
+| Variável | O que colocar |
+|---|---|
+| `DB_HOST` | Endereço do servidor MySQL (ex: `localhost` ou um IP/domínio) |
+| `DB_PORT` | Porta do MySQL (padrão `3306`, só muda se o seu servidor usar outra) |
+| `DB_USER` | Usuário de acesso ao banco |
+| `DB_PASSWORD` | Senha desse usuário — se tiver caractere especial (`#`, `@`, etc), coloque entre aspas |
+| `DB_NAME` | Nome do banco de dados |
+| `DB_TABLE` | Nome da tabela ou view que você quer ler |
+| `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` | Caminho pro arquivo de credenciais — deixe `./credentials.json`, já é o padrão |
+| `GOOGLE_SPREADSHEET_ID` | O ID da planilha de destino — é o trecho da URL entre `/d/` e `/edit` (ex: em `docs.google.com/spreadsheets/d/1BxiMVs0.../edit`, o ID é `1BxiMVs0...`) |
 
-- **`npm test`** — roda os testes unitários. Não precisa de banco nem de planilha configurados, é o mais rápido de rodar e provavelmente o melhor lugar pra começar a olhar o código.
-- **`npm run test:config`** — só carrega o `config.json` e mostra se ele é válido, sem mexer em banco ou planilha.
-- **`npm run test:connection`** — conecta num banco MySQL de verdade (usa o `.env`) e imprime as 3 primeiras linhas da tabela.
-- **`npm run test:sheet`** — escreve duas linhas de teste numa planilha do Google de verdade (usa `credentials.json` e `.env`).
+### 2️⃣ `credentials.json`
 
-Pra rodar `test:connection`/`test:sheet` de verdade, precisa de um banco e uma planilha reais configurados — o `npm test` não precisa de nada disso.
+Substitua todo o conteúdo pelo **arquivo JSON de chave da service account**, baixado do Google Cloud Console (IAM e administrador → Contas de serviço → Chaves → Adicionar chave → JSON).
 
-## O que ainda não fiz
+> ⚠️ Depois de gerar a service account, **compartilhe a planilha manualmente** com o e-mail dela (algo como `nome@projeto.iam.gserviceaccount.com`), dando papel de **Editor** — sem isso, a escrita na planilha falha por falta de permissão.
 
-- O fluxo completo (ler do banco → filtrar → escrever na planilha, rodando tudo junto) ainda não tá pronto/testado de ponta a ponta. Hoje só dá pra testar cada pedaço separado (conexão com banco, config, escrita na planilha, filtro de dedupe).
+### 3️⃣ `config.json`
 
-- Ainda não tem uma forma de unificar/mesclar linhas duplicadas em vez de só remover (hoje o dedupe só descarta a duplicata, não combina os dados das duas).
-- Ainda não tem validação de dados (tipo checar se um CPF é válido) nem separação de linhas boas/ruins.
-- O jeito de escolher o que fazer com os dados (`raw`, `dedupe`) ainda é meio hardcoded no código — a ideia é isso virar algo mais configurável/plugável no futuro, sem precisar mexer no código toda vez.
-- Não tem build ainda (não gera uma versão "pronta pra produção"), roda tudo direto com `tsx`.
-- A leitura do banco já é feita em lotes (pra não estourar memória com tabela grande), mas não testei ainda com um volume grande de verdade.
+| Campo | O que colocar |
+|---|---|
+| `tableName` | Mesmo nome que você colocou em `DB_TABLE` (serve de reserva caso o `.env` não defina) |
+| `spreadsheetId` | Mesmo ID que você colocou em `GOOGLE_SPREADSHEET_ID` |
+| `credentialsPath` | Geralmente `./credentials.json` |
+| `mode` | `"raw"` (sem tratamento) ou `"dedupe"` (remove duplicatas) |
+| `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env` (servem de reserva) |
+| `dedupeColumn` | *(só se `mode` for `"dedupe"`)* nome da coluna usada pra identificar duplicatas |
+| `dedupeStrategy` | *(opcional, só no modo `dedupe`)* `"keep-first"` (mantém a primeira ocorrência) ou `"keep-last"` (mantém a última) — padrão é `"keep-first"` |
 
-## Estrutura
+> Sempre que um valor existir tanto no `.env` quanto no `config.json`, o **`.env` tem prioridade**. O `config.json` funciona como reserva.
+
+---
+
+## Rodando o ETL
+
+```bash
+npm start
+```
+
+Roda o fluxo completo: lê do banco → aplica o modo configurado → escreve na planilha.
+
+Pra sobrescrever o modo direto pelo terminal, sem editar o `config.json`:
+```bash
+npm start -- --mode dedupe
+```
+
+Pra usar um arquivo de config diferente do padrão:
+```bash
+npm start -- --config ./outro-config.json
+```
+
+---
+
+## Testes
+
+| Comando | O que faz |
+|---|---|
+| `npm test` | Roda os testes unitários (Vitest) — não precisa de banco nem planilha reais |
+| `npm run test:config` | Carrega e valida o `config.json` |
+| `npm run test:connection` | Conecta no banco MySQL real e mostra as 3 primeiras linhas |
+| `npm run test:sheet` | Escreve duas linhas de teste numa planilha real |
+
+---
+
+## 📁 Estrutura do projeto
 
 ```
 src/
@@ -51,7 +117,16 @@ src/
   index.ts            # entrypoint: liga leitura → filtro → escrita
   filters/
     types.ts          # interface Filter<T>
-    dedupe.ts          # implementação do filtro de dedupe
-  tests/               # testes unitários (vitest)
-scripts/               # scripts manuais de smoke test (banco, config, sheets)
+    dedupe.ts         # implementação do filtro de dedupe
+  tests/              # testes unitários (Vitest)
+scripts/              # scripts manuais de smoke test (banco, config, sheets)
 ```
+
+---
+
+## Roteiro (o que ainda falta)
+
+- [ ] Modo de unificação/merge de duplicatas (combinar dados em vez de só descartar)
+- [ ] Validação de dados (ex: CPF) e separação de linhas válidas/inválidas em abas diferentes
+- [ ] Pipeline de filtros configurável e plugável (hoje os modos são um `switch` fixo no `index.ts`)
+- [ ] Build de produção (hoje roda tudo via `tsx`, sem gerar TS compilado)
