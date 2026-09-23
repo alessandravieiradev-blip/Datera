@@ -30,7 +30,6 @@
         dbUser: "root",
         dbPassword: "senha123",
         dbName: "loja",
-        // tableName ausente de propósito
         };
 
         const result = etlConfigSchema.safeParse(configSemTabela);
@@ -45,7 +44,7 @@
         credentialsPath: "./credentials.json",
         mode: "raw",
         dbHost: "localhost",
-        dbPort: "3306", // deveria ser number, não string
+        dbPort: "3306",
         dbUser: "root",
         dbPassword: "senha123",
         dbName: "loja",
@@ -74,3 +73,55 @@
         expect(result.success).toBe(false);
     });
     });
+
+describe("etlConfigSchema: opções do merge", () => {
+    const base = {
+        tableName: "clientes",
+        spreadsheetId: "1AbCdEfGhIjKlMnOpQrStUv",
+        credentialsPath: "./credentials.json",
+        mode: "merge",
+        dbHost: "localhost",
+        dbPort: 3306,
+        dbUser: "root",
+        dbPassword: "senha123",
+        dbName: "loja",
+        mergeKeyColumn: "sku",
+    };
+
+    it("aceita normalizador, módulos de normalizadores, rótulo de rejeitada e collapse-column", () => {
+        const result = etlConfigSchema.safeParse({
+            ...base,
+            mergeKeyNormalizer: "lowercase",
+            normalizerModules: ["./local/meusNormalizers.ts"],
+            mergeRejectedKeyLabel: "chave inválida",
+            mergeColumns: [
+                {
+                    column: "nome",
+                    strategy: "extra-column",
+                    unkeyed: { strategy: "collapse-column", into: "Nomes sem chave", separator: " | " },
+                },
+            ],
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("continua aceitando config de merge sem nenhuma das opções novas", () => {
+        const result = etlConfigSchema.safeParse({
+            ...base,
+            mergeColumns: [{ column: "nome", strategy: "concat" }],
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("rejeita estratégia unkeyed desconhecida", () => {
+        const result = etlConfigSchema.safeParse({
+            ...base,
+            mergeColumns: [{ column: "nome", strategy: "concat", unkeyed: { strategy: "outra" } }],
+        });
+
+        expect(result.success).toBe(false);
+    });
+});
+

@@ -1,4 +1,3 @@
-// src/index.ts
 import "dotenv/config";
 import { readTable, createPool } from "./db";
 import { writeData, createSheetsClient } from "./sheets";
@@ -6,16 +5,19 @@ import { loadConfig } from "./config";
 import { options, validateMode } from "./cli";
 import { DedupeFilter } from "./filters/dedupe";
 import { TableRow } from "./types";
+import { MergeFilter } from "./filters/merge";
+import { registerBuiltinKeyNormalizers, loadNormalizerModules } from "./filters/normalizers";
 
 async function runRawMode(rows: TableRow[]): Promise<TableRow[]> {
     return rows;
 }
 
 async function main() {
+    registerBuiltinKeyNormalizers();
     const configPath = options.config ?? "./config.json";
     const config = loadConfig(configPath);
+    loadNormalizerModules(config.normalizerModules ?? []);
 
-    // --mode da CLI vence o mode do config.json; se nenhum dos dois vier, cai pro "raw"
     const mode = validateMode(options.mode ?? config.mode ?? "raw");
 
     const pool = createPool(config);
@@ -35,6 +37,18 @@ async function main() {
                     throw new Error("dedupeColumn não definido na config para o modo dedupe.");
                 }
                 const filter = new DedupeFilter(config.dedupeColumn, config.dedupeStrategy);
+                processedRows = filter.apply(rows);
+                break;
+            }
+            case "merge": {
+                if (!config.mergeKeyColumn || !config.mergeColumns) {
+                    throw new Error("mergeKeyColumn/mergeColumns não definidos na config para o modo merge.");
+                }
+                const filter = new MergeFilter(config.mergeKeyColumn, config.mergeColumns, {
+                    emptyKeyLabel: config.mergeEmptyKeyLabel,
+                    rejectedKeyLabel: config.mergeRejectedKeyLabel,
+                    keyNormalizer: config.mergeKeyNormalizer
+                });
                 processedRows = filter.apply(rows);
                 break;
             }

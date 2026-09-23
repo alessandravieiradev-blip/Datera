@@ -6,14 +6,35 @@ export const etlConfigSchema = z.object({
     tableName: z.string(),
     spreadsheetId: z.string(),
     credentialsPath: z.string(),
-    mode: z.enum(["raw", "dedupe"]),
+    mode: z.enum(["raw", "dedupe", "merge"]),
     dbHost: z.string(),
     dbPort: z.number(),
     dbUser: z.string(),
     dbPassword: z.string(),
     dbName: z.string(),
     dedupeColumn: z.string().optional(),
-    dedupeStrategy: z.enum(["keep-first", "keep-last"]).optional()
+    dedupeStrategy: z.enum(["keep-first", "keep-last"]).optional(),
+    mergeKeyColumn: z.string().optional(),
+    mergeColumns: z
+        .array(
+            z.object({
+                column: z.string(),
+                strategy: z.enum(["concat", "overwrite", "extra-column"]),
+                separator: z.string().optional(),
+                unkeyed: z
+                    .object({
+                        strategy: z.enum(["collapse-column"]),
+                        into: z.string().optional(),
+                        separator: z.string().optional()
+                    })
+                    .optional()
+            })
+        )
+        .optional(),
+    mergeEmptyKeyLabel: z.string().optional(),
+    mergeRejectedKeyLabel: z.string().optional(),
+    mergeKeyNormalizer: z.string().optional(),
+    normalizerModules: z.array(z.string()).optional()
 });
 
 export type EtlConfig = z.infer<typeof etlConfigSchema>;
@@ -38,7 +59,13 @@ export function loadConfig(jsonPath: string): EtlConfig {
         dbPassword: getOptionalEnv("DB_PASSWORD") ?? jsonConfig.dbPassword,
         dbName: getOptionalEnv("DB_NAME") ?? jsonConfig.dbName,
         dedupeColumn: jsonConfig.dedupeColumn,
-        dedupeStrategy: jsonConfig.dedupeStrategy
+        dedupeStrategy: jsonConfig.dedupeStrategy,
+        mergeKeyColumn: jsonConfig.mergeKeyColumn,
+        mergeColumns: jsonConfig.mergeColumns,
+        mergeEmptyKeyLabel: jsonConfig.mergeEmptyKeyLabel,
+        mergeRejectedKeyLabel: jsonConfig.mergeRejectedKeyLabel,
+        mergeKeyNormalizer: jsonConfig.mergeKeyNormalizer,
+        normalizerModules: jsonConfig.normalizerModules
     };
     return etlConfigSchema.parse(finalConfig);
 }
