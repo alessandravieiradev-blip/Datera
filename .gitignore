@@ -13,6 +13,9 @@ config.json
 !.env.example
 credentials.json
 
+# Normalizadores e testes locais, fora do repositório
+local/
+
 # Logs
 *.log
 npm-debug.log*
