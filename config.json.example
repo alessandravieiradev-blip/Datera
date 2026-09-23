@@ -2,7 +2,23 @@
     "tableName": "clientes",
     "spreadsheetId": "seu_id_aqui",
     "credentialsPath": "./credentials.json",
-    "mode": "raw",
+    "mode": "checar readme",
+    "dedupeColumn": "Caso mode dedupe",
+    "dedupeStrategy": "Caso mode dedupe",
+    "mergeKeyColumn": "Caso mode merge",
+    "mergeColumns": [
+        {
+            "column": "colunanome",
+            "strategy": "extra-column",
+            "unkeyed": { "strategy": "collapse-column", "into": "Opcional. Nome da coluna nova", "separator": " | " }
+        },
+        { "column": "colunanome2", "strategy": "concat", "separator": " | " },
+        { "column": "colunanome3", "strategy": "overwrite" }
+    ],
+    "mergeEmptyKeyLabel": "Opcional. Rótulo pras linhas sem valor na mergeKeyColumn (default: '(sem <coluna>)')",
+    "mergeKeyNormalizer": "Opcional. Nome de um normalizador de chave, trim, lowercase, digitsOnly, alphanumeric ou um seu (default: trim)",
+    "normalizerModules": ["Opcional. Caminhos de arquivos com normalizadores seus, ex: ./local/meusNormalizers.ts"],
+    "mergeRejectedKeyLabel": "Opcional. Rótulo pras linhas cuja chave o normalizador rejeitou (default: '(<coluna> inválido)')",
     "dbHost": "localhost",
     "dbPort": 3306,
     "dbUser": "usuario",
