@@ -1,8 +1,8 @@
 import { Filter } from "./types";
 import { TableRow } from "../types";
-import { CombineColumnsConfig, CombinePart } from "./combineTypes";
+import { CombineColumnsConfig } from "./combineTypes";
 
-// junta varias colunas numa so tipo ddd + telefone, roda antes do merge
+// junta varias colunas da mesma linha numa so, roda antes do dedupe/merge
 export class CombineFilter implements Filter<TableRow> {
     constructor(private readonly combinations: CombineColumnsConfig[]) {}
 
@@ -11,12 +11,12 @@ export class CombineFilter implements Filter<TableRow> {
         const sourcesToRemove = new Set(
             this.combinations
                 .filter((c) => !c.keepSources)
-                .flatMap((c) => c.parts.map((p) => p.column))
+                .flatMap((c) => c.columns)
                 .filter((column) => !targets.has(column)),
         );
 
         return rows.map((row) => {
-            // calcula tudo antes de apagar pq o ddd 1 é usado de reserva pelos outros
+            // calcula tudo antes de apagar pq uma combinacao pode usar coluna de outra
             const combined = new Map<string, string | null>();
             for (const combination of this.combinations) {
                 combined.set(combination.into, this.combine(row, combination));
@@ -32,8 +32,8 @@ export class CombineFilter implements Filter<TableRow> {
         sourcesToRemove: Set<string>,
     ): TableRow {
         const anchorOf = new Map<string, string>();
-        for (const { into, parts } of this.combinations) {
-            const anchor = parts.find((p) => p.column in row)?.column;
+        for (const { into, columns } of this.combinations) {
+            const anchor = columns.find((column) => column in row);
             if (anchor !== undefined && !(into in row))
                 anchorOf.set(anchor, into);
         }
@@ -56,27 +56,19 @@ export class CombineFilter implements Filter<TableRow> {
 
     private combine(
         row: TableRow,
-        { parts, separator = " " }: CombineColumnsConfig,
+        { columns, separator = " " }: CombineColumnsConfig,
     ): string | null {
         const values: string[] = [];
 
-        for (const part of parts) {
-            const value = this.resolvePart(row, part);
-            // se nao tem valor nem default nao combina nada (ddd sem telefone)
-            if (value === null) return null;
-            values.push(value);
+        for (const column of columns) {
+            const raw = row[column];
+            const text =
+                raw === null || raw === undefined ? "" : String(raw).trim();
+            // se falta alguma parte nao combina, pra nao sair valor pela metade
+            if (text === "") return null;
+            values.push(text);
         }
 
         return values.join(separator);
-    }
-
-    private resolvePart(row: TableRow, part: CombinePart): string | null {
-        for (const column of [part.column, ...(part.fallbackColumns ?? [])]) {
-            const raw = row[column];
-            if (raw === null || raw === undefined) continue;
-            const text = String(raw).trim();
-            if (text !== "") return text;
-        }
-        return part.default ?? null;
     }
 }
