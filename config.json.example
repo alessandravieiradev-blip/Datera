@@ -6,19 +6,73 @@
     "dedupeColumn": "Caso mode dedupe",
     "dedupeStrategy": "Caso mode dedupe",
     "mergeKeyColumn": "Caso mode merge",
+    "fillEmpty": [
+        {
+            "column": "colunanome4",
+            "fallbackColumns": [
+                "Opcional. Colunas reserva, na ordem"
+            ],
+            "default": "Opcional. Valor se tudo estiver vazio"
+        }
+    ],
+    "combineColumns": [
+        {
+            "into": "Nome da coluna nova",
+            "columns": [
+                "colunanome5",
+                "colunanome6"
+            ],
+            "separator": " ",
+            "keepSources": false
+        }
+    ],
     "mergeColumns": [
         {
             "column": "colunanome",
             "strategy": "extra-column",
-            "byGroup": { "NomeDoGrupo": { "strategy": "concat", "into": "Opcional. Nome da coluna nova", "separator": " | " } },
-            "unkeyed": { "strategy": "collapse-column", "into": "Opcional. Nome da coluna nova", "separator": " | " }
+            "byGroup": {
+                "NomeDoGrupo": {
+                    "strategy": "concat",
+                    "into": "Opcional. Nome da coluna nova",
+                    "separator": " | "
+                }
+            },
+            "unkeyed": {
+                "strategy": "collapse-column",
+                "into": "Opcional. Nome da coluna nova",
+                "separator": " | "
+            }
         },
-        { "column": "colunanome2", "strategy": "concat", "separator": " | " },
-        { "column": "colunanome3", "strategy": "overwrite" }
+        {
+            "column": "colunanome2",
+            "strategy": "concat",
+            "separator": " | "
+        },
+        {
+            "column": "colunanome3",
+            "strategy": "overwrite"
+        },
+        {
+            "column": "colunanome7",
+            "strategy": "concat",
+            "separator": " | ",
+            "distribute": {
+                "columns": [
+                    "colunanome7",
+                    "colunanome7_2"
+                ],
+                "sources": [
+                    "Opcional. Outras colunas que entram junto"
+                ],
+                "overflowInto": "Opcional. Coluna pro que sobrar"
+            }
+        }
     ],
     "mergeEmptyKeyLabel": "Opcional. Rótulo pras linhas sem valor na mergeKeyColumn (default: '(sem <coluna>)')",
     "mergeKeyNormalizer": "Opcional. Nome de um normalizador de chave, trim, lowercase, digitsOnly, alphanumeric ou um seu (default: trim)",
-    "normalizerModules": ["Opcional. Caminhos de arquivos com normalizadores seus, ex: ./local/meusNormalizers.ts"],
+    "normalizerModules": [
+        "Opcional. Caminhos de arquivos com normalizadores seus, ex: ./local/meusNormalizers.ts"
+    ],
     "mergeRejectedKeyLabel": "Opcional. Rótulo pras linhas cuja chave o normalizador rejeitou (default: '(<coluna> inválido)')",
     "dbHost": "localhost",
     "dbPort": 3306,
