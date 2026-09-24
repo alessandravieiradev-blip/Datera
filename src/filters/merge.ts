@@ -1,6 +1,10 @@
 import { Filter } from "./types";
 import { TableRow } from "../types";
-import { MergeColumnConfig, MergeFilterOptions } from "./mergeTypes";
+import {
+    MergeColumnConfig,
+    MergeFilterOptions,
+    DistributeConfig,
+} from "./mergeTypes";
 import { KeyNormalizer, getKeyNormalizer } from "./keyNormalizers";
 
 type CellValue = string | number | null;
@@ -73,7 +77,9 @@ export class MergeFilter implements Filter<TableRow> {
         }
 
         const merged = Array.from(groups.values()).map(({ category, items }) =>
-            items.length === 1 && !this.hasGroupOverride(category)
+            items.length === 1 &&
+            !this.hasGroupOverride(category) &&
+            !this.hasDistribute()
                 ? items[0]!
                 : this.mergeGroup(items, category),
         );
@@ -90,16 +96,38 @@ export class MergeFilter implements Filter<TableRow> {
         return this.columns.some((c) => c.byGroup?.[category] !== undefined);
     }
 
+    // Com distribute, até a linha sozinha precisa passar pelo merge: senão o
+    // valor fica na coluna de origem e a planilha sai com colunas diferentes.
+    private hasDistribute(): boolean {
+        return this.columns.some(
+            (c) => c.strategy === "concat" && c.distribute !== undefined,
+        );
+    }
+
     private mergeGroup(group: TableRow[], category?: string): TableRow {
         const merged: TableRow = { ...group[0]! };
 
-        for (const { column, strategy, separator, byGroup } of this.columns) {
+        for (const { column, strategy, separator, distribute, byGroup } of this
+            .columns) {
             const override =
                 category === undefined ? undefined : byGroup?.[category];
             const target = override?.into ?? column;
             const finalSeparator = override?.separator ?? separator ?? "; ";
+            const resolvedStrategy = override?.strategy ?? strategy;
+            const finalDistribute = override?.distribute ?? distribute;
 
-            switch (override?.strategy ?? strategy) {
+            if (resolvedStrategy === "concat" && finalDistribute) {
+                this.mergeConcatDistributed(
+                    group,
+                    column,
+                    merged,
+                    finalDistribute,
+                    finalSeparator,
+                );
+                continue;
+            }
+
+            switch (resolvedStrategy) {
                 case "overwrite":
                     merged[target] = this.mergeOverwrite(group, column);
                     break;
@@ -175,6 +203,50 @@ export class MergeFilter implements Filter<TableRow> {
         const values = this.presentValues(group, column).map(String);
 
         return Array.from(new Set(values)).join(separator);
+    }
+
+    private mergeConcatDistributed(
+        group: TableRow[],
+        column: string,
+        merged: TableRow,
+        distribute: DistributeConfig,
+        separator: string,
+    ): void {
+        const uniqueValues = Array.from(
+            new Set(this.presentValues(group, column).map(String)),
+        );
+        const { columns, overflowInto } = distribute;
+
+        uniqueValues.forEach((value, index) => {
+            if (index < columns.length) {
+                merged[columns[index]!] = value;
+            }
+        });
+
+        const overflowValues = uniqueValues.slice(columns.length);
+        if (overflowValues.length > 0) {
+            const overflowColumn =
+                overflowInto ?? this.findFreeOverflowColumnName(column, merged);
+            merged[overflowColumn] = overflowValues.join(separator);
+        }
+
+        if (!columns.includes(column)) {
+            delete merged[column];
+        }
+    }
+
+    private findFreeOverflowColumnName(
+        column: string,
+        merged: TableRow,
+    ): string {
+        const base = `${column}_overflow`;
+        if (merged[base] === undefined) return base;
+
+        let suffix = 2;
+        while (merged[`${base}_${suffix}`] !== undefined) {
+            suffix++;
+        }
+        return `${base}_${suffix}`;
     }
 
     private mergeExtraColumns(
