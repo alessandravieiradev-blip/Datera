@@ -13,6 +13,7 @@ export interface UnkeyedColumnConfig {
 export interface DistributeConfig {
     columns: string[];
     overflowInto?: string | undefined;
+    sources?: string[] | undefined;
 }
 
 export interface GroupColumnOverride {

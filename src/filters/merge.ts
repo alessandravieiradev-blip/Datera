@@ -77,10 +77,8 @@ export class MergeFilter implements Filter<TableRow> {
         }
 
         const merged = Array.from(groups.values()).map(({ category, items }) =>
-            items.length === 1 &&
-            !this.hasGroupOverride(category) &&
-            !this.hasDistribute()
-                ? items[0]!
+            items.length === 1 && !this.hasGroupOverride(category)
+                ? this.distributeOnly(items[0]!)
                 : this.mergeGroup(items, category),
         );
 
@@ -96,12 +94,24 @@ export class MergeFilter implements Filter<TableRow> {
         return this.columns.some((c) => c.byGroup?.[category] !== undefined);
     }
 
-    // Com distribute, até a linha sozinha precisa passar pelo merge: senão o
-    // valor fica na coluna de origem e a planilha sai com colunas diferentes.
-    private hasDistribute(): boolean {
-        return this.columns.some(
+    // linha sozinha so passa pelo distribute, senao a coluna fica diferente na planilha
+    private distributeOnly(row: TableRow): TableRow {
+        const distributed = this.columns.filter(
             (c) => c.strategy === "concat" && c.distribute !== undefined,
         );
+        if (distributed.length === 0) return row;
+
+        const result: TableRow = { ...row };
+        for (const { column, separator, distribute } of distributed) {
+            this.mergeConcatDistributed(
+                [row],
+                column,
+                result,
+                distribute!,
+                separator ?? "; ",
+            );
+        }
+        return result;
     }
 
     private mergeGroup(group: TableRow[], category?: string): TableRow {
@@ -212,10 +222,23 @@ export class MergeFilter implements Filter<TableRow> {
         distribute: DistributeConfig,
         separator: string,
     ): void {
+        const { columns, overflowInto, sources = [] } = distribute;
+        const sourceColumns = [column, ...sources];
+
         const uniqueValues = Array.from(
-            new Set(this.presentValues(group, column).map(String)),
+            new Set(
+                group.flatMap((row) =>
+                    sourceColumns.flatMap((source) =>
+                        this.presentValues([row], source).map(String),
+                    ),
+                ),
+            ),
         );
-        const { columns, overflowInto } = distribute;
+
+        // limpa os destinos antes pra nao sobrar valor velho da primeira linha
+        for (const destination of columns) {
+            if (destination in merged) merged[destination] = null;
+        }
 
         uniqueValues.forEach((value, index) => {
             if (index < columns.length) {
@@ -230,8 +253,8 @@ export class MergeFilter implements Filter<TableRow> {
             merged[overflowColumn] = overflowValues.join(separator);
         }
 
-        if (!columns.includes(column)) {
-            delete merged[column];
+        for (const source of sourceColumns) {
+            if (!columns.includes(source)) delete merged[source];
         }
     }
 
