@@ -26,6 +26,37 @@
             "keepSources": false
         }
     ],
+    "validation": {
+        "pendingSheet": "Opcional. Nome da aba de pendências (default: Pendências)",
+        "reasonColumn": "Opcional. Nome da coluna com o motivo (default: Motivo)",
+        "rules": [
+            {
+                "column": "colunanome8",
+                "rule": "required",
+                "message": "Opcional. Texto do motivo"
+            },
+            {
+                "column": "colunanome9",
+                "rule": "pattern",
+                "pattern": "Expressão regular",
+                "flags": "Opcional. Ex: i"
+            },
+            {
+                "column": "colunanome10",
+                "rule": "oneOf",
+                "values": [
+                    "valor1",
+                    "valor2"
+                ],
+                "ignoreCase": true
+            },
+            {
+                "column": "colunanome11",
+                "rule": "normalizer",
+                "normalizer": "Nome de um normalizador, ex: digitsOnly"
+            }
+        ]
+    },
     "mergeColumns": [
         {
             "column": "colunanome",

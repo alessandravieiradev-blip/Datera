@@ -13,6 +13,7 @@ O que dá pra fazer hoje:
 - decidir o que fazer com as linhas que não têm chave, sem elas sumirem nem se misturarem
 - preencher células vazias e juntar colunas antes de tudo
 - espalhar valores em várias colunas sem jogar nenhum fora
+- separar as linhas com problema numa aba de pendências, com o motivo escrito do lado
 
 Se você quer ver funcionando antes de ler a configuração toda, pode pular direto pros [exemplos](#exemplos-do-mais-simples-ao-mais-completo).
 
@@ -24,6 +25,7 @@ Se você quer ver funcionando antes de ler a configuração toda, pode pular dir
 - [Exemplos, do mais simples ao mais completo](#exemplos-do-mais-simples-ao-mais-completo)
 - [Preparando os dados](#preparando-os-dados)
 - [Distribuir valores em várias colunas](#distribuir-valores-em-várias-colunas-distribute)
+- [Separar as pendências](#separar-as-pendências-validation)
 - [Normalizadores de chave](#normalizadores-de-chave)
 - [Rodando](#rodando)
 - [Testes](#testes)
@@ -91,6 +93,7 @@ Campos de preparação (opcionais, valem pra qualquer modo):
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `fillEmpty`      | Lista de `{ column, fallbackColumns?, default? }`. Preenche célula vazia com outra coluna ou com um valor padrão. Veja [Preparando os dados](#preparando-os-dados) |
 | `combineColumns` | Lista de `{ into, columns, separator?, keepSources? }`. Junta várias colunas da mesma linha numa só. Veja [Preparando os dados](#preparando-os-dados)              |
+| `validation`     | `{ rules, pendingSheet?, reasonColumn? }`. Manda as linhas com problema pra uma aba separada. Veja [Separar as pendências](#separar-as-pendências-validation)      |
 
 Quando um valor existe tanto no `.env` quanto no `config.json`, o `.env` tem prioridade.
 
@@ -101,14 +104,15 @@ banco (tabela ou view)
    │
    ├─ fillEmpty        preenche células vazias          (opcional)
    ├─ combineColumns   junta colunas da mesma linha      (opcional)
+   ├─ validation       separa as linhas com problema     (opcional) ──► aba "Pendências"
    │
-   ├─ modo
+   ├─ modo (só com as linhas válidas)
    │    raw     escreve do jeito que veio
    │    dedupe  tira as linhas repetidas por uma coluna
    │    merge   junta as linhas com a mesma chave
    │
    ▼
-planilha do Google Sheets
+primeira aba da planilha
 ```
 
 ### Modos
@@ -668,6 +672,67 @@ Algumas coisas que é bom saber:
 - vale também pra linha que ficou sozinha no grupo, pra planilha sair com as mesmas colunas em todas as linhas
 - só funciona com `strategy: "concat"`. Dá pra usar dentro do `byGroup`, mas não junto com o `into`, porque quem decide as colunas aí é o `distribute`. Se configurar errado, a validação avisa antes de rodar
 
+## Separar as pendências (`validation`)
+
+Às vezes não dá pra consertar tudo automaticamente, tipo um e-mail escrito errado ou um campo obrigatório vazio. Pra isso tem o `validation`: você diz as regras, e as linhas que não passam vão pra uma aba separada com o motivo escrito do lado. Aí fica fácil de alguém olhar e corrigir no sistema.
+
+```json
+"validation": {
+  "pendingSheet": "Pendências",
+  "reasonColumn": "Motivo",
+  "rules": [
+    { "column": "nome", "rule": "required" },
+    { "column": "email", "rule": "pattern", "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "message": "e-mail fora do formato" },
+    { "column": "plano", "rule": "oneOf", "values": ["mensal", "trimestral", "anual"], "ignoreCase": true },
+    { "column": "matricula", "rule": "normalizer", "normalizer": "digitsOnly", "message": "matrícula sem número" }
+  ]
+}
+```
+
+Entrada:
+
+| matricula | nome | email            | plano      |
+| --------- | ---- | ---------------- | ---------- |
+| 2024-0042 | Lia  | `lia@email.com`  | Mensal     |
+| 2024-0051 | Theo | theo.email.com   | anual      |
+| pendente  |      | `nina@email.com` | semanal    |
+| 2024-0060 | Caio |                  | trimestral |
+
+Na primeira aba (e só essas seguem pro modo):
+
+| matricula | nome | email           | plano      |
+| --------- | ---- | --------------- | ---------- |
+| 2024-0042 | Lia  | `lia@email.com` | Mensal     |
+| 2024-0060 | Caio |                 | trimestral |
+
+Na aba `Pendências`:
+
+| Motivo                                                          | matricula | nome | email            | plano   |
+| --------------------------------------------------------------- | --------- | ---- | ---------------- | ------- |
+| e-mail fora do formato                                          | 2024-0051 | Theo | theo.email.com   | anual   |
+| nome vazio; plano com valor não permitido; matrícula sem número | pendente  |      | `nina@email.com` | semanal |
+
+As regras que dá pra usar:
+
+| `rule`       | Passa quando                         | Campos extras                                                                                                     |
+| ------------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `required`   | a célula não tá vazia                | nenhum                                                                                                            |
+| `pattern`    | o valor bate com a expressão regular | `pattern` e `flags` (opcional, tipo `"i"` pra ignorar maiúscula)                                                  |
+| `oneOf`      | o valor tá na lista                  | `values` e `ignoreCase` (opcional)                                                                                |
+| `normalizer` | o normalizador não devolve `null`    | `normalizer`: o nome de um normalizador, pronto ou seu (veja [Normalizadores de chave](#normalizadores-de-chave)) |
+
+Algumas coisas que é bom saber:
+
+- toda regra aceita um `message` pra trocar o texto do motivo. Sem ele, o motivo sai tipo `nome vazio` ou `plano com valor não permitido`
+- só o `required` reclama de célula vazia. As outras regras deixam a célula vazia passar, foi por isso que o Caio sem e-mail passou. Se o campo for obrigatório **e** tiver formato, coloca as duas regras na mesma coluna
+- se a linha falha em mais de uma regra, os motivos aparecem juntos, separados por `; `
+- o `normalizer` é bem útil pra reaproveitar o normalizador do merge. Se ele rejeita a chave, a linha vai pras pendências inteirinha, em vez de ir pro fim da planilha só com o rótulo
+- a validação roda depois do `fillEmpty` e do `combineColumns`, então um valor que o `fillEmpty` preencheu já conta como preenchido
+- `pendingSheet` (padrão `Pendências`) é o nome da aba. Se ela não existir, o ETL cria sozinho
+- `reasonColumn` (padrão `Motivo`) é o nome da coluna com o motivo, que sempre fica na primeira coluna
+- se não tiver nenhuma pendência, a aba fica vazia (ela é limpa do mesmo jeito, pra não sobrar pendência antiga)
+- se o `pattern` tiver uma regex inválida, ou o `normalizer` não existir, o ETL avisa antes de ler o banco
+
 ## Normalizadores de chave
 
 ### Pra que serve
@@ -861,6 +926,8 @@ Pra usar um arquivo de config diferente:
 npm start -- --config ./outro-config.json
 ```
 
+Importante: a cada rodada o ETL **limpa a aba antes de escrever** (a primeira aba e, se tiver `validation`, a de pendências). Assim não sobra linha velha de uma rodada anterior. Então não coloca anotação sua nessas abas, usa outra aba pra isso.
+
 ## Testes
 
 | Comando                   | O que faz                                                          |
@@ -884,6 +951,7 @@ src/
     types.ts          # interface Filter<T>
     fillEmpty.ts      # preenche célula vazia (fillEmpty)
     combine.ts        # junta colunas da mesma linha (combineColumns)
+    validate.ts       # separa as linhas com problema (validation)
     dedupe.ts         # implementação do filtro de dedupe
     merge.ts          # implementação do filtro de merge
     mergeTypes.ts     # tipos de config do merge
@@ -896,6 +964,5 @@ scripts/              # scripts manuais de smoke test (banco, config, sheets)
 
 ## Ainda falta
 
-- Validação de dados (ex: formato de campos) e separação de linhas válidas/inválidas em abas diferentes
 - Pipeline de filtros configurável (hoje os modos são um switch fixo no `index.ts`)
 - Build de produção (hoje roda tudo via `tsx`)
