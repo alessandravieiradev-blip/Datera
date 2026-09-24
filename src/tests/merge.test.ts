@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { MergeFilter } from "../filters/merge";
 import { KeyNormalizer, registerKeyNormalizer } from "../filters/keyNormalizers";
+import { MergeColumnConfig } from "../filters/mergeTypes";
 
 describe("MergeFilter", () => {
   it("mescla 2 linhas duplicadas: overwrite fica com o último valor", () => {
@@ -289,5 +290,69 @@ describe("MergeFilter: collapse-column nas linhas sem chave", () => {
       { ref: "(sem ref)", nome: "Ana" },
       { ref: "(sem ref)", nome: "Bia" },
     ]);
+  });
+});
+
+describe("MergeFilter: estratégia diferente por grupo (byGroup)", () => {
+  const columns: MergeColumnConfig[] = [
+    {
+      column: "cor",
+      strategy: "extra-column",
+      byGroup: { CD: { strategy: "concat", into: "cores CD", separator: " | " } },
+    },
+  ];
+  const build = (cols: MergeColumnConfig[] = columns) => new MergeFilter("sku", cols, { keyNormalizer: skuNormalizer });
+
+  const rows = [
+    { sku: "AB1", cor: "azul" },
+    { sku: "ab-1", cor: "verde" },
+    { sku: "CD1", cor: "rosa" },
+    { sku: "cd 1", cor: "preto" },
+    { sku: "CD2", cor: "cinza" },
+  ];
+
+  it("grupo sem regra própria segue a estratégia normal da coluna", () => {
+    const result = build().apply(rows);
+
+    expect(result[0]).toEqual({ sku: "AB1", cor: "azul", cor_2: "verde" });
+  });
+
+  it("grupo com regra junta tudo numa coluna nova e esvazia a coluna original", () => {
+    const result = build().apply(rows);
+
+    expect(result[1]).toEqual({ sku: "CD1", "cores CD": "rosa | preto" });
+  });
+
+  it("grupo com regra também move o valor quando tem uma linha só", () => {
+    const result = build().apply(rows);
+
+    expect(result[2]).toEqual({ sku: "CD2", "cores CD": "cinza" });
+    expect(result).toHaveLength(3);
+  });
+
+  it("sem byGroup, nada muda", () => {
+    const result = build([{ column: "cor", strategy: "extra-column" }]).apply(rows);
+
+    expect(result[1]).toEqual({ sku: "CD1", cor: "rosa", cor_2: "preto" });
+    expect(result[2]).toEqual({ sku: "CD2", cor: "cinza" });
+  });
+
+  it("normalizador que não devolve grupo ignora o byGroup", () => {
+    const filter = new MergeFilter("sku", columns);
+
+    const result = filter.apply([
+      { sku: "CD1", cor: "rosa" },
+      { sku: "CD1", cor: "preto" },
+    ]);
+
+    expect(result).toEqual([{ sku: "CD1", cor: "rosa", cor_2: "preto" }]);
+  });
+
+  it("override pode ter estratégia própria sem coluna nova", () => {
+    const result = build([
+      { column: "cor", strategy: "extra-column", byGroup: { CD: { strategy: "concat" } } },
+    ]).apply(rows);
+
+    expect(result[1]).toEqual({ sku: "CD1", cor: "rosa; preto" });
   });
 });

@@ -28,7 +28,7 @@ export class MergeFilter implements Filter<TableRow> {
     }
 
     apply(rows: TableRow[]): TableRow[] {
-        const groups = new Map<unknown, TableRow[]>();
+        const groups = new Map<unknown, { category: string | undefined; items: TableRow[] }>();
         const emptyKeyRows: TableRow[] = [];
         const rejectedKeyRows: TableRow[] = [];
 
@@ -51,14 +51,14 @@ export class MergeFilter implements Filter<TableRow> {
 
             const existing = groups.get(groupKey);
             if (existing) {
-                existing.push(row);
+                existing.items.push(row);
             } else {
-                groups.set(groupKey, [row]);
+                groups.set(groupKey, { category: normalized.group, items: [row] });
             }
         }
 
-        const merged = Array.from(groups.values()).map((group) =>
-            group.length === 1 ? group[0]! : this.mergeGroup(group)
+        const merged = Array.from(groups.values()).map(({ category, items }) =>
+            items.length === 1 && !this.hasGroupOverride(category) ? items[0]! : this.mergeGroup(items, category)
         );
 
         return [
@@ -68,21 +68,32 @@ export class MergeFilter implements Filter<TableRow> {
         ];
     }
 
-    private mergeGroup(group: TableRow[]): TableRow {
+    private hasGroupOverride(category: string | undefined): boolean {
+        if (category === undefined) return false;
+        return this.columns.some((c) => c.byGroup?.[category] !== undefined);
+    }
+
+    private mergeGroup(group: TableRow[], category?: string): TableRow {
         const merged: TableRow = { ...group[0]! };
 
-        for (const { column, strategy, separator } of this.columns) {
-            switch (strategy) {
+        for (const { column, strategy, separator, byGroup } of this.columns) {
+            const override = category === undefined ? undefined : byGroup?.[category];
+            const target = override?.into ?? column;
+            const finalSeparator = override?.separator ?? separator ?? "; ";
+
+            switch (override?.strategy ?? strategy) {
                 case "overwrite":
-                    merged[column] = this.mergeOverwrite(group, column);
+                    merged[target] = this.mergeOverwrite(group, column);
                     break;
                 case "concat":
-                    merged[column] = this.mergeConcat(group, column, separator ?? "; ");
+                    merged[target] = this.mergeConcat(group, column, finalSeparator);
                     break;
                 case "extra-column":
-                    this.mergeExtraColumns(group, column, merged);
+                    this.mergeExtraColumns(group, column, merged, target);
                     break;
             }
+
+            if (target !== column) delete merged[column];
         }
 
         return merged;
@@ -130,13 +141,13 @@ export class MergeFilter implements Filter<TableRow> {
         return Array.from(new Set(values)).join(separator);
     }
 
-    private mergeExtraColumns(group: TableRow[], column: string, merged: TableRow): void {
+    private mergeExtraColumns(group: TableRow[], column: string, merged: TableRow, target: string = column): void {
         const values = this.presentValues(group, column);
 
-        merged[column] = values[0] ?? null;
+        merged[target] = values[0] ?? null;
 
         for (let i = 1; i < values.length; i++) {
-            merged[`${column}_${i + 1}`] = values[i] ?? null;
+            merged[`${target}_${i + 1}`] = values[i] ?? null;
         }
     }
 }

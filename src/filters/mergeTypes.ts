@@ -10,11 +10,18 @@ export interface UnkeyedColumnConfig {
     separator?: string | undefined;
 }
 
+export interface GroupColumnOverride {
+    strategy: MergeColumnStrategy;
+    separator?: string | undefined;
+    into?: string | undefined;
+}
+
 export interface MergeColumnConfig {
     column: string;
     strategy: MergeColumnStrategy;
     separator?: string | undefined;
     unkeyed?: UnkeyedColumnConfig | undefined;
+    byGroup?: Record<string, GroupColumnOverride> | undefined;
 }
 
 export interface MergeFilterOptions {
