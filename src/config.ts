@@ -14,7 +14,7 @@ const distributeSchema = z.object({
     sources: z.array(z.string()).optional(),
 });
 
-const combinePartSchema = z.object({
+const fillEmptySchema = z.object({
     column: z.string(),
     fallbackColumns: z.array(z.string()).optional(),
     default: z.string().optional(),
@@ -22,7 +22,7 @@ const combinePartSchema = z.object({
 
 const combineColumnsSchema = z.object({
     into: z.string(),
-    parts: z.array(combinePartSchema).min(1),
+    columns: z.array(z.string()).min(1),
     separator: z.string().optional(),
     keepSources: z.boolean().optional(),
 });
@@ -43,6 +43,14 @@ const groupOverrideSchema = z
         (value) =>
             value.strategy === "concat" || value.distribute === undefined,
         distributeOnlyOnConcat,
+    )
+    .refine(
+        (value) => value.into === undefined || value.distribute === undefined,
+        {
+            message:
+                "into e distribute não podem ser usados juntos, o distribute já define as colunas de destino.",
+            path: ["into"],
+        },
     );
 
 const mergeColumnSchema = z
@@ -84,6 +92,7 @@ export const etlConfigSchema = z.object({
     mergeRejectedKeyLabel: z.string().optional(),
     mergeKeyNormalizer: z.string().optional(),
     normalizerModules: z.array(z.string()).optional(),
+    fillEmpty: z.array(fillEmptySchema).optional(),
     combineColumns: z.array(combineColumnsSchema).optional(),
 });
 
@@ -119,6 +128,7 @@ export function loadConfig(jsonPath: string): EtlConfig {
         mergeRejectedKeyLabel: jsonConfig.mergeRejectedKeyLabel,
         mergeKeyNormalizer: jsonConfig.mergeKeyNormalizer,
         normalizerModules: jsonConfig.normalizerModules,
+        fillEmpty: jsonConfig.fillEmpty,
         combineColumns: jsonConfig.combineColumns,
     };
     return etlConfigSchema.parse(finalConfig);
