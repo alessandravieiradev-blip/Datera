@@ -6,6 +6,7 @@
     "scripts": {
         "start": "tsx src/index.ts",
         "test": "vitest",
+        "typecheck": "tsc --noEmit",
         "test:connection": "tsx scripts/testConnection.ts",
         "test:config": "tsx scripts/testConfig.ts",
         "test:sheet": "tsx scripts/testSheetFake.ts",
