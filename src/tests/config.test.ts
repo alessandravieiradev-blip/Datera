@@ -232,4 +232,49 @@ describe("etlConfigSchema: opções do merge", () => {
 
         expect(result.success).toBe(false);
     });
+
+    it("aceita distribute.sources e combineColumns", () => {
+        const result = etlConfigSchema.safeParse({
+            ...base,
+            combineColumns: [
+                {
+                    into: "Telefone 2",
+                    parts: [
+                        {
+                            column: "DDD 2",
+                            fallbackColumns: ["DDD 1"],
+                            default: "não tem",
+                        },
+                        { column: "Fone 2" },
+                    ],
+                },
+            ],
+            mergeColumns: [
+                {
+                    column: "Telefone 1",
+                    strategy: "concat",
+                    distribute: {
+                        columns: ["Telefone 1", "Telefone 2"],
+                        sources: ["Telefone 2"],
+                    },
+                },
+            ],
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("rejeita combineColumns sem into ou sem parts", () => {
+        const semInto = etlConfigSchema.safeParse({
+            ...base,
+            combineColumns: [{ parts: [{ column: "a" }] }],
+        });
+        const semParts = etlConfigSchema.safeParse({
+            ...base,
+            combineColumns: [{ into: "x", parts: [] }],
+        });
+
+        expect(semInto.success).toBe(false);
+        expect(semParts.success).toBe(false);
+    });
 });

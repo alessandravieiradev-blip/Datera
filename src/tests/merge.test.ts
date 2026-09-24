@@ -624,3 +624,115 @@ describe("MergeFilter: concat com distribute", () => {
         ]);
     });
 });
+
+describe("MergeFilter: distribute com sources", () => {
+    const telefones: MergeColumnConfig[] = [
+        {
+            column: "Telefone 1",
+            strategy: "concat",
+            separator: " | ",
+            distribute: {
+                columns: ["Telefone 1", "Telefone 2", "Telefone 3"],
+                sources: ["Telefone 2", "Telefone 3"],
+                overflowInto: "Outros telefones",
+            },
+        },
+    ];
+
+    it("junta as colunas de origem de todas as linhas num conjunto só, sem repetir", () => {
+        const rows = [
+            {
+                doc: "1",
+                "Telefone 1": "53 1111",
+                "Telefone 2": "53 2222",
+                "Telefone 3": null,
+            },
+            {
+                doc: "1",
+                "Telefone 1": "53 2222",
+                "Telefone 2": "53 3333",
+                "Telefone 3": "53 4444",
+            },
+        ];
+
+        expect(new MergeFilter("doc", telefones).apply(rows)).toEqual([
+            {
+                doc: "1",
+                "Telefone 1": "53 1111",
+                "Telefone 2": "53 2222",
+                "Telefone 3": "53 3333",
+                "Outros telefones": "53 4444",
+            },
+        ]);
+    });
+
+    it("destino que sobra vazio não fica com o valor velho da primeira linha", () => {
+        const rows = [
+            {
+                doc: "1",
+                "Telefone 1": "53 1111",
+                "Telefone 2": "53 1111",
+                "Telefone 3": null,
+            },
+            {
+                doc: "1",
+                "Telefone 1": "53 1111",
+                "Telefone 2": null,
+                "Telefone 3": null,
+            },
+        ];
+
+        const result = new MergeFilter("doc", telefones).apply(rows);
+
+        expect(result[0]!["Telefone 1"]).toBe("53 1111");
+        expect(result[0]!["Telefone 2"]).toBeNull();
+        expect(result[0]!["Telefone 3"]).toBeNull();
+    });
+
+    it("linha sozinha tira o repetido e sobe os telefones, sem mexer nas outras colunas", () => {
+        const rows = [
+            {
+                doc: "1",
+                Codigo: 7,
+                "Telefone 1": "53 1111",
+                "Telefone 2": "53 1111",
+                "Telefone 3": "53 2222",
+            },
+        ];
+        const filter = new MergeFilter("doc", [
+            ...telefones,
+            { column: "Codigo", strategy: "concat" },
+        ]);
+
+        expect(filter.apply(rows)).toEqual([
+            {
+                doc: "1",
+                Codigo: 7,
+                "Telefone 1": "53 1111",
+                "Telefone 2": "53 2222",
+                "Telefone 3": null,
+            },
+        ]);
+    });
+
+    it("remove as colunas de sources que não são destino", () => {
+        const rows = [
+            { doc: "1", fixo: "3222", celular: "9999" },
+            { doc: "1", fixo: "3222", celular: "8888" },
+        ];
+        const filter = new MergeFilter("doc", [
+            {
+                column: "fixo",
+                strategy: "concat",
+                distribute: {
+                    columns: ["tel_1", "tel_2", "tel_3"],
+                    sources: ["celular"],
+                },
+            },
+        ]);
+
+        expect(filter.apply(rows)).toEqual([
+            { doc: "1", tel_1: "3222", tel_2: "9999", tel_3: "8888" },
+        ]);
+    });
+});
