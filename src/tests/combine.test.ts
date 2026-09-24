@@ -4,57 +4,57 @@ import { CombineFilter } from "../filters/combine";
 describe("CombineFilter", () => {
     it("junta as colunas com espaço e remove as colunas de origem", () => {
         const result = new CombineFilter([
-            { into: "Telefone", columns: ["DDD", "Fone"] },
-        ]).apply([{ Nome: "Ana", DDD: "53", Fone: "99999-0001" }]);
+            { into: "quando", columns: ["data", "hora"] },
+        ]).apply([{ aula: "Violão", data: "10/03", hora: "19:00" }]);
 
-        expect(result).toEqual([{ Nome: "Ana", Telefone: "53 99999-0001" }]);
+        expect(result).toEqual([{ aula: "Violão", quando: "10/03 19:00" }]);
     });
 
     it("se falta alguma coluna a combinação fica nula", () => {
         const result = new CombineFilter([
-            { into: "Telefone", columns: ["DDD", "Fone"] },
+            { into: "quando", columns: ["data", "hora"] },
         ]).apply([
-            { DDD: "53", Fone: null },
-            { DDD: "  ", Fone: "1111" },
+            { data: "10/03", hora: null },
+            { data: "  ", hora: "19:00" },
         ]);
 
-        expect(result[0]!.Telefone).toBeNull();
-        expect(result[1]!.Telefone).toBeNull();
+        expect(result[0]!.quando).toBeNull();
+        expect(result[1]!.quando).toBeNull();
     });
 
     it("aceita números, separador próprio e keepSources", () => {
         const result = new CombineFilter([
             {
-                into: "tel",
-                columns: ["ddd", "fone"],
+                into: "turma",
+                columns: ["ano", "numero"],
                 separator: "-",
                 keepSources: true,
             },
-        ]).apply([{ ddd: 53, fone: 999 }]);
+        ]).apply([{ ano: 2024, numero: 3 }]);
 
-        expect(result[0]).toEqual({ ddd: 53, fone: 999, tel: "53-999" });
+        expect(result[0]).toEqual({ ano: 2024, numero: 3, turma: "2024-3" });
     });
 
     it("coloca a coluna combinada no lugar da primeira coluna de origem", () => {
         const result = new CombineFilter([
-            { into: "Telefone 1", columns: ["DDD 1", "Fone 1"] },
-            { into: "Telefone 2", columns: ["DDD 2", "Fone 2"] },
+            { into: "quando 1", columns: ["data 1", "hora 1"] },
+            { into: "quando 2", columns: ["data 2", "hora 2"] },
         ]).apply([
             {
-                Nome: "Ana",
-                "DDD 1": "53",
-                "Fone 1": "1",
-                "DDD 2": "53",
-                "Fone 2": "2",
-                Cidade: "Pelotas",
+                aula: "Violão",
+                "data 1": "10/03",
+                "hora 1": "18:00",
+                "data 2": "17/03",
+                "hora 2": "18:00",
+                sala: "Sala 1",
             },
         ]);
 
         expect(Object.keys(result[0]!)).toEqual([
-            "Nome",
-            "Telefone 1",
-            "Telefone 2",
-            "Cidade",
+            "aula",
+            "quando 1",
+            "quando 2",
+            "sala",
         ]);
     });
 
@@ -62,9 +62,9 @@ describe("CombineFilter", () => {
         const result = new CombineFilter([
             { into: "completo", columns: ["nome", "sobrenome"] },
             { into: "curto", columns: ["nome"] },
-        ]).apply([{ nome: "Ana", sobrenome: "Souza" }]);
+        ]).apply([{ nome: "Lia", sobrenome: "Martins" }]);
 
-        expect(result[0]).toEqual({ completo: "Ana Souza", curto: "Ana" });
+        expect(result[0]).toEqual({ completo: "Lia Martins", curto: "Lia" });
     });
 
     it("não apaga uma coluna de origem que é o destino de outra combinação", () => {

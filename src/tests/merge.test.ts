@@ -626,15 +626,15 @@ describe("MergeFilter: concat com distribute", () => {
 });
 
 describe("MergeFilter: distribute com sources", () => {
-    const telefones: MergeColumnConfig[] = [
+    const instrumentos: MergeColumnConfig[] = [
         {
-            column: "Telefone 1",
+            column: "instrumento 1",
             strategy: "concat",
             separator: " | ",
             distribute: {
-                columns: ["Telefone 1", "Telefone 2", "Telefone 3"],
-                sources: ["Telefone 2", "Telefone 3"],
-                overflowInto: "Outros telefones",
+                columns: ["instrumento 1", "instrumento 2", "instrumento 3"],
+                sources: ["instrumento 2", "instrumento 3"],
+                overflowInto: "outros instrumentos",
             },
         },
     ];
@@ -642,26 +642,26 @@ describe("MergeFilter: distribute com sources", () => {
     it("junta as colunas de origem de todas as linhas num conjunto só, sem repetir", () => {
         const rows = [
             {
-                doc: "1",
-                "Telefone 1": "53 1111",
-                "Telefone 2": "53 2222",
-                "Telefone 3": null,
+                email: "lia@email.com",
+                "instrumento 1": "violão",
+                "instrumento 2": "piano",
+                "instrumento 3": null,
             },
             {
-                doc: "1",
-                "Telefone 1": "53 2222",
-                "Telefone 2": "53 3333",
-                "Telefone 3": "53 4444",
+                email: "lia@email.com",
+                "instrumento 1": "piano",
+                "instrumento 2": "voz",
+                "instrumento 3": "ukulele",
             },
         ];
 
-        expect(new MergeFilter("doc", telefones).apply(rows)).toEqual([
+        expect(new MergeFilter("email", instrumentos).apply(rows)).toEqual([
             {
-                doc: "1",
-                "Telefone 1": "53 1111",
-                "Telefone 2": "53 2222",
-                "Telefone 3": "53 3333",
-                "Outros telefones": "53 4444",
+                email: "lia@email.com",
+                "instrumento 1": "violão",
+                "instrumento 2": "piano",
+                "instrumento 3": "voz",
+                "outros instrumentos": "ukulele",
             },
         ]);
     });
@@ -669,70 +669,75 @@ describe("MergeFilter: distribute com sources", () => {
     it("destino que sobra vazio não fica com o valor velho da primeira linha", () => {
         const rows = [
             {
-                doc: "1",
-                "Telefone 1": "53 1111",
-                "Telefone 2": "53 1111",
-                "Telefone 3": null,
+                email: "lia@email.com",
+                "instrumento 1": "violão",
+                "instrumento 2": "violão",
+                "instrumento 3": null,
             },
             {
-                doc: "1",
-                "Telefone 1": "53 1111",
-                "Telefone 2": null,
-                "Telefone 3": null,
+                email: "lia@email.com",
+                "instrumento 1": "violão",
+                "instrumento 2": null,
+                "instrumento 3": null,
             },
         ];
 
-        const result = new MergeFilter("doc", telefones).apply(rows);
+        const result = new MergeFilter("email", instrumentos).apply(rows);
 
-        expect(result[0]!["Telefone 1"]).toBe("53 1111");
-        expect(result[0]!["Telefone 2"]).toBeNull();
-        expect(result[0]!["Telefone 3"]).toBeNull();
+        expect(result[0]!["instrumento 1"]).toBe("violão");
+        expect(result[0]!["instrumento 2"]).toBeNull();
+        expect(result[0]!["instrumento 3"]).toBeNull();
     });
 
-    it("linha sozinha tira o repetido e sobe os telefones, sem mexer nas outras colunas", () => {
+    it("linha sozinha tira o repetido e sobe os instrumentos, sem mexer nas outras colunas", () => {
         const rows = [
             {
-                doc: "1",
-                Codigo: 7,
-                "Telefone 1": "53 1111",
-                "Telefone 2": "53 1111",
-                "Telefone 3": "53 2222",
+                email: "lia@email.com",
+                turma: "sexta",
+                "instrumento 1": "violão",
+                "instrumento 2": "violão",
+                "instrumento 3": "piano",
             },
         ];
-        const filter = new MergeFilter("doc", [
-            ...telefones,
-            { column: "Codigo", strategy: "concat" },
+        const filter = new MergeFilter("email", [
+            ...instrumentos,
+            { column: "turma", strategy: "concat" },
         ]);
 
         expect(filter.apply(rows)).toEqual([
             {
-                doc: "1",
-                Codigo: 7,
-                "Telefone 1": "53 1111",
-                "Telefone 2": "53 2222",
-                "Telefone 3": null,
+                email: "lia@email.com",
+                turma: "sexta",
+                "instrumento 1": "violão",
+                "instrumento 2": "piano",
+                "instrumento 3": null,
             },
         ]);
     });
 
     it("remove as colunas de sources que não são destino", () => {
         const rows = [
-            { doc: "1", fixo: "3222", celular: "9999" },
-            { doc: "1", fixo: "3222", celular: "8888" },
+            { email: "lia@email.com", instrumento: "violão", outro: "piano" },
+            { email: "lia@email.com", instrumento: "violão", outro: "voz" },
         ];
-        const filter = new MergeFilter("doc", [
+        const filter = new MergeFilter("email", [
             {
-                column: "fixo",
+                column: "instrumento",
                 strategy: "concat",
                 distribute: {
-                    columns: ["tel_1", "tel_2", "tel_3"],
-                    sources: ["celular"],
+                    columns: ["inst_1", "inst_2", "inst_3"],
+                    sources: ["outro"],
                 },
             },
         ]);
 
         expect(filter.apply(rows)).toEqual([
-            { doc: "1", tel_1: "3222", tel_2: "9999", tel_3: "8888" },
+            {
+                email: "lia@email.com",
+                inst_1: "violão",
+                inst_2: "piano",
+                inst_3: "voz",
+            },
         ]);
     });
 });

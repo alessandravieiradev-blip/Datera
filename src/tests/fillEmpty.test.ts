@@ -3,29 +3,36 @@ import { FillEmptyFilter } from "../filters/fillEmpty";
 
 describe("FillEmptyFilter", () => {
     it("não mexe em célula que já tem valor", () => {
-        const rows = [{ DDD: "53", Fone: "1111" }];
+        const rows = [{ sala: "Sala 1", hora: "19:00" }];
 
         expect(
-            new FillEmptyFilter([{ column: "DDD", default: "não tem" }]).apply(
-                rows,
-            ),
+            new FillEmptyFilter([
+                { column: "sala", default: "a definir" },
+            ]).apply(rows),
         ).toEqual(rows);
     });
 
     it("usa a primeira coluna reserva que tiver valor", () => {
         const result = new FillEmptyFilter([
-            { column: "DDD 3", fallbackColumns: ["DDD 2", "DDD 1"] },
-        ]).apply([{ "DDD 1": "53", "DDD 2": " ", "DDD 3": null }]);
+            {
+                column: "sala",
+                fallbackColumns: ["sala_reserva", "sala_antiga"],
+            },
+        ]).apply([{ sala_antiga: "Sala 3", sala_reserva: " ", sala: null }]);
 
-        expect(result[0]!["DDD 3"]).toBe("53");
+        expect(result[0]!.sala).toBe("Sala 3");
     });
 
     it("usa o default quando a reserva também está vazia", () => {
         const result = new FillEmptyFilter([
-            { column: "DDD 2", fallbackColumns: ["DDD 1"], default: "não tem" },
-        ]).apply([{ "DDD 1": "", "DDD 2": null }]);
+            {
+                column: "sala",
+                fallbackColumns: ["sala_reserva"],
+                default: "a definir",
+            },
+        ]).apply([{ sala_reserva: "", sala: null }]);
 
-        expect(result[0]!["DDD 2"]).toBe("não tem");
+        expect(result[0]!.sala).toBe("a definir");
     });
 
     it("sem reserva nem default, deixa como veio", () => {
@@ -39,9 +46,9 @@ describe("FillEmptyFilter", () => {
     it("mantém o tipo do valor que veio da reserva", () => {
         const result = new FillEmptyFilter([
             { column: "b", fallbackColumns: ["a"] },
-        ]).apply([{ a: 53, b: null }]);
+        ]).apply([{ a: 42, b: null }]);
 
-        expect(result[0]!.b).toBe(53);
+        expect(result[0]!.b).toBe(42);
     });
 
     it("lê sempre da linha original, então a ordem das regras não muda o resultado", () => {
@@ -57,6 +64,9 @@ describe("FillEmptyFilter", () => {
         });
         expect(
             new FillEmptyFilter([...rules].reverse()).apply([row])[0],
-        ).toEqual({ a: "padrão", b: "nenhum" });
+        ).toEqual({
+            a: "padrão",
+            b: "nenhum",
+        });
     });
 });

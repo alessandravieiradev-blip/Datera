@@ -238,25 +238,25 @@ describe("etlConfigSchema: opções do merge", () => {
             ...base,
             fillEmpty: [
                 {
-                    column: "DDD 2",
-                    fallbackColumns: ["DDD 1"],
-                    default: "não tem",
+                    column: "sala",
+                    fallbackColumns: ["sala_reserva"],
+                    default: "a definir",
                 },
             ],
             combineColumns: [
                 {
-                    into: "Telefone",
-                    columns: ["DDD 1", "Fone 1"],
+                    into: "quando",
+                    columns: ["data", "hora"],
                     separator: " ",
                 },
             ],
             mergeColumns: [
                 {
-                    column: "Fone 1",
+                    column: "instrumento 1",
                     strategy: "concat",
                     distribute: {
-                        columns: ["Fone 1", "Fone 2"],
-                        sources: ["Fone 2"],
+                        columns: ["instrumento 1", "instrumento 2"],
+                        sources: ["instrumento 2"],
                     },
                 },
             ],
