@@ -1,18 +1,20 @@
 # ETL MySQL → Google Sheets
 
-Automação em TypeScript que lê uma tabela ou view do MySQL, trata os dados e escreve numa planilha do Google Sheets.
+Um ETL em TypeScript que lê uma tabela (ou view) do MySQL, arruma os dados e joga numa planilha do Google Sheets.
 
-A ideia começou simples (copiar uma tabela pra planilha), mas dado de verdade vem bagunçado: cliente repetido, documento escrito de três jeitos, DDD faltando, telefone espalhado em várias colunas. Então o projeto foi ganhando ferramentas pra resolver isso só mexendo no `config.json`, sem precisar escrever código:
+Comecei ele só pra copiar uma tabela pra planilha, mas aí fui vendo que dado de verdade vem todo bagunçado: gente cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, a mesma informação espalhada em várias colunas... Então fui adicionando coisas até dar pra resolver quase tudo só mexendo no `config.json`, sem precisar programar nada.
 
-- **Tirar duplicadas** (`dedupe`) ou **juntar linhas da mesma pessoa sem perder nada** (`merge`)
-- **Escolher o que acontece com cada coluna** no merge: juntar numa célula, ficar com o último valor ou abrir colunas novas
-- **Normalizadores de chave**, pra `Ana@Email.com` e ` ana@email.com` serem a mesma pessoa (tem prontos e dá pra criar o seu)
-- **Regras diferentes por tipo de chave**, tipo tratar CPF de um jeito e CNPJ de outro
-- **Tratamento das linhas sem chave**, que nunca somem nem se misturam com outras
-- **Preencher vazios e juntar colunas** antes de tudo
-- **Distribuir valores em várias colunas**, sem nunca descartar nenhum
+O que dá pra fazer hoje:
 
-Se quiser ver o que dá pra fazer antes de configurar, pula direto pros [Exemplos](#exemplos-do-mais-simples-ao-mais-completo).
+- tirar linhas repetidas (`dedupe`) ou juntar as linhas da mesma pessoa sem perder nada (`merge`)
+- escolher o que acontece com cada coluna na hora de juntar
+- usar normalizadores pra `Lia@Email.com` e ` lia@email.com` contarem como a mesma pessoa (tem uns prontos e dá pra criar o seu)
+- ter regras diferentes dependendo do tipo da chave (tipo tratar artista solo de um jeito e banda de outro)
+- decidir o que fazer com as linhas que não têm chave, sem elas sumirem nem se misturarem
+- preencher células vazias e juntar colunas antes de tudo
+- espalhar valores em várias colunas sem jogar nenhum fora
+
+Se você quer ver funcionando antes de ler a configuração toda, pode pular direto pros [exemplos](#exemplos-do-mais-simples-ao-mais-completo).
 
 ## Sumário
 
@@ -97,13 +99,13 @@ Quando um valor existe tanto no `.env` quanto no `config.json`, o `.env` tem pri
 ```text
 banco (tabela ou view)
    │
-   ├─ fillEmpty        preenche células vazias               (opcional)
-   ├─ combineColumns   junta colunas da mesma linha           (opcional)
+   ├─ fillEmpty        preenche células vazias          (opcional)
+   ├─ combineColumns   junta colunas da mesma linha      (opcional)
    │
    ├─ modo
-   │    raw     escreve do jeito que tá
-   │    dedupe  tira linhas repetidas por uma coluna
-   │    merge   junta linhas com a mesma chave, coluna por coluna
+   │    raw     escreve do jeito que veio
+   │    dedupe  tira as linhas repetidas por uma coluna
+   │    merge   junta as linhas com a mesma chave
    │
    ▼
 planilha do Google Sheets
@@ -111,43 +113,45 @@ planilha do Google Sheets
 
 ### Modos
 
-- **`raw`**: modo padrão, escreve os dados como vieram do banco, sem tratamento nenhum.
-- **`dedupe`**: remove linhas duplicadas com base numa coluna, mantendo a primeira ou a última ocorrência conforme `dedupeStrategy`. A linha descartada some inteira.
-- **`merge`**: junta as linhas que têm a mesma chave numa linha só, e cada coluna do `mergeColumns` diz como os valores se juntam.
+- **`raw`**: é o padrão. Escreve os dados do jeito que vieram do banco.
+- **`dedupe`**: tira as linhas repetidas olhando uma coluna, e fica com a primeira ou a última (`dedupeStrategy`). A linha que sai, sai inteira.
+- **`merge`**: junta as linhas que têm a mesma chave numa só, e cada coluna do `mergeColumns` diz como os valores vão ser juntados.
 
 ### Estratégias do merge
 
-| `strategy`     | O que faz                                                                  | Exemplo com `cor` = azul, verde, azul |
-| -------------- | -------------------------------------------------------------------------- | ------------------------------------- |
-| `concat`       | Junta os valores diferentes numa célula, com o `separator` (padrão `"; "`) | `azul; verde`                         |
-| `overwrite`    | Fica com o último valor preenchido                                         | `azul`                                |
-| `extra-column` | Primeiro valor na coluna, os outros em `<coluna>_2`, `<coluna>_3`...       | `azul`, `verde`, `azul`               |
+| `strategy`     | O que faz                                                                           | Com `cor` = azul, verde, azul fica |
+| -------------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
+| `concat`       | Junta os valores diferentes numa célula, separados pelo `separator` (padrão `"; "`) | `azul; verde`                      |
+| `overwrite`    | Fica com o último valor preenchido                                                  | `azul`                             |
+| `extra-column` | O primeiro fica na coluna e os outros vão pra `<coluna>_2`, `<coluna>_3`...         | `azul`, `verde`, `azul`            |
 
-O `concat` também aceita `distribute` pra espalhar os valores em colunas. Em todas as estratégias célula vazia é ignorada.
+O `concat` também aceita o `distribute`, que espalha os valores em colunas (tem exemplo lá embaixo). E nas três, célula vazia é ignorada.
 
 ## Exemplos, do mais simples ao mais completo
 
-Todos os exemplos abaixo mostram só a parte do `config.json` que importa pro exemplo (os dados do banco e da planilha ficam iguais ao que você já configurou). As tabelas de saída são exatamente o que o ETL escreve na planilha.
+Os exemplos usam uma escola de música e um festival inventados. Em cada um eu mostro só a parte do `config.json` que importa pra ele, o resto (banco, planilha) continua igual ao seu.
 
-### 1. Copiar a tabela do jeito que tá (`raw`)
+As tabelas de saída não foram escritas na mão, elas saíram rodando o ETL de verdade com essas configs. Então é exatamente isso que vai aparecer na planilha.
 
-O mais simples de todos. Nada é tratado, o que vem do banco vai pra planilha.
+### 1. Só copiar (`raw`)
+
+O mais básico. Nada é tratado.
 
 ```json
 { "mode": "raw" }
 ```
 
-| id  | nome  | email             |
-| --- | ----- | ----------------- |
-| 1   | Ana   | `ana@email.com`   |
-| 2   | Bruno | `bruno@email.com` |
-| 3   | Ana   | `ana@email.com`   |
+| id  | nome | email            |
+| --- | ---- | ---------------- |
+| 1   | Lia  | `lia@email.com`  |
+| 2   | Theo | `theo@email.com` |
+| 3   | Lia  | `lia@email.com`  |
 
-Repara que a Ana aparece duas vezes. Os próximos exemplos resolvem isso.
+A Lia tá duas vezes. Os próximos exemplos resolvem isso de jeitos diferentes.
 
-### 2. Tirar linhas repetidas (`dedupe`)
+### 2. Tirar as repetidas (`dedupe`)
 
-Aqui o ETL olha a coluna `email` e deixa só uma linha pra cada valor. Com `keep-last`, fica a última que apareceu.
+O ETL olha a coluna `email` e deixa uma linha só pra cada valor. Com `keep-last` ele fica com a última.
 
 ```json
 {
@@ -159,68 +163,67 @@ Aqui o ETL olha a coluna `email` e deixa só uma linha pra cada valor. Com `keep
 
 Entrada:
 
-| id  | nome      | email             | cidade       |
-| --- | --------- | ----------------- | ------------ |
-| 1   | Ana       | `ana@email.com`   | Pelotas      |
-| 2   | Bruno     | `bruno@email.com` | Rio Grande   |
-| 3   | Ana Souza | `ana@email.com`   | Porto Alegre |
+| id  | nome        | email            | turma   |
+| --- | ----------- | ---------------- | ------- |
+| 1   | Lia         | `lia@email.com`  | segunda |
+| 2   | Theo        | `theo@email.com` | quarta  |
+| 3   | Lia Martins | `lia@email.com`  | sexta   |
 
 Saída:
 
-| id  | nome      | email             | cidade       |
-| --- | --------- | ----------------- | ------------ |
-| 2   | Bruno     | `bruno@email.com` | Rio Grande   |
-| 3   | Ana Souza | `ana@email.com`   | Porto Alegre |
+| id  | nome        | email            | turma  |
+| --- | ----------- | ---------------- | ------ |
+| 2   | Theo        | `theo@email.com` | quarta |
+| 3   | Lia Martins | `lia@email.com`  | sexta  |
 
 O que aconteceu:
 
-- A linha 1 da Ana foi descartada, ficou só a 3.
-- Com `keep-last` a linha que ficou vai pra posição da última ocorrência, por isso o Bruno subiu. Com `keep-first` (o padrão) a ordem original se mantém.
-- O `dedupe` descarta a linha inteira. Se você não quer perder nada, o próximo exemplo é pra você.
+- a primeira linha da Lia foi embora e ficou só a 3
+- como é `keep-last`, a linha que fica vai pro lugar da última que apareceu, por isso o Theo subiu. Com `keep-first` (o padrão) a ordem não muda
+- o `dedupe` joga a linha inteira fora, então a turma de segunda sumiu. Se isso for um problema, o `merge` do próximo exemplo resolve
 
-### 3. Juntar linhas sem perder informação (`merge`)
+### 3. Juntar sem perder nada (`merge`)
 
-O `merge` junta todas as linhas com a mesma chave numa linha só, e você escolhe o que acontece com cada coluna.
+Aqui as linhas com a mesma chave viram uma só, e você escolhe o que acontece com cada coluna.
 
 ```json
 {
     "mode": "merge",
     "mergeKeyColumn": "email",
     "mergeColumns": [
-        { "column": "produto", "strategy": "concat", "separator": ", " },
-        { "column": "status", "strategy": "overwrite" },
-        { "column": "telefone", "strategy": "extra-column" }
+        { "column": "oficina", "strategy": "concat", "separator": ", " },
+        { "column": "plano", "strategy": "overwrite" },
+        { "column": "instrumento", "strategy": "extra-column" }
     ]
 }
 ```
 
 Entrada:
 
-| email             | produto | status   | telefone   |
-| ----------------- | ------- | -------- | ---------- |
-| `ana@email.com`   | Anel    | pendente | 99999-0001 |
-| `ana@email.com`   | Colar   | pago     | 98888-0002 |
-| `ana@email.com`   | Anel    |          |            |
-| `bruno@email.com` | Brinco  | pago     | 97777-0003 |
+| email            | oficina | plano      | instrumento |
+| ---------------- | ------- | ---------- | ----------- |
+| `lia@email.com`  | Violão  | mensal     | violão      |
+| `lia@email.com`  | Canto   | trimestral | voz         |
+| `lia@email.com`  | Violão  |            |             |
+| `theo@email.com` | Bateria | mensal     | bateria     |
 
 Saída:
 
-| email             | produto     | status | telefone   | telefone_2 |
-| ----------------- | ----------- | ------ | ---------- | ---------- |
-| `ana@email.com`   | Anel, Colar | pago   | 99999-0001 | 98888-0002 |
-| `bruno@email.com` | Brinco      | pago   | 97777-0003 |            |
+| email            | oficina       | plano      | instrumento | instrumento_2 |
+| ---------------- | ------------- | ---------- | ----------- | ------------- |
+| `lia@email.com`  | Violão, Canto | trimestral | violão      | voz           |
+| `theo@email.com` | Bateria       | mensal     | bateria     |               |
 
 O que aconteceu:
 
-- `concat` juntou os produtos numa célula só. O "Anel" repetido aparece uma vez.
-- `overwrite` ficou com o último valor preenchido. A linha 3 tinha `status` vazio, então valeu o "pago" da linha 2.
-- `extra-column` criou `telefone_2` pro segundo telefone. Se tivesse um terceiro, ia pra `telefone_3`, e assim vai.
-- Célula vazia é ignorada nas três estratégias.
-- Colunas que não estão no `mergeColumns` ficam com o valor da primeira linha do grupo.
+- `concat` juntou as oficinas numa célula. O "Violão" repetido aparece uma vez só
+- `overwrite` ficou com o último plano preenchido. A terceira linha tava sem plano, então valeu o "trimestral"
+- `extra-column` abriu a `instrumento_2`. Se tivesse um terceiro ia pra `instrumento_3`, e por aí vai
+- as colunas que não estão no `mergeColumns` ficam com o valor da primeira linha
 
-### 4. Chave escrita de jeitos diferentes (normalizador pronto)
+### 4. Mesma chave escrita diferente (normalizador pronto)
 
-Dado de verdade é bagunçado. Esses três e-mails são da mesma pessoa, mas sem normalizador o ETL acha que são três pessoas diferentes.
+Esses três e-mails são da mesma pessoa, mas sem normalizador o ETL acha que são três pessoas.
 
 ```json
 {
@@ -228,145 +231,145 @@ Dado de verdade é bagunçado. Esses três e-mails são da mesma pessoa, mas sem
     "mergeKeyColumn": "email",
     "mergeKeyNormalizer": "lowercase",
     "mergeColumns": [
-        { "column": "produto", "strategy": "concat", "separator": ", " }
+        { "column": "oficina", "strategy": "concat", "separator": ", " }
     ]
 }
 ```
 
 Entrada:
 
-| email            | produto  |
-| ---------------- | -------- |
-| `Ana@Email.com`  | Anel     |
-| ` ana@email.com` | Colar    |
-| `ANA@EMAIL.COM ` | Pulseira |
+| email            | oficina |
+| ---------------- | ------- |
+| `Lia@Email.com`  | Violão  |
+| ` lia@email.com` | Canto   |
+| `LIA@EMAIL.COM ` | Ukulele |
 
 Saída:
 
-| email           | produto               |
-| --------------- | --------------------- |
-| `Ana@Email.com` | Anel, Colar, Pulseira |
+| email           | oficina                |
+| --------------- | ---------------------- |
+| `Lia@Email.com` | Violão, Canto, Ukulele |
 
-O `lowercase` tira os espaços e deixa tudo minúsculo só pra comparar. Na planilha o e-mail continua como veio na primeira linha. Tem outros prontos, e dá pra criar o seu, veja [Normalizadores de chave](#normalizadores-de-chave).
+O `lowercase` tira os espaços e deixa tudo minúsculo só na hora de comparar. Na planilha o e-mail continua como veio na primeira linha. Tem outros prontos e dá pra criar o seu, tá tudo em [Normalizadores de chave](#normalizadores-de-chave).
 
-### 5. Linhas sem chave (padrão)
+### 5. Linhas sem chave (jeito padrão)
 
-E quando a chave tá vazia ou não é válida? Aqui a chave é um CPF, limpo com o `digitsOnly`.
+E se a chave tá vazia ou não serve? Aqui a chave é a matrícula, e o `digitsOnly` deixa só os números dela.
 
 ```json
 {
     "mode": "merge",
-    "mergeKeyColumn": "cpf",
+    "mergeKeyColumn": "matricula",
     "mergeKeyNormalizer": "digitsOnly",
-    "mergeEmptyKeyLabel": "sem CPF",
-    "mergeRejectedKeyLabel": "CPF inválido",
+    "mergeEmptyKeyLabel": "sem matrícula",
+    "mergeRejectedKeyLabel": "matrícula inválida",
     "mergeColumns": [
         { "column": "nome", "strategy": "extra-column" },
-        { "column": "telefone", "strategy": "concat", "separator": " | " }
+        { "column": "oficina", "strategy": "concat", "separator": " | " }
     ]
 }
 ```
 
 Entrada:
 
-| cpf            | nome      | telefone   |
-| -------------- | --------- | ---------- |
-| 111.444.777-35 | Ana       | 99999-0001 |
-| 11144477735    | Ana Paula | 98888-0002 |
-|                | Carla     | 96666-0004 |
-|                | Diego     | 95555-0005 |
-| n/a            | Elisa     | 94444-0006 |
+| matricula | nome        | oficina |
+| --------- | ----------- | ------- |
+| 2024-0042 | Lia         | Violão  |
+| 20240042  | Lia Martins | Canto   |
+|           | Nina        | Piano   |
+|           | Caio        | Bateria |
+| pendente  | Duda        | Flauta  |
 
 Saída:
 
-| cpf            | nome  | nome_2    | telefone                 |
-| -------------- | ----- | --------- | ------------------------ |
-| 111.444.777-35 | Ana   | Ana Paula | 99999-0001 \| 98888-0002 |
-| sem CPF        | Carla |           | 96666-0004               |
-| sem CPF        | Diego |           | 95555-0005               |
-| CPF inválido   | Elisa |           | 94444-0006               |
+| matricula          | nome | nome_2      | oficina         |
+| ------------------ | ---- | ----------- | --------------- |
+| 2024-0042          | Lia  | Lia Martins | Violão \| Canto |
+| sem matrícula      | Nina |             | Piano           |
+| sem matrícula      | Caio |             | Bateria         |
+| matrícula inválida | Duda |             | Flauta          |
 
 O que aconteceu:
 
-- `111.444.777-35` e `11144477735` viraram a mesma chave, então a Ana foi unificada.
-- Carla e Diego não têm CPF. Eles nunca se juntam entre si (seriam pessoas diferentes), vão pro fim da planilha, um por linha, com o rótulo `sem CPF`.
-- O `n/a` da Elisa não tem nenhum número, então o `digitsOnly` rejeitou. Ela vai pro fim também, com o rótulo `CPF inválido`.
+- `2024-0042` e `20240042` viraram a mesma chave, então a Lia foi juntada
+- Nina e Caio não têm matrícula. Eles nunca são juntados entre si (podem ser pessoas diferentes), vão pro fim da planilha, um por linha, com o rótulo `sem matrícula`
+- o `pendente` da Duda não tem nenhum número, então o `digitsOnly` rejeitou e ela foi pro fim com o rótulo `matrícula inválida`
 
-### 6. Linhas sem chave numa linha só (`unkeyed`)
+### 6. Linhas sem chave resumidas (`unkeyed`)
 
-Mesma entrada do exemplo 5, mas agora as linhas sem chave são resumidas.
+Mesma entrada do exemplo 5, só que agora quem não tem chave é resumido numa linha.
 
 ```json
 "mergeColumns": [
   {
     "column": "nome",
     "strategy": "extra-column",
-    "unkeyed": { "strategy": "collapse-column", "into": "Nomes sem CPF", "separator": " | " }
+    "unkeyed": { "strategy": "collapse-column", "into": "Nomes sem matrícula", "separator": " | " }
   },
   {
-    "column": "telefone",
+    "column": "oficina",
     "strategy": "concat",
     "separator": " | ",
-    "unkeyed": { "strategy": "collapse-column", "into": "Telefones sem CPF", "separator": " | " }
+    "unkeyed": { "strategy": "collapse-column", "into": "Oficinas sem matrícula", "separator": " | " }
   }
 ]
 ```
 
 Saída:
 
-| cpf            | nome | nome_2    | telefone                 | Nomes sem CPF  | Telefones sem CPF        |
-| -------------- | ---- | --------- | ------------------------ | -------------- | ------------------------ |
-| 111.444.777-35 | Ana  | Ana Paula | 99999-0001 \| 98888-0002 |                |                          |
-| sem CPF        |      |           |                          | Carla \| Diego | 96666-0004 \| 95555-0005 |
-| CPF inválido   |      |           |                          | Elisa          | 94444-0006               |
+| matricula          | nome | nome_2      | oficina         | Nomes sem matrícula | Oficinas sem matrícula |
+| ------------------ | ---- | ----------- | --------------- | ------------------- | ---------------------- |
+| 2024-0042          | Lia  | Lia Martins | Violão \| Canto |                     |                        |
+| sem matrícula      |      |             |                 | Nina \| Caio        | Piano \| Bateria       |
+| matrícula inválida |      |             |                 | Duda                | Flauta                 |
 
-Agora são no máximo duas linhas no fim: uma pras chaves vazias e outra pras rejeitadas. Só as colunas com `unkeyed` vão junto, as outras ficam de fora nessas linhas.
+Agora sobram no máximo duas linhas no fim: uma pra quem veio sem chave e outra pra quem teve a chave rejeitada. Só as colunas que têm `unkeyed` aparecem nelas, o resto fica de fora.
 
-### 7. Arrumar os dados antes (`fillEmpty` e `combineColumns`)
+### 7. Arrumar antes de tudo (`fillEmpty` e `combineColumns`)
 
-Essas duas etapas rodam antes de qualquer modo, então funcionam até no `raw`.
+Essas duas rodam antes do modo, então funcionam até no `raw`. Aqui é a agenda das aulas.
 
 ```json
 {
     "mode": "raw",
     "fillEmpty": [
-        { "column": "DDD", "default": "53" },
+        { "column": "hora", "default": "19:00" },
         {
-            "column": "cidade_entrega",
-            "fallbackColumns": ["cidade"],
-            "default": "não informada"
+            "column": "sala",
+            "fallbackColumns": ["sala_reserva"],
+            "default": "a definir"
         }
     ],
-    "combineColumns": [{ "into": "Telefone", "columns": ["DDD", "Fone"] }]
+    "combineColumns": [{ "into": "quando", "columns": ["data", "hora"] }]
 }
 ```
 
 Entrada:
 
-| nome  | DDD | Fone       | cidade       | cidade_entrega |
-| ----- | --- | ---------- | ------------ | -------------- |
-| Ana   | 51  | 99999-0001 | Porto Alegre | Canoas         |
-| Bruno |     | 98888-0002 | Pelotas      |                |
-| Carla | 53  |            |              |                |
+| aula    | data  | hora  | sala   | sala_reserva |
+| ------- | ----- | ----- | ------ | ------------ |
+| Violão  | 10/03 | 18:00 | Sala 1 | Sala 2       |
+| Canto   | 12/03 |       |        | Sala 3       |
+| Bateria |       | 20:00 |        |              |
 
 Saída:
 
-| nome  | Telefone      | cidade       | cidade_entrega |
-| ----- | ------------- | ------------ | -------------- |
-| Ana   | 51 99999-0001 | Porto Alegre | Canoas         |
-| Bruno | 53 98888-0002 | Pelotas      | Pelotas        |
-| Carla |               |              | não informada  |
+| aula    | quando      | sala      | sala_reserva |
+| ------- | ----------- | --------- | ------------ |
+| Violão  | 10/03 18:00 | Sala 1    | Sala 2       |
+| Canto   | 12/03 19:00 | Sala 3    | Sala 3       |
+| Bateria |             | a definir |              |
 
 O que aconteceu:
 
-- O Bruno tava sem DDD, ganhou o `53` do `default`, e aí o telefone dele pôde ser montado.
-- A `cidade_entrega` vazia do Bruno puxou a `cidade`. A da Carla não tinha nem `cidade`, então ficou com o `default`.
-- A Carla não tem `Fone`, então o `Telefone` dela ficou vazio em vez de sair só `53`.
-- `DDD` e `Fone` sumiram e o `Telefone` apareceu no lugar deles.
+- a aula de Canto tava sem hora, pegou o `19:00` do `default` e aí deu pra montar o `quando`
+- a sala vazia do Canto puxou a `sala_reserva`. A da Bateria não tinha nem reserva, então ficou `a definir`
+- a Bateria tá sem data, então o `quando` dela ficou vazio em vez de sair só `20:00` pela metade
+- `data` e `hora` sumiram e o `quando` apareceu no lugar delas
 
-### 8. Um valor por coluna (`distribute`)
+### 8. Um valor em cada coluna (`distribute`)
 
-Em vez de juntar tudo numa célula, o `distribute` espalha os valores em colunas. Com `sources`, várias colunas entram na mesma lista.
+Em vez de juntar tudo numa célula, o `distribute` coloca cada valor numa coluna. E com o `sources` dá pra várias colunas entrarem na mesma lista.
 
 ```json
 {
@@ -374,13 +377,13 @@ Em vez de juntar tudo numa célula, o `distribute` espalha os valores em colunas
     "mergeKeyColumn": "email",
     "mergeColumns": [
         {
-            "column": "Fone 1",
+            "column": "instrumento 1",
             "strategy": "concat",
             "separator": " | ",
             "distribute": {
-                "columns": ["Fone 1", "Fone 2"],
-                "sources": ["Fone 2"],
-                "overflowInto": "Outros telefones"
+                "columns": ["instrumento 1", "instrumento 2"],
+                "sources": ["instrumento 2"],
+                "overflowInto": "outros instrumentos"
             }
         }
     ]
@@ -389,26 +392,26 @@ Em vez de juntar tudo numa célula, o `distribute` espalha os valores em colunas
 
 Entrada:
 
-| email             | Fone 1     | Fone 2     |
-| ----------------- | ---------- | ---------- |
-| `ana@email.com`   | 99999-0001 | 3222-0001  |
-| `ana@email.com`   | 99999-0001 | 98888-0002 |
-| `ana@email.com`   | 97777-0003 |            |
-| `bruno@email.com` |            | 96666-0004 |
+| email            | instrumento 1 | instrumento 2 |
+| ---------------- | ------------- | ------------- |
+| `lia@email.com`  | violão        | ukulele       |
+| `lia@email.com`  | violão        | piano         |
+| `lia@email.com`  | voz           |               |
+| `theo@email.com` |               | bateria       |
 
 Saída:
 
-| email             | Fone 1     | Fone 2    | Outros telefones         |
-| ----------------- | ---------- | --------- | ------------------------ |
-| `ana@email.com`   | 99999-0001 | 3222-0001 | 98888-0002 \| 97777-0003 |
-| `bruno@email.com` | 96666-0004 |           |                          |
+| email            | instrumento 1 | instrumento 2 | outros instrumentos |
+| ---------------- | ------------- | ------------- | ------------------- |
+| `lia@email.com`  | violão        | ukulele       | piano \| voz        |
+| `theo@email.com` | bateria       |               |                     |
 
 O que aconteceu:
 
-- A Ana tinha 5 telefones nas duas colunas, com um repetido. Sobraram 4 diferentes: 2 foram pros destinos e 2 pro `Outros telefones`. Nenhum se perdeu.
-- O Bruno só tinha telefone no `Fone 2`, mas ele subiu pro `Fone 1`. A planilha fica sempre preenchida da esquerda pra direita.
+- a Lia tinha 5 instrumentos nas duas colunas, com um repetido. Sobraram 4 diferentes, 2 foram pras colunas e os outros 2 pro `outros instrumentos`. Nenhum se perdeu
+- o Theo só tinha coisa no `instrumento 2`, mas subiu pro `instrumento 1`. A planilha sempre vai sendo preenchida da esquerda pra direita
 
-Sem `overflowInto` o ETL cria a coluna de sobra sozinho:
+Se você não colocar `overflowInto`, o ETL cria a coluna da sobra sozinho:
 
 ```json
 {
@@ -420,21 +423,21 @@ Sem `overflowInto` o ETL cria a coluna de sobra sozinho:
 
 Entrada:
 
-| produto | cor     |
-| ------- | ------- |
-| Anel    | dourado |
-| Anel    | prata   |
-| Anel    | rosé    |
+| produto            | cor    |
+| ------------------ | ------ |
+| Camiseta da escola | preta  |
+| Camiseta da escola | branca |
+| Camiseta da escola | vinho  |
 
 Saída:
 
-| produto | cor_principal | cor_overflow |
-| ------- | ------------- | ------------ |
-| Anel    | dourado       | prata; rosé  |
+| produto            | cor_principal | cor_overflow  |
+| ------------------ | ------------- | ------------- |
+| Camiseta da escola | preta         | branca; vinho |
 
-### 9. Regra diferente por tipo de chave (`byGroup`)
+### 9. Regra diferente pra cada tipo de chave (`byGroup`)
 
-Aqui o normalizador `codigoProduto` (o do guia em [Criando o seu próprio normalizador](#criando-o-seu-próprio-normalizador)) separa as letras do código como `group`. Produtos `AB` ficam com uma cor por coluna, produtos `CD` ficam com as cores juntas numa coluna própria.
+Esse usa o normalizador `codigoProduto` do guia [Criando o seu próprio normalizador](#criando-o-seu-próprio-normalizador), que separa as letras do código como `group`. Os produtos `AB` ficam com uma cor por coluna, e os `CD` ficam com as cores juntas numa coluna só deles.
 
 ```json
 {
@@ -478,209 +481,192 @@ Saída:
 
 O que aconteceu:
 
-- `ab-0042` e `AB 0042` são o mesmo produto, viraram uma linha com `cor` e `cor_2`.
-- `CD0042` tem os mesmos números, mas o grupo é outro, então nunca se junta com o `AB`. As cores dele foram pra `Cores CD`.
-- `XYZ` não tem o formato esperado, o normalizador rejeitou e ele foi pro fim com o rótulo padrão.
+- `ab-0042` e `AB 0042` são o mesmo produto e viraram uma linha com `cor` e `cor_2`
+- o `CD0042` tem os mesmos números, mas é de outro grupo, então nunca junta com o `AB`. As cores dele foram pra `Cores CD`
+- o `XYZ` não tem o formato certo, o normalizador rejeitou e ele foi pro fim com o rótulo padrão
 
-### 10. Tudo junto: cadastro de clientes com CPF e CNPJ
+### 10. Tudo junto: inscrições de um festival
 
-O caso que deu origem ao projeto. Uma base de clientes onde:
+Esse é o exemplo que eu gosto de mostrar. Um festival recebe inscrição de artista solo e de banda na mesma planilha:
 
-- a mesma pessoa aparece várias vezes, com o documento escrito de jeitos diferentes;
-- CPF e CNPJ ficam na mesma coluna e precisam de tratamentos diferentes;
-- tem DDD faltando;
-- tem cliente sem documento ou com documento errado.
+- artista solo se inscreve com e-mail, e às vezes o mesmo artista se inscreve duas vezes
+- banda se inscreve com uma tag (`#nomedabanda`), e cada integrante manda a sua inscrição
+- tem gente que não informou o palco
+- e tem inscrição sem identificação ou com identificação que não vale
 
-Primeiro, um normalizador que entende CPF e CNPJ (em `local/documento.ts`):
+Primeiro um normalizador que sabe separar solo de banda (em `local/inscrito.ts`):
 
 ```ts
 import { KeyNormalizer } from "../src/filters/keyNormalizers";
 
-const documento: KeyNormalizer = (raw) => {
-    const digitos = String(raw).replace(/\D/g, "");
+const inscrito: KeyNormalizer = (raw) => {
+    const texto = String(raw).trim().toLowerCase();
 
-    if (digitos.length === 11) return { key: digitos, group: "cpf" };
-    if (digitos.length === 14) return { key: digitos, group: "cnpj" };
+    if (texto.includes("@")) return { key: texto, group: "solo" };
+    if (texto.startsWith("#"))
+        return { key: texto.replace(/[^a-z0-9]/g, ""), group: "banda" };
 
     return null;
 };
 
-export const normalizers = { documento };
+export const normalizers = { inscrito };
 ```
 
-Depois, o config:
+Aí o config:
 
 ```json
 {
     "mode": "merge",
-    "mergeKeyColumn": "Documento",
-    "normalizerModules": ["./local/documento.ts"],
-    "mergeKeyNormalizer": "documento",
-    "mergeEmptyKeyLabel": "sem documento",
-    "mergeRejectedKeyLabel": "documento inválido",
+    "mergeKeyColumn": "Identificação",
+    "normalizerModules": ["./local/inscrito.ts"],
+    "mergeKeyNormalizer": "inscrito",
+    "mergeEmptyKeyLabel": "sem identificação",
+    "mergeRejectedKeyLabel": "identificação inválida",
     "fillEmpty": [
-        { "column": "DDD 1", "default": "não tem" },
         {
-            "column": "DDD 2",
-            "fallbackColumns": ["DDD 1"],
-            "default": "não tem"
+            "column": "Palco",
+            "fallbackColumns": ["Palco preferido"],
+            "default": "a definir"
         }
     ],
     "mergeColumns": [
-        { "column": "Código", "strategy": "concat", "separator": " | " },
+        { "column": "Inscrição", "strategy": "concat", "separator": " | " },
         {
             "column": "Nome",
             "strategy": "extra-column",
             "byGroup": {
-                "cnpj": {
+                "banda": {
                     "strategy": "concat",
-                    "into": "Nomes CNPJ",
+                    "into": "Integrantes",
                     "separator": " | "
                 }
             },
             "unkeyed": {
                 "strategy": "collapse-column",
-                "into": "Nomes sem documento",
+                "into": "Nomes sem identificação",
                 "separator": " | "
             }
         },
-        { "column": "Documento", "strategy": "overwrite" },
         {
-            "column": "DDD 1",
+            "column": "Estilo 1",
             "strategy": "concat",
             "separator": " | ",
             "distribute": {
-                "columns": ["DDD 1", "DDD 2"],
-                "sources": ["DDD 2"],
-                "overflowInto": "Outros DDDs"
+                "columns": ["Estilo 1", "Estilo 2"],
+                "sources": ["Estilo 2"],
+                "overflowInto": "Outros estilos"
             }
         },
-        {
-            "column": "Fone 1",
-            "strategy": "concat",
-            "separator": " | ",
-            "distribute": {
-                "columns": ["Fone 1", "Fone 2"],
-                "sources": ["Fone 2"],
-                "overflowInto": "Outros telefones"
-            }
-        },
-        { "column": "Cidade", "strategy": "concat", "separator": " | " },
-        { "column": "Ativo", "strategy": "overwrite" }
+        { "column": "Palco", "strategy": "concat", "separator": " | " },
+        { "column": "Confirmado", "strategy": "overwrite" }
     ]
 }
 ```
 
 Entrada:
 
-| Código | Nome          | Documento          | DDD 1 | Fone 1     | DDD 2 | Fone 2     | Cidade       | Ativo |
-| ------ | ------------- | ------------------ | ----- | ---------- | ----- | ---------- | ------------ | ----- |
-| 1      | Ana           | 111.444.777-35     | 53    | 99999-0001 |       | 3222-0001  | Pelotas      | S     |
-| 2      | Ana Paula     | 11144477735        | 51    | 98888-0002 |       | 99999-0001 | Porto Alegre | N     |
-| 3      | Joias Ltda    | 11.222.333/0001-81 |       | 3000-0000  |       |            | Pelotas      | S     |
-| 4      | Joias Ltda ME | 11222333000181     | 53    | 3000-0001  |       |            | Pelotas      | S     |
-| 5      | Bruno         | 22233344405        | 51    | 97777-0000 |       |            | Rio Grande   | S     |
-| 6      | Carla         |                    | 53    | 96666-0000 |       |            | Pelotas      | N     |
-| 7      | Diego         | 123                | 53    | 95555-0000 |       |            | Pelotas      | S     |
+| Inscrição | Nome        | Identificação    | Estilo 1 | Estilo 2 | Palco   | Palco preferido | Confirmado |
+| --------- | ----------- | ---------------- | -------- | -------- | ------- | --------------- | ---------- |
+| 1         | Lia Martins | `lia@email.com`  | MPB      | Folk     | Palco A |                 | sim        |
+| 2         | Lia M.      | ` LIA@email.com` | Folk     | Indie    |         | Palco A         | não        |
+| 3         | Rafa        | #Os Vagalumes    | Rock     |          |         | Palco B         | sim        |
+| 4         | Duda        | #osvagalumes     | Rock     | Punk     | Palco B |                 | sim        |
+| 5         | Theo        | `theo@email.com` | Jazz     |          |         |                 | sim        |
+| 6         | Nina        |                  | Samba    |          | Palco A |                 | sim        |
+| 7         | Caio        | caio             | Rap      |          |         |                 | não        |
 
 Saída:
 
-| Código | Nome  | Nome_2    | Documento          | DDD 1   | Fone 1     | DDD 2 | Fone 2    | Cidade                  | Ativo | Outros telefones | Nomes CNPJ                  | Nomes sem documento |
-| ------ | ----- | --------- | ------------------ | ------- | ---------- | ----- | --------- | ----------------------- | ----- | ---------------- | --------------------------- | ------------------- |
-| 1 \| 2 | Ana   | Ana Paula | 11144477735        | 53      | 99999-0001 | 51    | 3222-0001 | Pelotas \| Porto Alegre | N     | 98888-0002       |                             |                     |
-| 3 \| 4 |       |           | 11222333000181     | não tem | 3000-0000  | 53    | 3000-0001 | Pelotas                 | S     |                  | Joias Ltda \| Joias Ltda ME |                     |
-| 5      | Bruno |           | 22233344405        | 51      | 97777-0000 |       |           | Rio Grande              | S     |                  |                             |                     |
-|        |       |           | sem documento      |         |            |       |           |                         |       |                  |                             | Carla               |
-|        |       |           | documento inválido |         |            |       |           |                         |       |                  |                             | Diego               |
+| Inscrição | Nome        | Nome_2 | Identificação          | Estilo 1 | Estilo 2 | Palco     | Palco preferido | Confirmado | Outros estilos | Integrantes  | Nomes sem identificação |
+| --------- | ----------- | ------ | ---------------------- | -------- | -------- | --------- | --------------- | ---------- | -------------- | ------------ | ----------------------- |
+| 1 \| 2    | Lia Martins | Lia M. | `lia@email.com`        | MPB      | Folk     | Palco A   |                 | não        | Indie          |              |                         |
+| 3 \| 4    |             |        | #Os Vagalumes          | Rock     | Punk     | Palco B   | Palco B         | sim        |                | Rafa \| Duda |                         |
+| 5         | Theo        |        | `theo@email.com`       | Jazz     |          | a definir |                 | sim        |                |              |                         |
+|           |             |        | sem identificação      |          |          |           |                 |            |                |              | Nina                    |
+|           |             |        | identificação inválida |          |          |           |                 |            |                |              | Caio                    |
 
-O que aconteceu, passo a passo:
+O que aconteceu, por partes:
 
-1. **`fillEmpty`**: DDD vazio virou o DDD 1 da mesma linha, e quando nem o DDD 1 existia virou `não tem` (é o caso da Joias Ltda).
-2. **Normalizador**: `111.444.777-35` e `11144477735` viraram a mesma chave no grupo `cpf`. Os dois formatos do CNPJ viraram a mesma chave no grupo `cnpj`. O `123` não tem nem 11 nem 14 dígitos e foi rejeitado.
-3. **`Código`**: os códigos das linhas unificadas ficaram juntos (`1 | 2`), dá pra achar os registros originais no banco.
-4. **`Nome`**: pra CPF, cada nome numa coluna (`Nome`, `Nome_2`). Pra CNPJ, o `byGroup` juntou os nomes em `Nomes CNPJ`.
-5. **Telefones**: os `Fone 1` e `Fone 2` da Ana (4 números, 1 repetido) foram distribuídos, e o que não coube foi pro `Outros telefones`. Os DDDs passam pelo mesmo processo, só que separados dos telefones, então o DDD 2 de uma linha não é necessariamente o DDD do Fone 2.
-6. **`Ativo`**: `overwrite` ficou com o último valor, então se o cadastro mais recente tá inativo, a pessoa aparece inativa.
-7. **Sem chave**: Carla (sem documento) e Diego (documento inválido) foram pro fim, só com o nome, cada um com seu rótulo.
+1. **`fillEmpty`**: quem tava sem palco pegou o `Palco preferido`, e quem não tinha nenhum dos dois ficou com `a definir` (foi o caso do Theo)
+2. **normalizador**: `lia@email.com` e ` LIA@email.com` viraram a mesma chave no grupo `solo`. `#Os Vagalumes` e `#osvagalumes` viraram a mesma no grupo `banda`. O `caio` não é e-mail nem tag, então foi rejeitado
+3. **`Inscrição`**: os números das inscrições juntadas ficaram lado a lado (`1 | 2`), assim dá pra achar as originais
+4. **`Nome`**: pra artista solo cada nome vai numa coluna (`Nome`, `Nome_2`). Pra banda, o `byGroup` juntou os integrantes em `Integrantes`
+5. **estilos**: os estilos da Lia (MPB, Folk, Folk, Indie) viraram três diferentes, dois foram pras colunas e o que sobrou foi pro `Outros estilos`
+6. **`Confirmado`**: o `overwrite` ficou com o último valor, então se a inscrição mais nova diz "não", vale o "não"
+7. **sem chave**: a Nina (sem identificação) e o Caio (identificação inválida) foram pro fim, cada um com seu rótulo
 
 ## Preparando os dados
 
-Antes de rodar o modo (`raw`, `dedupe` ou `merge`), dá pra arrumar as linhas com duas etapas opcionais. Elas rodam nessa ordem: primeiro o `fillEmpty`, depois o `combineColumns`.
+Antes do modo (`raw`, `dedupe` ou `merge`) rodar, dá pra arrumar as linhas com duas etapas opcionais. Elas rodam nessa ordem: primeiro o `fillEmpty`, depois o `combineColumns`. Tem as duas funcionando juntas no [exemplo 7](#7-arrumar-antes-de-tudo-fillempty-e-combinecolumns).
 
 ### Preencher vazios (`fillEmpty`)
 
-Serve pra quando uma coluna vem vazia e dá pra usar o valor de outra coluna no lugar, ou um texto padrão.
+Serve pra quando uma coluna vem vazia e dá pra usar o valor de outra no lugar, ou um texto padrão.
 
 ```json
 "fillEmpty": [
-  { "column": "DDD 1", "default": "não tem" },
-  { "column": "DDD 2", "fallbackColumns": ["DDD 1"], "default": "não tem" }
+  { "column": "hora", "default": "19:00" },
+  { "column": "sala", "fallbackColumns": ["sala_reserva", "sala_antiga"], "default": "a definir" }
 ]
 ```
 
 Como funciona:
 
-- Se a célula de `column` já tem valor, nada muda.
-- Se tá vazia, ele procura em `fallbackColumns`, na ordem, e usa o primeiro que tiver valor.
-- Se nenhuma tiver, usa o `default`. Sem `default`, a célula fica como veio.
-- Conta como vazio: `null`, texto vazio ou só espaços.
-- As regras sempre olham a linha como veio do banco. Então no exemplo, se o `DDD 1` tá vazio, o `DDD 2` recebe `"não tem"` do próprio `default`, e não do `DDD 1` já preenchido. A ordem das regras não muda o resultado.
+- se a célula já tem valor, nada muda
+- se tá vazia, ele procura nas `fallbackColumns`, na ordem, e usa a primeira que tiver alguma coisa
+- se nenhuma tiver, usa o `default`. Sem `default`, a célula fica do jeito que veio
+- conta como vazio: `null`, texto vazio ou só espaço
+- as regras sempre olham a linha do jeito que veio do banco. Então se uma regra usa como reserva uma coluna que outra regra preenche, ela vê o valor original, e não o preenchido. Isso é de propósito, assim a ordem das regras não muda o resultado
 
 ### Juntar colunas (`combineColumns`)
 
-Serve pra transformar várias colunas da mesma linha numa só, tipo DDD e telefone virando um telefone completo.
+Serve pra transformar várias colunas da mesma linha numa só.
 
 ```json
 "combineColumns": [
-  { "into": "Telefone", "columns": ["DDD", "Fone"], "separator": " " }
+  { "into": "nome completo", "columns": ["nome", "sobrenome"], "separator": " " }
 ]
 ```
 
-| DDD | Fone       |     | Telefone      |
-| --- | ---------- | --- | ------------- |
-| 53  | 99999-0001 |     | 53 99999-0001 |
-| 53  | _(vazio)_  |     | _(vazio)_     |
+Entrada:
+
+| nome | sobrenome |
+| ---- | --------- |
+| Lia  | Martins   |
+| Theo |           |
+
+Saída:
+
+| nome completo |
+| ------------- |
+| Lia Martins   |
+|               |
 
 Como funciona:
 
-- Os valores são juntados na ordem de `columns`, com o `separator` (padrão: um espaço).
-- Se alguma das colunas estiver vazia, o resultado fica vazio. Assim não sai um valor pela metade. Se quiser preencher antes, use o `fillEmpty`.
-- As colunas de origem somem da planilha, a não ser que você coloque `"keepSources": true`.
-- A coluna nova aparece no lugar da primeira coluna de origem, e não no fim da planilha.
+- os valores são juntados na ordem de `columns`, com o `separator` (se não colocar, é um espaço)
+- se alguma coluna tiver vazia o resultado fica vazio, pra não sair valor pela metade (por isso o Theo ficou sem). Se quiser evitar isso, usa o `fillEmpty` antes
+- as colunas de origem somem da planilha, a não ser que você coloque `"keepSources": true`
+- a coluna nova aparece no lugar da primeira coluna de origem, e não lá no fim
 
 ## Distribuir valores em várias colunas (`distribute`)
 
-No modo `merge`, o `concat` normalmente junta todos os valores numa célula só (`"azul; verde; roxo"`). Com o `distribute`, cada valor vai pra uma coluna.
+No `merge`, o `concat` normalmente junta tudo numa célula (`"violão; piano; voz"`). Com o `distribute`, cada valor vai pra uma coluna. Tem exemplo completo no [exemplo 8](#8-um-valor-em-cada-coluna-distribute).
 
-```json
-"mergeColumns": [
-  {
-    "column": "Fone 1",
-    "strategy": "concat",
-    "separator": " | ",
-    "distribute": {
-      "columns": ["Fone 1", "Fone 2", "Fone 3"],
-      "sources": ["Fone 2", "Fone 3"],
-      "overflowInto": "Outros telefones"
-    }
-  }
-]
-```
+| Campo          | O que faz                                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `columns`      | As colunas de destino, em ordem. Cada valor diferente vai pra uma                                                     |
+| `sources`      | Opcional. Outras colunas que entram na mesma lista junto com a `column`                                               |
+| `overflowInto` | Opcional. Coluna pro que sobrar quando tem mais valor que coluna. Sem ele, o ETL cria uma `<column>_overflow` sozinho |
 
-| Campo          | O que faz                                                                                                                                 |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `columns`      | Colunas de destino, na ordem. Cada valor diferente vai pra uma                                                                            |
-| `sources`      | Opcional. Outras colunas que entram junto com a `column`. No exemplo, os telefones das três colunas de todas as linhas viram uma lista só |
-| `overflowInto` | Opcional. Coluna pro que sobrar quando tem mais valores que destinos. Sem ele, o projeto cria uma coluna `<column>_overflow` sozinho      |
+Algumas coisas que é bom saber:
 
-Como funciona:
-
-- Valores repetidos aparecem uma vez só.
-- Nenhum valor é descartado. O que não cabe nos destinos vai pro overflow, juntado com o `separator`.
-- As colunas de `column` e `sources` que não são destino somem da planilha.
-- Destino que não recebe valor fica vazio, ele não guarda valor velho da primeira linha.
-- Também vale pra linhas que ficaram sozinhas no grupo, pra planilha sair com as mesmas colunas em todas as linhas.
-- Só funciona com `strategy: "concat"`. Dá pra usar dentro do `byGroup` também, mas não junto com o `into`, porque quem decide as colunas é o `distribute`. Se configurar errado, a validação da config avisa antes de rodar.
+- valor repetido aparece uma vez só
+- nenhum valor é jogado fora. O que não cabe vai pro overflow, separado pelo `separator`
+- as colunas de `column` e `sources` que não são destino somem da planilha
+- coluna de destino que não recebe nada fica vazia, ela não guarda valor velho de outra linha
+- vale também pra linha que ficou sozinha no grupo, pra planilha sair com as mesmas colunas em todas as linhas
+- só funciona com `strategy: "concat"`. Dá pra usar dentro do `byGroup`, mas não junto com o `into`, porque quem decide as colunas aí é o `distribute`. Se configurar errado, a validação avisa antes de rodar
 
 ## Normalizadores de chave
 
