@@ -1,12 +1,13 @@
 import "dotenv/config";
 import { readTable, createPool } from "./db";
 import { writeData, createSheetsClient } from "./sheets";
-import { loadConfig } from "./config";
+import { loadConfig, EtlConfig } from "./config";
 import { options, validateMode } from "./cli";
 import { DedupeFilter } from "./filters/dedupe";
 import { TableRow } from "./types";
 import { MergeFilter } from "./filters/merge";
 import { CombineFilter } from "./filters/combine";
+import { FillEmptyFilter } from "./filters/fillEmpty";
 import {
     registerBuiltinKeyNormalizers,
     loadNormalizerModules,
@@ -14,6 +15,16 @@ import {
 
 async function runRawMode(rows: TableRow[]): Promise<TableRow[]> {
     return rows;
+}
+
+// etapas que rodam antes do modo, na ordem: preencher vazios e depois juntar colunas
+function prepareRows(rows: TableRow[], config: EtlConfig): TableRow[] {
+    let prepared = rows;
+    if (config.fillEmpty)
+        prepared = new FillEmptyFilter(config.fillEmpty).apply(prepared);
+    if (config.combineColumns)
+        prepared = new CombineFilter(config.combineColumns).apply(prepared);
+    return prepared;
 }
 
 async function main() {
@@ -30,9 +41,7 @@ async function main() {
         const rawRows = await readTable(pool, config.tableName);
         console.log(`${rawRows.length} linhas lidas do banco.`);
 
-        const rows = config.combineColumns
-            ? new CombineFilter(config.combineColumns).apply(rawRows)
-            : rawRows;
+        const rows = prepareRows(rawRows, config);
         console.log(`Modo em uso: ${mode}`);
 
         let processedRows: TableRow[];
