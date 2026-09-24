@@ -9,6 +9,11 @@ import { MergeFilter } from "./filters/merge";
 import { CombineFilter } from "./filters/combine";
 import { FillEmptyFilter } from "./filters/fillEmpty";
 import {
+    RowValidator,
+    ValidationResult,
+    DEFAULT_PENDING_SHEET,
+} from "./filters/validate";
+import {
     registerBuiltinKeyNormalizers,
     loadNormalizerModules,
 } from "./filters/normalizers";
@@ -27,6 +32,21 @@ function prepareRows(rows: TableRow[], config: EtlConfig): TableRow[] {
     return prepared;
 }
 
+// linha com problema vai pra aba de pendencias e nao passa pelo modo
+function validateRows(rows: TableRow[], config: EtlConfig): ValidationResult {
+    if (!config.validation) return { valid: rows, pending: [] };
+
+    const validator = new RowValidator(
+        config.validation.rules,
+        config.validation.reasonColumn,
+    );
+    const result = validator.split(rows);
+    console.log(
+        `${result.valid.length} linhas válidas e ${result.pending.length} pendências.`,
+    );
+    return result;
+}
+
 async function main() {
     registerBuiltinKeyNormalizers();
     const configPath = options.config ?? "./config.json";
@@ -41,7 +61,10 @@ async function main() {
         const rawRows = await readTable(pool, config.tableName);
         console.log(`${rawRows.length} linhas lidas do banco.`);
 
-        const rows = prepareRows(rawRows, config);
+        const { valid: rows, pending } = validateRows(
+            prepareRows(rawRows, config),
+            config,
+        );
         console.log(`Modo em uso: ${mode}`);
 
         let processedRows: TableRow[];
@@ -86,6 +109,12 @@ async function main() {
 
         const sheets = createSheetsClient(config);
         await writeData(sheets, config.spreadsheetId, processedRows);
+        if (config.validation) {
+            await writeData(sheets, config.spreadsheetId, pending, {
+                sheetName:
+                    config.validation.pendingSheet ?? DEFAULT_PENDING_SHEET,
+            });
+        }
         console.log("ETL concluído com sucesso!");
     } catch (error) {
         console.error("Deu erro no ETL: ", error);
