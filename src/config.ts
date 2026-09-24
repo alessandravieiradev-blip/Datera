@@ -11,6 +11,20 @@ const mergeColumnStrategySchema = z.enum([
 const distributeSchema = z.object({
     columns: z.array(z.string()).min(1),
     overflowInto: z.string().optional(),
+    sources: z.array(z.string()).optional(),
+});
+
+const combinePartSchema = z.object({
+    column: z.string(),
+    fallbackColumns: z.array(z.string()).optional(),
+    default: z.string().optional(),
+});
+
+const combineColumnsSchema = z.object({
+    into: z.string(),
+    parts: z.array(combinePartSchema).min(1),
+    separator: z.string().optional(),
+    keepSources: z.boolean().optional(),
 });
 
 const distributeOnlyOnConcat = {
@@ -70,6 +84,7 @@ export const etlConfigSchema = z.object({
     mergeRejectedKeyLabel: z.string().optional(),
     mergeKeyNormalizer: z.string().optional(),
     normalizerModules: z.array(z.string()).optional(),
+    combineColumns: z.array(combineColumnsSchema).optional(),
 });
 
 export type EtlConfig = z.infer<typeof etlConfigSchema>;
@@ -104,6 +119,7 @@ export function loadConfig(jsonPath: string): EtlConfig {
         mergeRejectedKeyLabel: jsonConfig.mergeRejectedKeyLabel,
         mergeKeyNormalizer: jsonConfig.mergeKeyNormalizer,
         normalizerModules: jsonConfig.normalizerModules,
+        combineColumns: jsonConfig.combineColumns,
     };
     return etlConfigSchema.parse(finalConfig);
 }
