@@ -123,5 +123,20 @@ describe("etlConfigSchema: opções do merge", () => {
 
         expect(result.success).toBe(false);
     });
-});
 
+    it("aceita byGroup e rejeita estratégia inválida dentro dele", () => {
+        const ok = etlConfigSchema.safeParse({
+            ...base,
+            mergeColumns: [
+                { column: "nome", strategy: "extra-column", byGroup: { AB: { strategy: "concat", into: "Nomes AB" } } },
+            ],
+        });
+        const ruim = etlConfigSchema.safeParse({
+            ...base,
+            mergeColumns: [{ column: "nome", strategy: "extra-column", byGroup: { AB: { strategy: "outra" } } }],
+        });
+
+        expect(ok.success).toBe(true);
+        expect(ruim.success).toBe(false);
+    });
+});

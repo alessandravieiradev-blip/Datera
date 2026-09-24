@@ -21,6 +21,16 @@ export const etlConfigSchema = z.object({
                 column: z.string(),
                 strategy: z.enum(["concat", "overwrite", "extra-column"]),
                 separator: z.string().optional(),
+                byGroup: z
+                    .record(
+                        z.string(),
+                        z.object({
+                            strategy: z.enum(["concat", "overwrite", "extra-column"]),
+                            separator: z.string().optional(),
+                            into: z.string().optional()
+                        })
+                    )
+                    .optional(),
                 unkeyed: z
                     .object({
                         strategy: z.enum(["collapse-column"]),
