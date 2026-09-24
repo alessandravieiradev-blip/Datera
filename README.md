@@ -50,7 +50,7 @@ Campos do modo `merge` (todos opcionais, menos `mergeKeyColumn` e `mergeColumns`
 | Campo | O que faz |
 |---|---|
 | `mergeKeyColumn` | Coluna usada pra saber quais linhas são "a mesma coisa" e devem ser unificadas |
-| `mergeColumns` | Lista de `{ column, strategy, separator?, unkeyed? }`. `strategy` é `"concat"`, `"overwrite"` ou `"extra-column"` |
+| `mergeColumns` | Lista de `{ column, strategy, separator?, byGroup?, unkeyed? }`. `strategy` é `"concat"`, `"overwrite"` ou `"extra-column"` |
 | `mergeEmptyKeyLabel` | Rótulo das linhas com a chave vazia (padrão: `(sem <coluna>)`) |
 | `mergeKeyNormalizer` | Nome do normalizador de chave (veja a seção [Normalizadores de chave](#normalizadores-de-chave)). Padrão: `trim` |
 | `mergeRejectedKeyLabel` | Rótulo das linhas cuja chave o normalizador rejeitou (padrão: `(<coluna> inválido)`) |
@@ -197,6 +197,32 @@ describe("codigoProduto", () => {
 | Dois formatos de ID na mesma coluna (ex: 8 dígitos e 12 dígitos) | Um seu que tire tudo que não é número e use o tamanho como `group` |
 | Valor com texto grudado no fim (`12345abc`) | Um seu que pegue só a parte inicial com uma regex |
 | Valores de "preenchimento" (`n/a`, `0000`, `-`) | Um seu que devolva `null` pra eles |
+
+### Estratégia diferente por grupo
+
+Quando o normalizador devolve um `group`, cada coluna do `mergeColumns` pode ter uma regra própria pra cada grupo, com o `byGroup`. Quem não tem regra usa a `strategy` normal da coluna.
+
+Exemplo com o normalizador `codigoProduto` do guia acima (o `group` são as letras do código). Queremos que os produtos `AB` fiquem em `cor`, `cor_2`, `cor_3`, e que os produtos `CD` tenham todas as cores juntas numa coluna só:
+
+```json
+"mergeColumns": [
+  {
+    "column": "cor",
+    "strategy": "extra-column",
+    "byGroup": {
+      "CD": { "strategy": "concat", "into": "Cores CD", "separator": " | " }
+    }
+  }
+]
+```
+
+Como funciona:
+
+- A chave de `byGroup` (`"CD"`) é o `group` que o normalizador devolve. Maiúscula e minúscula fazem diferença.
+- `strategy` aceita as mesmas três da coluna: `concat`, `overwrite` e `extra-column`.
+- `into` é opcional. Com ele, o valor vai pra uma coluna nova e a coluna original fica vazia nessas linhas. Sem ele, o valor continua na coluna original.
+- `separator` é opcional e vale só pro `concat`.
+- A regra também vale pra linhas que ficaram sozinhas no grupo, pra que todas as linhas do mesmo grupo fiquem no mesmo formato.
 
 ### Cuidados
 

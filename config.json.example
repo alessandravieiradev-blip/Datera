@@ -10,6 +10,7 @@
         {
             "column": "colunanome",
             "strategy": "extra-column",
+            "byGroup": { "NomeDoGrupo": { "strategy": "concat", "into": "Opcional. Nome da coluna nova", "separator": " | " } },
             "unkeyed": { "strategy": "collapse-column", "into": "Opcional. Nome da coluna nova", "separator": " | " }
         },
         { "column": "colunanome2", "strategy": "concat", "separator": " | " },
