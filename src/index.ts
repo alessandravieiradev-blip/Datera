@@ -6,7 +6,11 @@ import { options, validateMode } from "./cli";
 import { DedupeFilter } from "./filters/dedupe";
 import { TableRow } from "./types";
 import { MergeFilter } from "./filters/merge";
-import { registerBuiltinKeyNormalizers, loadNormalizerModules } from "./filters/normalizers";
+import { CombineFilter } from "./filters/combine";
+import {
+    registerBuiltinKeyNormalizers,
+    loadNormalizerModules,
+} from "./filters/normalizers";
 
 async function runRawMode(rows: TableRow[]): Promise<TableRow[]> {
     return rows;
@@ -23,8 +27,12 @@ async function main() {
     const pool = createPool(config);
 
     try {
-        const rows = await readTable(pool, config.tableName);
-        console.log(`${rows.length} linhas lidas do banco.`);
+        const rawRows = await readTable(pool, config.tableName);
+        console.log(`${rawRows.length} linhas lidas do banco.`);
+
+        const rows = config.combineColumns
+            ? new CombineFilter(config.combineColumns).apply(rawRows)
+            : rawRows;
         console.log(`Modo em uso: ${mode}`);
 
         let processedRows: TableRow[];
@@ -34,21 +42,32 @@ async function main() {
                 break;
             case "dedupe": {
                 if (!config.dedupeColumn) {
-                    throw new Error("dedupeColumn não definido na config para o modo dedupe.");
+                    throw new Error(
+                        "dedupeColumn não definido na config para o modo dedupe.",
+                    );
                 }
-                const filter = new DedupeFilter(config.dedupeColumn, config.dedupeStrategy);
+                const filter = new DedupeFilter(
+                    config.dedupeColumn,
+                    config.dedupeStrategy,
+                );
                 processedRows = filter.apply(rows);
                 break;
             }
             case "merge": {
                 if (!config.mergeKeyColumn || !config.mergeColumns) {
-                    throw new Error("mergeKeyColumn/mergeColumns não definidos na config para o modo merge.");
+                    throw new Error(
+                        "mergeKeyColumn/mergeColumns não definidos na config para o modo merge.",
+                    );
                 }
-                const filter = new MergeFilter(config.mergeKeyColumn, config.mergeColumns, {
-                    emptyKeyLabel: config.mergeEmptyKeyLabel,
-                    rejectedKeyLabel: config.mergeRejectedKeyLabel,
-                    keyNormalizer: config.mergeKeyNormalizer
-                });
+                const filter = new MergeFilter(
+                    config.mergeKeyColumn,
+                    config.mergeColumns,
+                    {
+                        emptyKeyLabel: config.mergeEmptyKeyLabel,
+                        rejectedKeyLabel: config.mergeRejectedKeyLabel,
+                        keyNormalizer: config.mergeKeyNormalizer,
+                    },
+                );
                 processedRows = filter.apply(rows);
                 break;
             }
