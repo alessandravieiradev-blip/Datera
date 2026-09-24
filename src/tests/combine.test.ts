@@ -1,70 +1,32 @@
 import { describe, it, expect } from "vitest";
 import { CombineFilter } from "../filters/combine";
-import { CombineColumnsConfig } from "../filters/combineTypes";
-
-const phone = (n: number): CombineColumnsConfig => ({
-    into: `Telefone ${n}`,
-    parts: [
-        {
-            column: `DDD ${n}`,
-            fallbackColumns: n === 1 ? [] : ["DDD 1"],
-            default: "não tem",
-        },
-        { column: `Fone ${n}` },
-    ],
-});
 
 describe("CombineFilter", () => {
-    it("junta as partes com espaço e remove as colunas de origem", () => {
-        const result = new CombineFilter([phone(1)]).apply([
-            { Nome: "Ana", "DDD 1": "53", "Fone 1": "99999-0001" },
-        ]);
+    it("junta as colunas com espaço e remove as colunas de origem", () => {
+        const result = new CombineFilter([
+            { into: "Telefone", columns: ["DDD", "Fone"] },
+        ]).apply([{ Nome: "Ana", DDD: "53", Fone: "99999-0001" }]);
 
-        expect(result).toEqual([
-            { Nome: "Ana", "Telefone 1": "53 99999-0001" },
-        ]);
+        expect(result).toEqual([{ Nome: "Ana", Telefone: "53 99999-0001" }]);
     });
 
-    it("usa a coluna reserva quando a parte está vazia", () => {
-        const result = new CombineFilter([phone(1), phone(2)]).apply([
-            { "DDD 1": "53", "Fone 1": "1111", "DDD 2": "", "Fone 2": "2222" },
+    it("se falta alguma coluna a combinação fica nula", () => {
+        const result = new CombineFilter([
+            { into: "Telefone", columns: ["DDD", "Fone"] },
+        ]).apply([
+            { DDD: "53", Fone: null },
+            { DDD: "  ", Fone: "1111" },
         ]);
 
-        expect(result[0]).toEqual({
-            "Telefone 1": "53 1111",
-            "Telefone 2": "53 2222",
-        });
-    });
-
-    it("usa o default quando nem a coluna nem a reserva têm valor", () => {
-        const result = new CombineFilter([phone(1), phone(2)]).apply([
-            {
-                "DDD 1": null,
-                "Fone 1": "1111",
-                "DDD 2": "  ",
-                "Fone 2": "2222",
-            },
-        ]);
-
-        expect(result[0]).toEqual({
-            "Telefone 1": "não tem 1111",
-            "Telefone 2": "não tem 2222",
-        });
-    });
-
-    it("parte sem default e sem valor deixa a combinação nula", () => {
-        const result = new CombineFilter([phone(1), phone(2)]).apply([
-            { "DDD 1": "53", "Fone 1": "1111", "DDD 2": "11", "Fone 2": null },
-        ]);
-
-        expect(result[0]!["Telefone 2"]).toBeNull();
+        expect(result[0]!.Telefone).toBeNull();
+        expect(result[1]!.Telefone).toBeNull();
     });
 
     it("aceita números, separador próprio e keepSources", () => {
         const result = new CombineFilter([
             {
                 into: "tel",
-                parts: [{ column: "ddd" }, { column: "fone" }],
+                columns: ["ddd", "fone"],
                 separator: "-",
                 keepSources: true,
             },
@@ -74,7 +36,10 @@ describe("CombineFilter", () => {
     });
 
     it("coloca a coluna combinada no lugar da primeira coluna de origem", () => {
-        const result = new CombineFilter([phone(1), phone(2)]).apply([
+        const result = new CombineFilter([
+            { into: "Telefone 1", columns: ["DDD 1", "Fone 1"] },
+            { into: "Telefone 2", columns: ["DDD 2", "Fone 2"] },
+        ]).apply([
             {
                 Nome: "Ana",
                 "DDD 1": "53",
@@ -93,9 +58,18 @@ describe("CombineFilter", () => {
         ]);
     });
 
+    it("uma combinação pode usar a coluna de origem de outra", () => {
+        const result = new CombineFilter([
+            { into: "completo", columns: ["nome", "sobrenome"] },
+            { into: "curto", columns: ["nome"] },
+        ]).apply([{ nome: "Ana", sobrenome: "Souza" }]);
+
+        expect(result[0]).toEqual({ completo: "Ana Souza", curto: "Ana" });
+    });
+
     it("não apaga uma coluna de origem que é o destino de outra combinação", () => {
         const result = new CombineFilter([
-            { into: "a", parts: [{ column: "a" }, { column: "b" }] },
+            { into: "a", columns: ["a", "b"] },
         ]).apply([{ a: "x", b: "y" }]);
 
         expect(result[0]).toEqual({ a: "x y" });

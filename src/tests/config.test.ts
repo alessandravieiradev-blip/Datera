@@ -233,29 +233,30 @@ describe("etlConfigSchema: opções do merge", () => {
         expect(result.success).toBe(false);
     });
 
-    it("aceita distribute.sources e combineColumns", () => {
+    it("aceita distribute.sources, fillEmpty e combineColumns", () => {
         const result = etlConfigSchema.safeParse({
             ...base,
+            fillEmpty: [
+                {
+                    column: "DDD 2",
+                    fallbackColumns: ["DDD 1"],
+                    default: "não tem",
+                },
+            ],
             combineColumns: [
                 {
-                    into: "Telefone 2",
-                    parts: [
-                        {
-                            column: "DDD 2",
-                            fallbackColumns: ["DDD 1"],
-                            default: "não tem",
-                        },
-                        { column: "Fone 2" },
-                    ],
+                    into: "Telefone",
+                    columns: ["DDD 1", "Fone 1"],
+                    separator: " ",
                 },
             ],
             mergeColumns: [
                 {
-                    column: "Telefone 1",
+                    column: "Fone 1",
                     strategy: "concat",
                     distribute: {
-                        columns: ["Telefone 1", "Telefone 2"],
-                        sources: ["Telefone 2"],
+                        columns: ["Fone 1", "Fone 2"],
+                        sources: ["Fone 2"],
                     },
                 },
             ],
@@ -264,17 +265,43 @@ describe("etlConfigSchema: opções do merge", () => {
         expect(result.success).toBe(true);
     });
 
-    it("rejeita combineColumns sem into ou sem parts", () => {
+    it("rejeita fillEmpty sem column e combineColumns sem into ou sem colunas", () => {
+        const fillSemColuna = etlConfigSchema.safeParse({
+            ...base,
+            fillEmpty: [{ default: "x" }],
+        });
         const semInto = etlConfigSchema.safeParse({
             ...base,
-            combineColumns: [{ parts: [{ column: "a" }] }],
+            combineColumns: [{ columns: ["a"] }],
         });
-        const semParts = etlConfigSchema.safeParse({
+        const semColunas = etlConfigSchema.safeParse({
             ...base,
-            combineColumns: [{ into: "x", parts: [] }],
+            combineColumns: [{ into: "x", columns: [] }],
         });
 
+        expect(fillSemColuna.success).toBe(false);
         expect(semInto.success).toBe(false);
-        expect(semParts.success).toBe(false);
+        expect(semColunas.success).toBe(false);
+    });
+
+    it("rejeita into junto com distribute no byGroup", () => {
+        const result = etlConfigSchema.safeParse({
+            ...base,
+            mergeColumns: [
+                {
+                    column: "cor",
+                    strategy: "concat",
+                    byGroup: {
+                        AB: {
+                            strategy: "concat",
+                            into: "Cores",
+                            distribute: { columns: ["cor_1"] },
+                        },
+                    },
+                },
+            ],
+        });
+
+        expect(result.success).toBe(false);
     });
 });
