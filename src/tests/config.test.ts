@@ -304,4 +304,52 @@ describe("etlConfigSchema: opções do merge", () => {
 
         expect(result.success).toBe(false);
     });
+
+    it("aceita validation com as quatro regras", () => {
+        const result = etlConfigSchema.safeParse({
+            ...base,
+            validation: {
+                pendingSheet: "Pendências",
+                reasonColumn: "Motivo",
+                rules: [
+                    { column: "nome", rule: "required" },
+                    {
+                        column: "email",
+                        rule: "pattern",
+                        pattern: "@",
+                        flags: "i",
+                    },
+                    {
+                        column: "plano",
+                        rule: "oneOf",
+                        values: ["mensal"],
+                        ignoreCase: true,
+                    },
+                    {
+                        column: "matricula",
+                        rule: "normalizer",
+                        normalizer: "digitsOnly",
+                        message: "matrícula inválida",
+                    },
+                ],
+            },
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("rejeita regra desconhecida, regex inválida, oneOf sem valores e lista de regras vazia", () => {
+        const configs = [
+            { rules: [{ column: "a", rule: "outra" }] },
+            { rules: [{ column: "a", rule: "pattern", pattern: "(" }] },
+            { rules: [{ column: "a", rule: "oneOf", values: [] }] },
+            { rules: [] },
+        ];
+
+        for (const validation of configs) {
+            expect(
+                etlConfigSchema.safeParse({ ...base, validation }).success,
+            ).toBe(false);
+        }
+    });
 });
