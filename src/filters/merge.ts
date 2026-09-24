@@ -9,6 +9,8 @@ import { KeyNormalizer, getKeyNormalizer } from "./keyNormalizers";
 
 type CellValue = string | number | null;
 
+const DEFAULT_SEPARATOR = "; ";
+
 const identityNormalizer: KeyNormalizer = (raw) => ({
     key: typeof raw === "string" ? raw.trim() : raw,
 });
@@ -108,7 +110,7 @@ export class MergeFilter implements Filter<TableRow> {
                 column,
                 result,
                 distribute!,
-                separator ?? "; ",
+                separator ?? DEFAULT_SEPARATOR,
             );
         }
         return result;
@@ -122,7 +124,8 @@ export class MergeFilter implements Filter<TableRow> {
             const override =
                 category === undefined ? undefined : byGroup?.[category];
             const target = override?.into ?? column;
-            const finalSeparator = override?.separator ?? separator ?? "; ";
+            const finalSeparator =
+                override?.separator ?? separator ?? DEFAULT_SEPARATOR;
             const resolvedStrategy = override?.strategy ?? strategy;
             const finalDistribute = override?.distribute ?? distribute;
 
@@ -173,7 +176,7 @@ export class MergeFilter implements Filter<TableRow> {
 
         for (const { column, unkeyed } of collapsing) {
             const target = unkeyed?.into ?? `${column} ${label}`;
-            const separator = unkeyed?.separator ?? "; ";
+            const separator = unkeyed?.separator ?? DEFAULT_SEPARATOR;
             collapsed[target] = this.presentValues(rows, column)
                 .map(String)
                 .join(separator);
