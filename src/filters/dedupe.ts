@@ -23,8 +23,8 @@ export class DedupeFilter implements Filter<TableRow> {
             if (!seen.has(key)) {
                 seen.set(key, row);
             } else if (this.strategy === "keep-last") {
-                seen.delete(key);   // remove a posição antiga da chave
-                seen.set(key, row); // reinsere no fim, com o valor mais recente
+                seen.delete(key);
+                seen.set(key, row);
             }
         }
 

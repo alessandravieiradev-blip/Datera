@@ -7,7 +7,7 @@ program
     .option("--mode <modo>", "Modo de execução do ETL (sobrescreve o mode do config.json).");
 program.parse();
 
-export const VALID_MODES = ["raw", "dedupe"] as const;
+export const VALID_MODES = ["raw", "dedupe", "merge"] as const;
 export type Mode = (typeof VALID_MODES)[number];
 
 export function validateMode(value: string): Mode {
