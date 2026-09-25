@@ -9,18 +9,9 @@ async function main() {
             { id: 2, nome: "Maria Antonia", email: "mariaantonia@gmail.com" },
         ];
 
-        const sheets = createSheetsClient({
-            credentialsPath: requireEnv("GOOGLE_SERVICE_ACCOUNT_KEY_PATH"),
-            spreadsheetId: requireEnv("GOOGLE_SPREADSHEET_ID"),
-            tableName: "",
-            dbHost: "",
-            dbPort: 0,
-            dbUser: "",
-            dbPassword: "",
-            dbName: "",
-            mode: "raw",
-            dedupeStrategy: "keep-first",
-        });
+        const sheets = createSheetsClient(
+            requireEnv("GOOGLE_SERVICE_ACCOUNT_KEY_PATH"),
+        );
 
         const spreadsheetId = requireEnv("GOOGLE_SPREADSHEET_ID");
 

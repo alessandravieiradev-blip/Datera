@@ -1,56 +1,14 @@
 import { google, sheets_v4 } from "googleapis";
-import { EtlConfig } from "./config";
 import { TableRow } from "./types";
+import { buildHeader } from "./io/header";
 
-export function createSheetsClient(config: EtlConfig): sheets_v4.Sheets {
+export function createSheetsClient(credentialsPath: string): sheets_v4.Sheets {
     const auth = new google.auth.GoogleAuth({
-        keyFile: config.credentialsPath,
+        keyFile: credentialsPath,
         scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
     return google.sheets({ version: "v4", auth });
-}
-
-function buildHeader(data: TableRow[]): string[] {
-    const seen = new Set<string>();
-    const orderedKeys: string[] = [];
-
-    for (const row of data) {
-        for (const key of Object.keys(row)) {
-            if (!seen.has(key)) {
-                seen.add(key);
-                orderedKeys.push(key);
-            }
-        }
-    }
-
-    const suffixPattern = /^(.+)_(\d+)$/;
-    const variantsByBase = new Map<string, number[]>();
-    const baseKeys: string[] = [];
-
-    for (const key of orderedKeys) {
-        const match = key.match(suffixPattern);
-        if (match && seen.has(match[1]!)) {
-            const base = match[1]!;
-            const n = Number(match[2]!);
-            if (!variantsByBase.has(base)) variantsByBase.set(base, []);
-            variantsByBase.get(base)!.push(n);
-        } else {
-            baseKeys.push(key);
-        }
-    }
-
-    const header: string[] = [];
-    for (const base of baseKeys) {
-        header.push(base);
-        const variants = variantsByBase.get(base);
-        if (variants) {
-            variants.sort((a, b) => a - b);
-            for (const n of variants) header.push(`${base}_${n}`);
-        }
-    }
-
-    return header;
 }
 
 interface TargetSheet {
