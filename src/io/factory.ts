@@ -1,12 +1,12 @@
 import { EtlConfig } from "../config";
-import { createSheetsClient } from "../sheets";
+import { createSheetsClient } from "./sheets/client";
 import { Sink, Source } from "./types";
-import { MysqlSource } from "./mysqlSource";
-import { CsvSource } from "./csvSource";
-import { JsonSource } from "./jsonSource";
-import { SheetsSink } from "./sheetsSink";
-import { CsvSink } from "./csvSink";
-import { JsonSink } from "./jsonSink";
+import { MysqlSource } from "./mysql/mysqlSource";
+import { CsvSource } from "./csv/csvSource";
+import { JsonSource } from "./json/jsonSource";
+import { SheetsSink } from "./sheets/sheetsSink";
+import { CsvSink } from "./csv/csvSink";
+import { JsonSink } from "./json/jsonSink";
 
 const DEFAULT_MYSQL_PORT = 3306;
 
