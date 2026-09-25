@@ -16,6 +16,7 @@ credentials.json
 
 # Normalizadores e testes locais, fora do repositório
 local/
+normalizadores.cjs
 
 # Logs
 *.log

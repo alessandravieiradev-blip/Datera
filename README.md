@@ -1118,7 +1118,9 @@ O que dá pra fazer nele:
 - no Início, ver os números e gráficos da última exportação e como as pendências foram mudando
 - no Histórico, ver todas as vezes que rodou
 
-Ele usa o mesmo motor do terminal por baixo, então a config que você faz num serve no outro. As regras mais avançadas (normalizador, regex própria, merge com estratégia por coluna) ainda só dão pra configurar no arquivo, e o app mostra elas como "regra avançada" sem estragar nada.
+Quando as regras prontas não bastam, escolhe "Outra regra..." na lista. Ali tem três caminhos: um formato próprio (com modelos tipo CEP e horário, e um testador pra ver na hora o que passa), um normalizador (o app cria um `normalizadores.cjs` de exemplo do lado da config e explica como mexer, precisa só de lógica de programação) e um "não sei fazer", que mostra o que pedir pra alguém que programe.
+
+Ele usa o mesmo motor do terminal por baixo, então a config que você faz num serve no outro. O merge com estratégia por coluna e as regras por grupo ainda só dão pra configurar no arquivo, e o app não estraga essas partes quando salva.
 
 ## Usando dentro de outro código
 
