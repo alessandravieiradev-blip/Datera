@@ -70,6 +70,7 @@ Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coi
 - [Separar as pendências](#separar-as-pendências-validation)
 - [Normalizadores de chave](#normalizadores-de-chave)
 - [Rodando](#rodando)
+- [Usando dentro de outro código](#usando-dentro-de-outro-código)
 - [Testes](#testes)
 - [Estrutura](#estrutura)
 
@@ -315,6 +316,7 @@ O que precisa saber:
 - cada um é uma função que recebe o `options` da config e devolve um objeto. Fonte tem que ter `read()`, que devolve a lista de linhas. Destino tem que ter `write(rows, { name })`, e o `name` vem preenchido quando é a saída de pendências
 - pode ser `.ts` (funciona com `npm start`), `.js` ou `.cjs`
 - se o nome não existir, ou se a função não devolver o objeto certo, ele avisa antes de começar
+- a função também recebe um segundo parâmetro com o `logger`. Se quiser mostrar alguma mensagem do mesmo jeito que o resto do ETL, é só usar `context.logger.info("...")`
 
 ## Exemplos, do mais simples ao mais completo
 
@@ -1065,7 +1067,65 @@ Pra usar outro arquivo de config:
 npm start -- --config ./outro-config.json
 ```
 
+Se você quer ver o que vai sair antes de mexer na planilha de verdade, usa o `--dry-run`. Ele faz tudo igualzinho, só que não grava nada, e no fim mostra as primeiras linhas do resultado numa tabelinha:
+
+```bash
+npm start -- --dry-run
+```
+
+Com o exemplo dá pra testar assim: `npm run example -- --dry-run`.
+
+No final de toda execução aparece um resumo com quantas linhas entraram e saíram de cada etapa. Esse é o do exemplo:
+
+```text
+Resumo da execução
+  Modo: merge
+  Linhas lidas: 7
+  fillEmpty: de 7 para 7 (0 ms)
+  validation: de 7 para 4, 3 pendências (1 ms)
+  merge: de 4 para 3 (0 ms)
+  Linhas no resultado: 3
+  Pendências: 3
+  Tempo total: 5 ms
+```
+
+Isso ajuda bastante quando o resultado vem estranho, porque dá pra ver em qual etapa as linhas sumiram.
+
+Se der erro, ele mostra a mensagem e termina com código 1. Então dá pra colocar num script ou num agendador sem ele fingir que deu tudo certo.
+
 Uma coisa importante: toda vez que roda, ele limpa a aba antes de escrever (a primeira aba e a de pendências, se tiver `validation`). Assim não sobra linha velha. Então não deixa anotação sua nessas abas, usa outra aba.
+
+## Usando dentro de outro código
+
+Também dá pra chamar o Datera de dentro de outro projeto, sem ser pelo terminal. É o mesmo código que o `npm start` usa por baixo:
+
+```ts
+import { formatReport, loadConfig, runEtl } from "./src";
+
+async function rodar() {
+    const config = loadConfig("./config.json");
+    const report = await runEtl(config, { dryRun: true });
+
+    console.log(formatReport(report).join("\n"));
+    console.log(report.preview);
+}
+
+rodar();
+```
+
+O `runEtl` devolve um relatório com as mesmas informações do resumo (`rowsRead`, `rowsOut`, `pendingRows`, `steps` e `durationMs`). No dry-run ele também traz as primeiras linhas do resultado em `preview`.
+
+As opções que ele aceita:
+
+| Opção            | O que faz                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `mode`           | troca o modo, igual o `--mode`                                                                                                       |
+| `dryRun`         | faz tudo mas não grava nada                                                                                                          |
+| `logger`         | pra onde vão as mensagens. O padrão é o console, o `silentLogger` não mostra nada e dá pra passar o seu com `info`, `warn` e `error` |
+| `source`, `sink` | uma fonte e um destino prontos, no lugar dos que viriam da config. Eu uso isso nos testes pra ler e escrever na memória              |
+| `previewSize`    | quantas linhas vêm no `preview` (o padrão é 5)                                                                                       |
+
+Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch`.
 
 ## Testes
 
@@ -1082,10 +1142,18 @@ Uma coisa importante: toda vez que roda, ele limpa a aba antes de escrever (a pr
 
 ```text
 src/
-  cli.ts                  # argumentos da linha de comando (--config, --mode)
+  cli.ts                  # argumentos da linha de comando (--config, --mode, --dry-run)
   env.ts                  # ajuda pra ler variável de ambiente
-  index.ts                # entrada: liga fonte → preparação → filtro → destino
+  main.ts                 # o que o npm start roda: lê a config, chama o runEtl e mostra o resumo
+  index.ts                # o que dá pra importar de fora (runEtl, loadConfig, registrar adapter...)
+  logger.ts               # pra onde vão as mensagens (console, silencioso ou memória)
   types.ts                # TableRow, o formato de linha que todo mundo usa
+  pipeline/
+    runEtl.ts             # lê da fonte, passa pelas etapas e grava no destino
+    steps.ts              # monta a lista de etapas a partir da config
+    modes.ts              # raw, dedupe e merge
+    report.ts             # monta o resumo do final
+    types.ts              # Step e EtlReport
   config/
     index.ts              # o que o resto do projeto importa da config
     schema.ts             # o schema zod da config inteira
@@ -1119,7 +1187,7 @@ src/
     registry.ts           # onde os normalizadores ficam registrados
     builtin.ts            # os prontos (trim, lowercase, digitsOnly, alphanumeric)
     loader.ts             # carrega normalizador de arquivo seu
-  tests/                  # testes (Vitest), nas mesmas pastas do código: io/, filters/, normalizers/
+  tests/                  # testes (Vitest), nas mesmas pastas do código: io/, filters/, normalizers/, pipeline/
 examples/                 # CSV e config de exemplo (npm run example)
 local/                    # (ignorada pelo git) seus normalizadores e testes pessoais
 scripts/                  # scripts pra testar na mão (banco, config, sheets)
@@ -1128,5 +1196,5 @@ scripts/                  # scripts pra testar na mão (banco, config, sheets)
 
 ## Ainda falta
 
-- pipeline de filtros configurável (hoje os modos são um switch fixo no `index.ts`)
+- uma tela pra usar sem terminal (é o próximo passo)
 - build de produção (hoje roda tudo pelo `tsx`)
