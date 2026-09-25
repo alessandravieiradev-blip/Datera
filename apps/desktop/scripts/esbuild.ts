@@ -7,8 +7,12 @@ export const outDir = path.join(appDir, "out");
 const rendererSrc = path.join(appDir, "src", "renderer");
 const rendererOut = path.join(outDir, "renderer");
 
-export function nodeOptions(): BuildOptions {
+export function nodeOptions(production: boolean = false): BuildOptions {
+    const dependencies: BuildOptions = production
+        ? { external: ["electron", "tsx", "tsx/*"], minify: true }
+        : { packages: "external", sourcemap: true };
     return {
+        ...dependencies,
         entryPoints: {
             "main/index": path.join(appDir, "src", "main", "index.ts"),
             "preload/index": path.join(appDir, "src", "preload", "index.ts"),
@@ -18,8 +22,6 @@ export function nodeOptions(): BuildOptions {
         platform: "node",
         format: "cjs",
         target: "node22",
-        packages: "external",
-        sourcemap: true,
         logLevel: "info",
     };
 }

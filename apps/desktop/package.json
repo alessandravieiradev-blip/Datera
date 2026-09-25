@@ -3,22 +3,23 @@
     "version": "0.1.0",
     "private": true,
     "description": "Aplicativo do Datera pra usar sem terminal.",
+    "author": "Alessandra Vieira",
     "main": "out/main/index.js",
     "scripts": {
         "dev": "tsx scripts/dev.ts",
         "build": "tsx scripts/build.ts",
         "start": "npm run build && electron .",
-        "typecheck": "tsc --noEmit -p ."
+        "typecheck": "tsc --noEmit -p .",
+        "dist": "tsx scripts/dist.ts"
     },
     "devDependencies": {
+        "@fontsource/inter": "^5.3.0",
+        "@fontsource/poppins": "^5.3.0",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
         "electron": "^44.4.5",
-        "esbuild": "^0.28.2"
-    },
-    "dependencies": {
-        "@fontsource/inter": "^5.3.0",
-        "@fontsource/poppins": "^5.3.0",
+        "electron-builder": "^26.15.3",
+        "esbuild": "^0.28.2",
         "react": "^19.3.0",
         "react-dom": "^19.3.0"
     }

@@ -51,6 +51,8 @@ function createWindow(): void {
     if (isDev) reloadOnRendererChange(window);
 }
 
+app.setAppUserModelId("io.github.alessandravieiradev.datera");
+
 app.whenReady().then(() => {
     registerIpc();
     createWindow();
