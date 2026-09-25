@@ -10,6 +10,7 @@ import { JsonSink } from "./json/jsonSink";
 import { ExcelSource } from "./excel/excelSource";
 import { ExcelSink } from "./excel/excelSink";
 import { SheetsSource } from "./sheets/sheetsSource";
+import { createCustomSink, createCustomSource } from "./custom/registry";
 
 const DEFAULT_MYSQL_PORT = 3306;
 
@@ -61,6 +62,8 @@ export function createSource(config: EtlConfig): Source {
                 source.sheet,
             );
         }
+        case "custom":
+            return createCustomSource(source.adapter, source.options ?? {});
     }
 }
 
@@ -89,6 +92,11 @@ export function createSink(config: EtlConfig): Sink {
             return new JsonSink(destination);
         case "excel":
             return new ExcelSink(destination);
+        case "custom":
+            return createCustomSink(
+                destination.adapter,
+                destination.options ?? {},
+            );
     }
 }
 

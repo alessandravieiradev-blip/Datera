@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { createSink, createSource } from "./io/factory";
+import { loadAdapterModules } from "./io/custom/loader";
 import { Source } from "./io/types";
 import { loadConfig, EtlConfig } from "./config";
 import { options, validateMode } from "./cli";
@@ -50,6 +51,7 @@ async function main() {
     const configPath = options.config ?? "./config.json";
     const config = loadConfig(configPath);
     loadNormalizerModules(config.normalizerModules ?? []);
+    loadAdapterModules(config.adapterModules ?? []);
 
     const mode = validateMode(options.mode ?? config.mode ?? "raw");
 
