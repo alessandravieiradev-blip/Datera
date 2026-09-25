@@ -24,27 +24,36 @@ function quoteSheetTitle(title: string): string {
     return `'${title.replace(/'/g, "''")}'`;
 }
 
+async function listSheets(
+    sheets: sheets_v4.Sheets,
+    spreadsheetId: string,
+): Promise<TargetSheet[]> {
+    const response = await sheets.spreadsheets.get({
+        spreadsheetId,
+        fields: "sheets.properties(sheetId,title)",
+    });
+    const found: TargetSheet[] = [];
+    for (const sheet of response.data.sheets ?? []) {
+        const { title, sheetId } = sheet.properties ?? {};
+        if (title && sheetId !== null && sheetId !== undefined) {
+            found.push({ title, sheetId });
+        }
+    }
+    return found;
+}
+
 async function resolveSheet(
     sheets: sheets_v4.Sheets,
     spreadsheetId: string,
     sheetName: string | undefined,
 ): Promise<TargetSheet> {
-    const response = await sheets.spreadsheets.get({
-        spreadsheetId,
-        fields: "sheets.properties(sheetId,title)",
-    });
-    const existing = (response.data.sheets ?? []).map(
-        (sheet) => sheet.properties,
-    );
-
+    const existing = await listSheets(sheets, spreadsheetId);
     const found =
         sheetName === undefined
             ? existing[0]
-            : existing.find((properties) => properties?.title === sheetName);
+            : existing.find((sheet) => sheet.title === sheetName);
 
-    if (found?.title && found.sheetId !== null && found.sheetId !== undefined) {
-        return { title: found.title, sheetId: found.sheetId };
-    }
+    if (found) return found;
 
     if (sheetName === undefined) {
         throw new Error("A planilha não tem nenhuma aba pra escrever.");
@@ -63,6 +72,35 @@ async function resolveSheet(
 
     console.log(`Aba "${sheetName}" criada.`);
     return { title: sheetName, sheetId };
+}
+
+export async function readSheet(
+    sheets: sheets_v4.Sheets,
+    spreadsheetId: string,
+    sheetName?: string,
+): Promise<unknown[][]> {
+    const existing = await listSheets(sheets, spreadsheetId);
+    const target =
+        sheetName === undefined
+            ? existing[0]
+            : existing.find((sheet) => sheet.title === sheetName);
+
+    if (!target) {
+        const names = existing.map((sheet) => sheet.title).join(", ");
+        throw new Error(
+            sheetName === undefined
+                ? "A planilha não tem nenhuma aba pra ler."
+                : `Aba "${sheetName}" não encontrada na planilha. Abas: ${names}`,
+        );
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: quoteSheetTitle(target.title),
+        valueRenderOption: "UNFORMATTED_VALUE",
+        dateTimeRenderOption: "FORMATTED_STRING",
+    });
+    return response.data.values ?? [];
 }
 
 async function formatSheet(
