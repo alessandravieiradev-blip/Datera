@@ -638,3 +638,383 @@ code {
     border-radius: var(--radius-small);
     background: var(--background);
 }
+
+.welcome-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.header-with-icon {
+    display: flex;
+    gap: 20px;
+}
+
+.header-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: var(--blue-soft);
+    color: var(--blue);
+}
+
+.tip {
+    display: flex;
+    gap: 12px;
+    max-width: 300px;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    background: var(--blue-softer);
+    color: var(--blue);
+}
+
+.tip strong {
+    color: var(--text);
+}
+
+.tip p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.rules {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.rule-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+}
+
+.field {
+    min-width: 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+    background: var(--background);
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+}
+
+.rule-row .field {
+    width: 180px;
+}
+
+.rule-row select.field {
+    width: 240px;
+}
+
+.rule-row .chip {
+    min-width: 0;
+}
+
+.field:focus {
+    border-color: var(--blue-light);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--blue-soft);
+}
+
+.small-field {
+    width: 200px;
+}
+
+.icon-button {
+    display: inline-flex;
+    margin-left: auto;
+    padding: 8px;
+    border: none;
+    border-radius: var(--radius-small);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    background: var(--error-soft);
+    color: var(--error-text);
+}
+
+.rule-problem {
+    width: 100%;
+    margin: 0;
+    padding-left: 54px;
+    color: var(--error-text);
+    font-size: 13px;
+}
+
+.add-rule {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    border: 1.5px dashed var(--blue-light);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.add-rule:hover {
+    background: var(--blue-softer);
+}
+
+.add-rule strong {
+    display: block;
+    color: var(--blue);
+    font-family: var(--font-title);
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.add-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--blue-light);
+    border-radius: 50%;
+    color: var(--blue);
+    font-size: 22px;
+}
+
+.choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.choice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.choice input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--blue);
+}
+
+.choice.disabled {
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.page-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.wizard-footer {
+    justify-content: space-between;
+}
+
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stepper {
+    display: flex;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.stepper li {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.stepper li:not(:last-child)::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.stepper li.current {
+    color: var(--blue);
+    font-weight: 500;
+}
+
+.stepper li.done {
+    color: var(--text);
+}
+
+.step-number {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    font-weight: 600;
+}
+
+.current .step-number {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: #fff;
+}
+
+.done .step-number {
+    border-color: var(--success);
+    background: var(--success);
+    color: #fff;
+}
+
+.step-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.step-body > h2 {
+    margin-top: 8px;
+}
+
+.option-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.option-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 240px;
+    padding: 26px 24px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.option-card:hover {
+    border-color: var(--blue-light);
+}
+
+.option-card.selected {
+    border-color: var(--blue);
+    background: var(--blue-softer);
+    box-shadow: 0 0 0 3px var(--blue-soft);
+}
+
+.option-card strong {
+    margin-top: 8px;
+    font-family: var(--font-title);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.option-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: var(--blue-soft);
+    color: var(--blue);
+}
+
+.radio-dot {
+    width: 22px;
+    height: 22px;
+    margin-top: auto;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+}
+
+.selected .radio-dot {
+    border: 6px solid var(--blue);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.file-picker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 8px 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+    background: var(--background);
+}
+
+.file-picker span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.summary p {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.summary svg {
+    color: var(--blue);
+}

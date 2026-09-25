@@ -17,7 +17,9 @@ export type IconName =
     | "sparkle"
     | "info"
     | "calendar"
-    | "folder";
+    | "folder"
+    | "trash"
+    | "arrowLeft";
 
 const PATHS: Record<IconName, string[]> = {
     home: ["M3 10.5 12 3l9 7.5", "M5 9.5V21h5v-6h4v6h5V9.5"],
@@ -66,6 +68,14 @@ const PATHS: Record<IconName, string[]> = {
     ],
     info: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M12 11v5", "M12 8h.01"],
     calendar: ["M4 6h16v14H4z", "M4 10h16", "M8 3v4", "M16 3v4"],
+    trash: [
+        "M4 7h16",
+        "M10 11v6",
+        "M14 11v6",
+        "M6 7l1 13h10l1-13",
+        "M9 7V4h6v3",
+    ],
+    arrowLeft: ["M19 12H5", "M11 6l-6 6 6 6"],
     folder: [
         "M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z",
     ],

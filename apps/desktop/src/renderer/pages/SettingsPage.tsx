@@ -1,12 +1,14 @@
 import { Icon } from "../components/Icon";
 import { Panel } from "../components/Panel";
+import { PageId } from "../components/Sidebar";
 import { DateraState } from "../lib/useDatera";
 
 interface SettingsPageProps {
     datera: DateraState;
+    onNavigate: (page: PageId) => void;
 }
 
-export function SettingsPage({ datera }: SettingsPageProps) {
+export function SettingsPage({ datera, onNavigate }: SettingsPageProps) {
     const { configPath } = datera.settings;
 
     return (
@@ -34,6 +36,14 @@ export function SettingsPage({ datera }: SettingsPageProps) {
                             dessa pasta.
                         </p>
                     </div>
+                    <button
+                        type="button"
+                        className="button ghost"
+                        disabled={datera.running}
+                        onClick={() => onNavigate("assistente")}
+                    >
+                        Criar nova
+                    </button>
                     <button
                         type="button"
                         className="button secondary"

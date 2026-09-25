@@ -9,6 +9,7 @@ export interface DateraState {
     lastRun: RunRecord | undefined;
     log: LogEntry[];
     chooseConfig: () => Promise<void>;
+    applySettings: (settings: Settings) => void;
     run: (dryRun: boolean) => Promise<RunRecord>;
     openHelp: () => void;
 }
@@ -38,6 +39,10 @@ export function useDatera(): DateraState {
         setSettings(await window.datera.chooseConfig());
     }, []);
 
+    const applySettings = useCallback((next: Settings) => {
+        setSettings(next);
+    }, []);
+
     const run = useCallback(async (dryRun: boolean) => {
         setRunning(true);
         setLog([]);
@@ -64,6 +69,7 @@ export function useDatera(): DateraState {
         lastRun,
         log,
         chooseConfig,
+        applySettings,
         run,
         openHelp,
     };

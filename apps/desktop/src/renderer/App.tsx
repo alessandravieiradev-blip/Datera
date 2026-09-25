@@ -6,6 +6,7 @@ import { ExportPage } from "./pages/ExportPage";
 import { RulesPage } from "./pages/RulesPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SetupWizard } from "./pages/SetupWizard";
 
 export function App() {
     const [page, setPage] = useState<PageId>("inicio");
@@ -14,7 +15,7 @@ export function App() {
     return (
         <div className="app">
             <Sidebar
-                current={page}
+                current={page === "assistente" ? "inicio" : page}
                 onNavigate={setPage}
                 onHelp={datera.openHelp}
             />
@@ -25,11 +26,18 @@ export function App() {
                 {page === "exportar" && (
                     <ExportPage datera={datera} onNavigate={setPage} />
                 )}
-                {page === "regras" && <RulesPage />}
+                {page === "regras" && (
+                    <RulesPage datera={datera} onNavigate={setPage} />
+                )}
                 {page === "historico" && (
                     <HistoryPage history={datera.history} />
                 )}
-                {page === "configuracoes" && <SettingsPage datera={datera} />}
+                {page === "configuracoes" && (
+                    <SettingsPage datera={datera} onNavigate={setPage} />
+                )}
+                {page === "assistente" && (
+                    <SetupWizard datera={datera} onNavigate={setPage} />
+                )}
             </main>
         </div>
     );

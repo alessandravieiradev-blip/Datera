@@ -34,7 +34,13 @@ interface HomePageProps {
     onNavigate: (page: PageId) => void;
 }
 
-function Welcome({ datera }: { datera: DateraState }) {
+function Welcome({
+    datera,
+    onNavigate,
+}: {
+    datera: DateraState;
+    onNavigate: (page: PageId) => void;
+}) {
     return (
         <div className="page">
             <header className="page-header">
@@ -42,30 +48,39 @@ function Welcome({ datera }: { datera: DateraState }) {
                     <span className="eyebrow">Primeiros passos</span>
                     <h1>Vamos começar!</h1>
                     <p>
-                        Escolha o arquivo de configuração pra o Datera saber de
-                        onde ler e onde gravar os seus dados.
+                        Primeiro o Datera precisa saber de onde ler os seus
+                        dados e onde salvar o resultado.
                     </p>
                 </div>
             </header>
             <Panel className="welcome">
                 <span className="welcome-icon">
-                    <Icon name="file" size={32} />
+                    <Icon name="sparkle" size={32} />
                 </span>
                 <div>
-                    <h3>Escolha a sua configuração</h3>
+                    <h3>Configurar em poucos passos</h3>
                     <p className="muted">
-                        É o arquivo <code>config.json</code> que você já usa no
-                        terminal. Em breve vai dar pra montar tudo por aqui, sem
-                        arquivo nenhum.
+                        Um passo a passo pergunta de onde vêm os dados e onde
+                        salvar. Se você já tem um arquivo de configuração, é só
+                        escolher ele.
                     </p>
                 </div>
-                <button
-                    type="button"
-                    className="button primary"
-                    onClick={() => void datera.chooseConfig()}
-                >
-                    Escolher arquivo
-                </button>
+                <div className="welcome-actions">
+                    <button
+                        type="button"
+                        className="button primary"
+                        onClick={() => onNavigate("assistente")}
+                    >
+                        Começar
+                    </button>
+                    <button
+                        type="button"
+                        className="button secondary"
+                        onClick={() => void datera.chooseConfig()}
+                    >
+                        Já tenho um arquivo
+                    </button>
+                </div>
             </Panel>
         </div>
     );
@@ -89,7 +104,8 @@ function pendingBars(reasons: { reason: string; count: number }[]) {
 }
 
 export function HomePage({ datera, onNavigate }: HomePageProps) {
-    if (datera.settings.configPath === null) return <Welcome datera={datera} />;
+    if (datera.settings.configPath === null)
+        return <Welcome datera={datera} onNavigate={onNavigate} />;
 
     const current = latestRun(datera.history);
     const lastExport = latestExport(datera.history);

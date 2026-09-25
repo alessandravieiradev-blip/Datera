@@ -2,7 +2,12 @@ import logo from "../../../../../docs/assets/datera-icon.png";
 import { Icon, IconName } from "./Icon";
 
 export type PageId =
-    "inicio" | "exportar" | "regras" | "historico" | "configuracoes";
+    | "inicio"
+    | "exportar"
+    | "regras"
+    | "historico"
+    | "configuracoes"
+    | "assistente";
 
 const ITEMS: { id: PageId; label: string; icon: IconName }[] = [
     { id: "inicio", label: "Início", icon: "home" },
