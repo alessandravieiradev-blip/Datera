@@ -94,8 +94,41 @@ Você quer rodar pelo terminal, usar o Datera Dev, escrever a config na mão, cr
 | [Normalizadores](docs/normalizadores.md)                   | os prontos e como criar o seu                                        |
 | [Estrutura do projeto](docs/estrutura.md)                  | o que tem em cada pasta                                              |
 
-## Ainda falta
+## Próximos passos
 
-- assinar o instalador pra o Windows parar de avisar
-- build de produção do terminal (os apps já têm, mas o `npm start` ainda roda pelo `tsx`)
+O que eu quero fazer, mais ou menos na ordem:
+
+**Formatos**
+
 - ler e escrever XML
+- ler e escrever Parquet e bancos além do MySQL (PostgreSQL e SQLite)
+
+**Instalar com um clique**
+
+- publicar os instaladores dos dois apps na aba Releases do GitHub, gerados sozinhos por uma action a cada tag de versão
+- na primeira vez que abre, mostrar uma janelinha de boas-vindas com um botão que leva pro guia certo (`gestores.md` no Datera, `devs.md` no Datera Dev)
+- avisar dentro do app quando sair versão nova, com o link da release
+- assinar o instalador pra o Windows parar de avisar
+- versão pra Mac e Linux
+
+**Usar o Datera como biblioteca**
+
+- publicar no npm, pra dar `npm install datera` e importar em qualquer projeto
+- rodar direto em dados que já estão na memória, tipo `clean(linhas, regras)` devolvendo `{ resultado, pendencias }`, sem precisar de fonte nem destino
+- expor as etapas separadas (`fillEmpty`, `validate`, `dedupe`, `merge`...) pra montar o próprio pipeline
+- montar a config por código com tipos, tipo `defineConfig({ ... })`, com autocompletar no editor
+- eventos de progresso (`onStep`, `onRow`) pra mostrar barra de carregamento em outros apps
+- ler e escrever em stream, pra arquivo grande não precisar caber inteiro na memória
+- um servidor HTTP opcional (`POST /run` com a config e os dados) pra usar de outras linguagens
+- documentar tudo isso num `docs/api.md`, com exemplos
+
+**Terminal e automação**
+
+- build de produção do terminal (os apps já têm, mas o `npm start` ainda roda pelo `tsx`)
+- um comando `datera` instalado no sistema, tipo `datera run config.json`
+- agendar execução (todo dia às 8h, por exemplo) direto pelo app
+- `datera validate config.json` pra conferir a config sem rodar nada
+
+**Mais tarde**
+
+- versão pro celular do app de gestores
