@@ -1,5 +1,11 @@
 export { runEtl, formatReport, parseMode, MODES } from "./pipeline";
-export type { RunEtlOptions, EtlReport, StepReport, Mode } from "./pipeline";
+export type {
+    RunEtlOptions,
+    EtlReport,
+    StepReport,
+    PendingReason,
+    Mode,
+} from "./pipeline";
 export { loadConfig, loadJsonConfig, etlConfigSchema } from "./config";
 export type { EtlConfig, SourceConfig, DestinationConfig } from "./config";
 export { consoleLogger, silentLogger, createMemoryLogger } from "./logger";

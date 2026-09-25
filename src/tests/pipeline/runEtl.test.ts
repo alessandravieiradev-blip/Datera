@@ -3,7 +3,7 @@ import { etlConfigSchema } from "../../config";
 import { Sink, SinkWriteOptions, Source } from "../../io/types";
 import { registerSourceAdapter } from "../../io/custom/registry";
 import { createMemoryLogger, silentLogger } from "../../logger";
-import { formatReport, runEtl } from "../../pipeline";
+import { countPendingReasons, formatReport, runEtl } from "../../pipeline";
 import { TableRow } from "../../types";
 
 const alunos: TableRow[] = [
@@ -111,6 +111,9 @@ describe("runEtl", () => {
         });
         expect(report.steps[3]).toMatchObject({ rowsIn: 3, rowsOut: 2 });
         expect(report.pendingRows).toBe(1);
+        expect(report.pendingByReason).toEqual([
+            { reason: "Aluno vazio", count: 1 },
+        ]);
 
         const [principal, pendencias] = sink.writes;
         expect(principal?.name).toBeNull();
@@ -199,6 +202,29 @@ describe("runEtl", () => {
     });
 });
 
+describe("countPendingReasons", () => {
+    it("conta cada motivo separado, do mais comum pro menos comum", () => {
+        const pendentes: TableRow[] = [
+            { Motivo: "sem matrícula; e-mail fora do formato", Aluno: "Caio" },
+            { Motivo: "e-mail fora do formato", Aluno: "Nina" },
+            { Motivo: "plano com valor não permitido", Aluno: "Duda" },
+            { Motivo: null, Aluno: "Theo" },
+        ];
+
+        expect(countPendingReasons(pendentes)).toEqual([
+            { reason: "e-mail fora do formato", count: 2 },
+            { reason: "plano com valor não permitido", count: 1 },
+            { reason: "sem matrícula", count: 1 },
+        ]);
+    });
+
+    it("usa a coluna de motivo que eu escolher", () => {
+        expect(
+            countPendingReasons([{ Problema: "sem oficina" }], "Problema"),
+        ).toEqual([{ reason: "sem oficina", count: 1 }]);
+    });
+});
+
 describe("formatReport", () => {
     it("monta o resumo com cada etapa e avisa quando é dry-run", () => {
         const lines = formatReport({
@@ -208,6 +234,7 @@ describe("formatReport", () => {
             rowsRead: 120,
             rowsOut: 85,
             pendingRows: 10,
+            pendingByReason: [{ reason: "sem matrícula", count: 10 }],
             durationMs: 1250,
             preview: [],
             steps: [

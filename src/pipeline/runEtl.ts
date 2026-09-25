@@ -2,7 +2,10 @@ import { EtlConfig } from "../config";
 import { createSink, createSource } from "../io/factory";
 import { loadAdapterModules } from "../io/custom/loader";
 import { Sink, Source } from "../io/types";
-import { DEFAULT_PENDING_SHEET } from "../filters/validate";
+import {
+    DEFAULT_PENDING_SHEET,
+    DEFAULT_REASON_COLUMN,
+} from "../filters/validate";
 import {
     loadNormalizerModules,
     registerBuiltinKeyNormalizers,
@@ -11,9 +14,28 @@ import { consoleLogger, Logger } from "../logger";
 import { TableRow } from "../types";
 import { Mode } from "./modes";
 import { buildSteps } from "./steps";
-import { EtlReport, StepReport } from "./types";
+import { EtlReport, PendingReason, StepReport } from "./types";
 
 export const DEFAULT_PREVIEW_SIZE = 5;
+
+export function countPendingReasons(
+    pending: TableRow[],
+    reasonColumn: string = DEFAULT_REASON_COLUMN,
+): PendingReason[] {
+    const counts = new Map<string, number>();
+    for (const row of pending) {
+        const text = row[reasonColumn];
+        if (text === null || text === undefined) continue;
+        for (const part of String(text).split(";")) {
+            const reason = part.trim();
+            if (reason === "") continue;
+            counts.set(reason, (counts.get(reason) ?? 0) + 1);
+        }
+    }
+    return Array.from(counts, ([reason, count]) => ({ reason, count })).sort(
+        (a, b) => b.count - a.count || a.reason.localeCompare(b.reason),
+    );
+}
 
 export interface RunEtlOptions {
     mode?: Mode | undefined;
@@ -85,6 +107,10 @@ export async function runEtl(
             rowsRead: rawRows.length,
             rowsOut: rows.length,
             pendingRows: pending.length,
+            pendingByReason: countPendingReasons(
+                pending,
+                config.validation?.reasonColumn,
+            ),
             steps: stepReports,
             durationMs: Date.now() - startedAt,
             preview: dryRun

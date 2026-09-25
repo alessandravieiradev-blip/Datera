@@ -19,6 +19,11 @@ export interface StepReport {
     durationMs: number;
 }
 
+export interface PendingReason {
+    reason: string;
+    count: number;
+}
+
 export interface EtlReport {
     mode: Mode;
     dryRun: boolean;
@@ -26,6 +31,7 @@ export interface EtlReport {
     rowsRead: number;
     rowsOut: number;
     pendingRows: number;
+    pendingByReason: PendingReason[];
     steps: StepReport[];
     durationMs: number;
     preview: TableRow[];
