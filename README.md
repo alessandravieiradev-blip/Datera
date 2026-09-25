@@ -70,6 +70,7 @@ Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coi
 - [Separar as pendências](#separar-as-pendências-validation)
 - [Normalizadores de chave](#normalizadores-de-chave)
 - [Rodando](#rodando)
+- [O app pro desktop](#o-app-pro-desktop)
 - [Usando dentro de outro código](#usando-dentro-de-outro-código)
 - [Testes](#testes)
 - [Estrutura](#estrutura)
@@ -250,19 +251,21 @@ fica assim:
 
 ### Destinos (`destination`)
 
-| `type`   | Campos                             | A aba de pendências vira                                                                         |
-| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `sheets` | `spreadsheetId`, `credentialsPath` | outra aba na mesma planilha                                                                      |
-| `csv`    | `path`, `delimiter?`, `bom?`       | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
-| `json`   | `path`                             | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
-| `excel`  | `path`, `sheet?`                   | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
-| `custom` | `adapter`, `options?`              | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                |
+| `type`   | Campos                                       | A aba de pendências vira                                                                         |
+| -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `sheets` | `spreadsheetId`, `credentialsPath`, `sheet?` | outra aba na mesma planilha (a principal é a primeira aba, ou a que você colocar em `sheet`)     |
+| `csv`    | `path`, `delimiter?`, `bom?`                 | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
+| `json`   | `path`                                       | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
+| `excel`  | `path`, `sheet?`                             | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
+| `custom` | `adapter`, `options?`                        | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                |
 
 O CSV sai com vírgula. Se for abrir no Excel em português, coloca `"delimiter": ";"`. Ele também sai com um caractere invisível no começo (o `bom`, que já vem ligado) pro Excel mostrar os acentos certo. Se o arquivo for pra outro programa e ele reclamar desse caractere, coloca `"bom": false`. E se a pasta do arquivo não existir, ele cria.
 
 Pra ler do Google Sheets, a planilha de origem também tem que estar compartilhada com o e-mail da service account (pode ser só como Leitor). Os números chegam como número e as datas chegam do jeito que aparecem na planilha.
 
-Dá pra ler e escrever na mesma planilha, mas não na mesma aba, porque ele limpa a aba de destino antes de escrever e ia apagar o que acabou de ler. Se a fonte e o destino forem a mesma planilha, coloca o `sheet` na fonte com o nome da aba de onde ler (e ela não pode ser a primeira, que é onde ele escreve). Se esquecer do `sheet`, ele avisa e nem começa.
+A planilha de onde ele lê nunca é alterada, ele só escreve no destino. O jeito mais seguro é usar outra planilha pro destino e compartilhar a original só como Leitor, aí nem o Google deixa mexer nela.
+
+Se quiser ler e escrever na mesma planilha, dá, mas precisa dizer as abas: `sheet` na fonte com a aba dos dados originais e `sheet` no destino com a aba do resultado. As duas (e a de pendências) têm que ter nomes diferentes. Se faltar alguma coisa ou algum nome bater, ele avisa e nem começa. O mesmo vale pra arquivo: a fonte e o destino não podem ser o mesmo arquivo.
 
 Sobre o Excel, umas coisas que acontecem por baixo:
 
@@ -1097,6 +1100,26 @@ Se der erro, ele mostra a mensagem e termina com código 1. Então dá pra coloc
 
 Uma coisa importante: toda vez que roda, ele limpa a aba antes de escrever (a primeira aba e a de pendências, se tiver `validation`). Assim não sobra linha velha. Então não deixa anotação sua nessas abas, usa outra aba.
 
+## O app pro desktop
+
+Também tem um aplicativo com tela, pra quem não quer mexer no terminal nem em JSON. Ele fica em `apps/desktop` e é feito com Electron e React. Pra abrir:
+
+```bash
+npm install
+npm run desktop
+```
+
+Na primeira vez ele pergunta de onde vêm os dados e onde salvar o resultado, num passo a passo, e cria a configuração pra você. Se você já tem uma, é só escolher o arquivo.
+
+O que dá pra fazer nele:
+
+- na tela de Regras, montar frases tipo "Quando `email` estiver com e-mail inválido, mandar para Pendências" e escolher o que fazer com os cadastros repetidos
+- em Exportar, ver uma prévia (não grava nada) e depois exportar de verdade, com confirmação
+- no Início, ver os números e gráficos da última exportação e como as pendências foram mudando
+- no Histórico, ver todas as vezes que rodou
+
+Ele usa o mesmo motor do terminal por baixo, então a config que você faz num serve no outro. As regras mais avançadas (normalizador, regex própria, merge com estratégia por coluna) ainda só dão pra configurar no arquivo, e o app mostra elas como "regra avançada" sem estragar nada.
+
 ## Usando dentro de outro código
 
 Também dá pra chamar o Datera de dentro de outro projeto, sem ser pelo terminal. É o mesmo código que o `npm start` usa por baixo:
@@ -1190,6 +1213,12 @@ src/
     builtin.ts            # os prontos (trim, lowercase, digitsOnly, alphanumeric)
     loader.ts             # carrega normalizador de arquivo seu
   tests/                  # testes (Vitest), nas mesmas pastas do código: io/, filters/, normalizers/, pipeline/
+apps/desktop/             # o app com tela (Electron + React)
+  scripts/                # dev.ts e build.ts, que compilam com esbuild
+  src/main/               # a parte que roda no Node: janela, arquivos, chama o runEtl
+  src/preload/            # a ponte segura entre a tela e o Node
+  src/renderer/           # as telas em React (pages/, components/, lib/, styles/)
+  src/shared/api.ts       # os tipos que a tela e o Node usam pra conversar
 examples/                 # CSV e config de exemplo (npm run example)
 local/                    # (ignorada pelo git) seus normalizadores e testes pessoais
 scripts/                  # scripts pra testar na mão (banco, config, sheets)
@@ -1198,5 +1227,5 @@ scripts/                  # scripts pra testar na mão (banco, config, sheets)
 
 ## Ainda falta
 
-- uma tela pra usar sem terminal (é o próximo passo)
+- instalador .exe do app (hoje ele abre pelo `npm run desktop`)
 - build de produção (hoje roda tudo pelo `tsx`)
