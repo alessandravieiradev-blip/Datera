@@ -1118,6 +1118,16 @@ O que dá pra fazer nele:
 - no Início, ver os números e gráficos da última exportação e como as pendências foram mudando
 - no Histórico, ver todas as vezes que rodou
 
+Pra gerar o instalador do Windows:
+
+```bash
+npm run dist -w apps/desktop
+```
+
+Ele sai em `apps/desktop/release/Datera-Setup-0.1.0.exe`. É só mandar esse arquivo pra pessoa e ela instala com dois cliques, sem precisar de Node nem de nada. Como o instalador não é assinado (assinatura custa caro), o Windows pode mostrar "O Windows protegeu o computador". Aí é clicar em "Mais informações" e depois em "Executar assim mesmo".
+
+No app instalado, normalizador em `.ts` não funciona, só em `.cjs` ou `.js`. O que o próprio app cria já é `.cjs`.
+
 Quando as regras prontas não bastam, escolhe "Outra regra..." na lista. Ali tem três caminhos: um formato próprio (com modelos tipo CEP e horário, e um testador pra ver na hora o que passa), um normalizador (o app cria um `normalizadores.cjs` de exemplo do lado da config e explica como mexer, precisa só de lógica de programação) e um "não sei fazer", que mostra o que pedir pra alguém que programe.
 
 Ele usa o mesmo motor do terminal por baixo, então a config que você faz num serve no outro. O merge com estratégia por coluna e as regras por grupo ainda só dão pra configurar no arquivo, e o app não estraga essas partes quando salva.
@@ -1229,5 +1239,5 @@ scripts/                  # scripts pra testar na mão (banco, config, sheets)
 
 ## Ainda falta
 
-- instalador .exe do app (hoje ele abre pelo `npm run desktop`)
+- assinar o instalador pra o Windows parar de avisar
 - build de produção (hoje roda tudo pelo `tsx`)
