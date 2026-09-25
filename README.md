@@ -69,6 +69,7 @@ Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coi
 - [Normalizadores de chave](#normalizadores-de-chave)
 - [Rodando](#rodando)
 - [O app pro desktop](#o-app-pro-desktop)
+- [Datera Dev](#datera-dev)
 - [Usando dentro de outro código](#usando-dentro-de-outro-código)
 - [Testes](#testes)
 - [Estrutura](#estrutura)
@@ -1132,6 +1133,27 @@ Quando as regras prontas não bastam, escolhe "Outra regra..." na lista. Ali tem
 
 Ele usa o mesmo motor do terminal por baixo, então a config que você faz num serve no outro. O merge com estratégia por coluna e as regras por grupo ainda só dão pra configurar no arquivo, e o app não estraga essas partes quando salva.
 
+## Datera Dev
+
+Tem uma segunda versão do app, pensada pra quem programa. Ela usa o mesmo motor e o mesmo `config.json`, mas no lugar dos gráficos e do passo a passo tem um editor da configuração e a saída detalhada, tudo no teclado.
+
+```bash
+npm run desktop:dev
+```
+
+O que tem nele:
+
+- editor do `config.json` com cores, número de linha e erro marcado na linha certa enquanto você digita (se faltar um campo ou o valor não existir, ele mostra onde e por quê, em português)
+- prévia com `Ctrl+Enter`, usando o que está no editor mesmo sem salvar
+- saída em abas: Resultado, Pendências (com a contagem por motivo), Log (com o tempo de cada etapa) e Problemas
+- os arquivos de normalizador abrem em outra aba, com um testador do lado: você digita uns valores e vê na hora o que cada um vira
+- paleta de comandos com `Ctrl+K`, com tudo que o app faz, inclusive trechos prontos de configuração pra inserir (fonte, destino, regra, merge...)
+- um comando que copia o comando equivalente do terminal
+
+Os atalhos principais: `Ctrl+Enter` prévia, `Ctrl+Shift+Enter` exportar, `Ctrl+S` salvar, `Shift+Alt+F` formatar o JSON, `Ctrl+1` a `Ctrl+4` trocam a aba da saída e `Ctrl+Shift+L` troca o tema.
+
+O visual é escuro por padrão e segue a identidade do Datera de um jeito mais seco. Deixei explicado em `apps/dev/IDENTIDADE.md`. O instalador sai com `npm run dist -w apps/dev`.
+
 ## Usando dentro de outro código
 
 Também dá pra chamar o Datera de dentro de outro projeto, sem ser pelo terminal. É o mesmo código que o `npm start` usa por baixo:
@@ -1231,6 +1253,9 @@ apps/desktop/             # o app com tela (Electron + React)
   src/preload/            # a ponte segura entre a tela e o Node
   src/renderer/           # as telas em React (pages/, components/, lib/, styles/)
   src/shared/api.ts       # os tipos que a tela e o Node usam pra conversar
+apps/dev/                 # o Datera Dev, que reaproveita o núcleo do apps/desktop
+  src/renderer/           # editor, paleta de comandos e saída
+  IDENTIDADE.md           # a identidade visual da versão dev
 examples/                 # CSV e config de exemplo (npm run example)
 local/                    # (ignorada pelo git) seus normalizadores e testes pessoais
 scripts/                  # scripts pra testar na mão (banco, config, sheets)
