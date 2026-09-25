@@ -36,3 +36,7 @@ export function getKeyNormalizer(name: string): KeyNormalizer {
 export function listKeyNormalizers(): string[] {
     return Array.from(registry.keys());
 }
+
+export function clearKeyNormalizers(): void {
+    registry.clear();
+}

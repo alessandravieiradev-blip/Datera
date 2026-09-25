@@ -116,6 +116,9 @@ export async function runEtl(
             preview: dryRun
                 ? rows.slice(0, options.previewSize ?? DEFAULT_PREVIEW_SIZE)
                 : [],
+            pendingPreview: dryRun
+                ? pending.slice(0, options.previewSize ?? DEFAULT_PREVIEW_SIZE)
+                : [],
         };
     } finally {
         if (ownsSource) await source.close?.();

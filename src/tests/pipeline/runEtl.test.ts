@@ -75,6 +75,7 @@ describe("runEtl", () => {
         expect(sink.writes).toHaveLength(0);
         expect(report.written).toBe(false);
         expect(report.preview).toEqual(alunos.slice(0, 2));
+        expect(report.pendingPreview).toEqual([]);
     });
 
     it("roda as etapas na ordem e conta as linhas de cada uma", async () => {
@@ -111,6 +112,7 @@ describe("runEtl", () => {
         });
         expect(report.steps[3]).toMatchObject({ rowsIn: 3, rowsOut: 2 });
         expect(report.pendingRows).toBe(1);
+        expect(report.pendingPreview).toEqual([]);
         expect(report.pendingByReason).toEqual([
             { reason: "Aluno vazio", count: 1 },
         ]);
@@ -202,6 +204,28 @@ describe("runEtl", () => {
     });
 });
 
+describe("runEtl no dry-run com pendências", () => {
+    it("devolve uma prévia das pendências também", async () => {
+        const report = await runEtl(
+            config({
+                validation: { rules: [{ column: "Aluno", rule: "required" }] },
+            }),
+            {
+                source: memorySource(alunos),
+                sink: memorySink(),
+                logger: silentLogger,
+                dryRun: true,
+            },
+        );
+
+        expect(report.pendingPreview).toHaveLength(1);
+        expect(report.pendingPreview[0]).toMatchObject({
+            Motivo: "Aluno vazio",
+            Oficina: "Flauta",
+        });
+    });
+});
+
 describe("countPendingReasons", () => {
     it("conta cada motivo separado, do mais comum pro menos comum", () => {
         const pendentes: TableRow[] = [
@@ -237,6 +261,7 @@ describe("formatReport", () => {
             pendingByReason: [{ reason: "sem matrícula", count: 10 }],
             durationMs: 1250,
             preview: [],
+            pendingPreview: [],
             steps: [
                 {
                     name: "validation",

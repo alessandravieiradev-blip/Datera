@@ -6,7 +6,12 @@ export type {
     PendingReason,
     Mode,
 } from "./pipeline";
-export { loadConfig, loadJsonConfig, etlConfigSchema } from "./config";
+export {
+    loadConfig,
+    loadJsonConfig,
+    parseConfig,
+    etlConfigSchema,
+} from "./config";
 export type { EtlConfig, SourceConfig, DestinationConfig } from "./config";
 export { consoleLogger, silentLogger, createMemoryLogger } from "./logger";
 export type { Logger, MemoryLogger } from "./logger";

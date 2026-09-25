@@ -83,3 +83,8 @@ export function createCustomSink(
     }
     return sink;
 }
+
+export function clearCustomAdapters(): void {
+    sources.clear();
+    sinks.clear();
+}

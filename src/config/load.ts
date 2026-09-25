@@ -40,8 +40,7 @@ function withSheetsEnv(
     };
 }
 
-export function loadConfig(jsonPath: string): EtlConfig {
-    const jsonConfig = loadJsonConfig(jsonPath);
+export function withEnv(jsonConfig: EtlConfig): EtlConfig {
     const dbPort = getOptionalEnv("DB_PORT");
 
     const finalConfig = {
@@ -61,4 +60,12 @@ export function loadConfig(jsonPath: string): EtlConfig {
         dbName: getOptionalEnv("DB_NAME") ?? jsonConfig.dbName,
     };
     return etlConfigSchema.parse(finalConfig);
+}
+
+export function loadConfig(jsonPath: string): EtlConfig {
+    return withEnv(loadJsonConfig(jsonPath));
+}
+
+export function parseConfig(value: unknown): EtlConfig {
+    return withEnv(etlConfigSchema.parse(value));
 }

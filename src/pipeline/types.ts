@@ -35,4 +35,5 @@ export interface EtlReport {
     steps: StepReport[];
     durationMs: number;
     preview: TableRow[];
+    pendingPreview: TableRow[];
 }
