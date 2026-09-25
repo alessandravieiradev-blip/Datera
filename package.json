@@ -11,6 +11,7 @@
         "example": "tsx src/main.ts --config examples/config.csv.json",
         "example:excel": "tsx src/main.ts --config examples/config.excel.json",
         "desktop": "npm run dev -w apps/desktop",
+        "desktop:dev": "npm run dev -w apps/dev",
         "test": "vitest",
         "typecheck": "tsc --noEmit",
         "test:connection": "tsx scripts/testConnection.ts",

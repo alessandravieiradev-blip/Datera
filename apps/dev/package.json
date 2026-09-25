@@ -1,0 +1,32 @@
+{
+    "name": "@datera/dev",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Datera para desenvolvedores: editor da configuração, saída detalhada e atalhos.",
+    "author": "Alessandra Vieira",
+    "main": "out/main/index.js",
+    "datera": {
+        "appId": "io.github.alessandravieiradev.datera.dev",
+        "productName": "Datera Dev",
+        "artifactName": "Datera-Dev-Setup-${version}.${ext}",
+        "shortcutName": "Datera Dev"
+    },
+    "scripts": {
+        "dev": "tsx ../desktop/scripts/dev.ts",
+        "build": "tsx ../desktop/scripts/build.ts",
+        "start": "npm run build && electron .",
+        "typecheck": "tsc --noEmit -p .",
+        "dist": "tsx ../desktop/scripts/dist.ts"
+    },
+    "devDependencies": {
+        "@fontsource/inter": "^5.3.0",
+        "@fontsource/jetbrains-mono": "^5.3.0",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "electron": "^44.4.5",
+        "electron-builder": "^26.15.3",
+        "esbuild": "^0.28.2",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0"
+    }
+}
