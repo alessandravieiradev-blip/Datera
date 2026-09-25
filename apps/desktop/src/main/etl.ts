@@ -93,7 +93,9 @@ async function insideConfigFolder<T>(
     task: () => Promise<T>,
 ): Promise<T> {
     if (running) {
-        throw new Error("Já tem uma execução rodando. Espera ela terminar.");
+        throw new Error(
+            "Já existe uma execução em andamento. Aguarde o término.",
+        );
     }
     running = true;
     enableTypeScriptModules();

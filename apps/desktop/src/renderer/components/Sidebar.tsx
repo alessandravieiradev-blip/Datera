@@ -1,5 +1,6 @@
 import logo from "../../../../../docs/assets/datera-icon.png";
 import { Icon, IconName } from "./Icon";
+import { ActionId, hint, Shortcuts } from "../lib/shortcuts";
 
 export type PageId =
     | "inicio"
@@ -7,23 +8,52 @@ export type PageId =
     | "regras"
     | "historico"
     | "configuracoes"
+    | "atalhos"
     | "assistente";
 
-const ITEMS: { id: PageId; label: string; icon: IconName }[] = [
-    { id: "inicio", label: "Início", icon: "home" },
-    { id: "exportar", label: "Exportar", icon: "upload" },
-    { id: "regras", label: "Regras", icon: "rules" },
-    { id: "historico", label: "Histórico", icon: "clock" },
-    { id: "configuracoes", label: "Configurações", icon: "settings" },
-];
+const ITEMS: { id: PageId; label: string; icon: IconName; action: ActionId }[] =
+    [
+        { id: "inicio", label: "Início", icon: "home", action: "ir-inicio" },
+        {
+            id: "exportar",
+            label: "Exportar",
+            icon: "upload",
+            action: "ir-exportar",
+        },
+        { id: "regras", label: "Regras", icon: "rules", action: "ir-regras" },
+        {
+            id: "historico",
+            label: "Histórico",
+            icon: "clock",
+            action: "ir-historico",
+        },
+        {
+            id: "configuracoes",
+            label: "Configurações",
+            icon: "settings",
+            action: "ir-configuracoes",
+        },
+        {
+            id: "atalhos",
+            label: "Atalhos",
+            icon: "keyboard",
+            action: "ir-atalhos",
+        },
+    ];
 
 interface SidebarProps {
     current: PageId;
     onNavigate: (page: PageId) => void;
     onHelp: () => void;
+    shortcuts: Shortcuts;
 }
 
-export function Sidebar({ current, onNavigate, onHelp }: SidebarProps) {
+export function Sidebar({
+    current,
+    onNavigate,
+    onHelp,
+    shortcuts,
+}: SidebarProps) {
     return (
         <aside className="sidebar">
             <div className="brand">
@@ -39,6 +69,7 @@ export function Sidebar({ current, onNavigate, onHelp }: SidebarProps) {
                             item.id === current ? "nav-item active" : "nav-item"
                         }
                         aria-current={item.id === current ? "page" : undefined}
+                        title={`${item.label}${hint(shortcuts, item.action)}`}
                         onClick={() => onNavigate(item.id)}
                     >
                         <Icon name={item.icon} />

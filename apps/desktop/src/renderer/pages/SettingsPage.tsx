@@ -32,7 +32,7 @@ export function SettingsPage({ datera, onNavigate }: SettingsPageProps) {
                 <div>
                     <span className="eyebrow">Configurações</span>
                     <h1>Configurações</h1>
-                    <p>Onde o Datera encontra as informações pra trabalhar.</p>
+                    <p>Onde o Datera encontra as informações para trabalhar.</p>
                 </div>
             </header>
             <Panel title="Arquivo de configuração">

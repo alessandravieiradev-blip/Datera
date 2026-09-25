@@ -128,14 +128,14 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
                     <span className="eyebrow">Configuração inicial</span>
                     <h1>Vamos começar!</h1>
                     <p>
-                        Siga alguns passos simples pra configurar o Datera e
+                        Siga alguns passos simples para configurar o Datera e
                         deixar seus dados organizados.
                     </p>
                 </div>
                 <aside className="tip">
                     <Icon name="sparkle" />
                     <p className="small">
-                        Em poucos minutos você já vai estar pronta pra usar!
+                        Em poucos minutos, tudo estará pronto para usar.
                     </p>
                 </aside>
             </header>
@@ -192,11 +192,11 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
             {step === 0 && (
                 <Notice tone="info" title="Não tem certeza de qual escolher?">
                     Se você baixou uma planilha, normalmente ela é um arquivo
-                    Excel. Dá pra trocar tudo isso depois.
+                    Excel. Tudo isso pode ser alterado depois.
                 </Notice>
             )}
             {error && (
-                <Notice tone="error" title="Não deu pra salvar.">
+                <Notice tone="error" title="Não foi possível salvar.">
                     {error}
                 </Notice>
             )}
@@ -587,8 +587,8 @@ function SummaryStep({ draft }: { draft: WizardDraft }) {
                 <p>
                     <Icon name="rules" />
                     <span>
-                        Depois de salvar, você vai pra tela de Regras pra dizer
-                        o que deve ir pra Pendências.
+                        Depois de salvar, você vai para tela de Regras para
+                        dizer o que deve ir para Pendências.
                     </span>
                 </p>
             </div>

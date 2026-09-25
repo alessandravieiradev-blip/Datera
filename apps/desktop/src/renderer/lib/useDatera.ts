@@ -10,6 +10,7 @@ export interface DateraState {
     log: LogEntry[];
     chooseConfig: () => Promise<void>;
     applySettings: (settings: Settings) => void;
+    refresh: () => Promise<void>;
     run: (dryRun: boolean) => Promise<RunRecord>;
     openHelp: () => void;
 }
@@ -19,6 +20,7 @@ export function useDatera(): DateraState {
     const [settings, setSettings] = useState<Settings>({
         configPath: null,
         theme: "system",
+        shortcuts: {},
     });
     const [history, setHistory] = useState<RunRecord[]>([]);
     const [running, setRunning] = useState(false);
@@ -40,6 +42,15 @@ export function useDatera(): DateraState {
 
     const chooseConfig = useCallback(async () => {
         setSettings(await window.datera.chooseConfig());
+    }, []);
+
+    const refresh = useCallback(async () => {
+        const [loadedSettings, loadedHistory] = await Promise.all([
+            window.datera.getSettings(),
+            window.datera.listHistory(),
+        ]);
+        setSettings(loadedSettings);
+        setHistory(loadedHistory);
     }, []);
 
     const applySettings = useCallback((next: Settings) => {
@@ -73,6 +84,7 @@ export function useDatera(): DateraState {
         log,
         chooseConfig,
         applySettings,
+        refresh,
         run,
         openHelp,
     };

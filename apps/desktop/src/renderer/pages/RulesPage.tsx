@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CustomRuleDialog } from "../components/CustomRuleDialog";
 import { Icon } from "../components/Icon";
 import { Notice } from "../components/Notice";
@@ -15,6 +15,8 @@ import {
     withRules,
 } from "../lib/rules";
 import { DateraState } from "../lib/useDatera";
+import { ActionId, hint, Shortcuts } from "../lib/shortcuts";
+import type { Command } from "../App";
 import type { RawConfig } from "../../shared/api";
 
 type Mode = "raw" | "dedupe" | "merge";
@@ -22,11 +24,24 @@ type Mode = "raw" | "dedupe" | "merge";
 interface RulesPageProps {
     datera: DateraState;
     onNavigate: (page: PageId) => void;
+    command: Command | null;
+    shortcuts: Shortcuts;
+    notify: (text: string) => void;
+}
+
+function blankRule(): RuleDraft {
+    return { id: newId(), column: "", condition: "empty", values: "" };
 }
 
 type Status = { tone: "success" | "error"; text: string } | null;
 
-export function RulesPage({ datera, onNavigate }: RulesPageProps) {
+export function RulesPage({
+    datera,
+    onNavigate,
+    command,
+    shortcuts,
+    notify,
+}: RulesPageProps) {
     const [config, setConfig] = useState<RawConfig | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [drafts, setDrafts] = useState<RuleDraft[]>([]);
@@ -37,6 +52,8 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
     const [status, setStatus] = useState<Status>(null);
     const [saving, setSaving] = useState(false);
     const [dialogFor, setDialogFor] = useState<string | null>(null);
+    const actions = useRef<Partial<Record<ActionId, () => void>>>({});
+    const pendingAdd = useRef(false);
     const configPath = datera.settings.configPath;
 
     const loadFrom = (loaded: RawConfig) => {
@@ -60,6 +77,10 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
             if (result.ok) {
                 setLoadError(null);
                 loadFrom(result.config);
+                if (pendingAdd.current) {
+                    pendingAdd.current = false;
+                    setDrafts((current) => [...current, blankRule()]);
+                }
             } else {
                 setLoadError(result.error);
             }
@@ -73,6 +94,11 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
             }
         });
     }, [configPath]);
+
+    useEffect(() => {
+        if (!command) return;
+        actions.current[command.id]?.();
+    }, [command?.seq]);
 
     if (configPath === null) {
         return (
@@ -109,10 +135,7 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
     };
     const add = () => {
         setStatus(null);
-        setDrafts((current) => [
-            ...current,
-            { id: newId(), column: "", condition: "empty", values: "" },
-        ]);
+        setDrafts((current) => [...current, blankRule()]);
     };
 
     const dialogDraft = drafts.find((draft) => draft.id === dialogFor);
@@ -138,11 +161,32 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
             loadFrom(next);
             setStatus({
                 tone: "success",
-                text: "Regras salvas! Na próxima prévia elas já valem.",
+                text: "Regras salvas. Elas já valem na próxima prévia.",
             });
+            notify("Regras salvas.");
         } else {
             setStatus({ tone: "error", text: result.error });
         }
+    };
+
+    const undo = () => {
+        if (!config) return;
+        loadFrom(config);
+        setStatus(null);
+        notify("Alterações desfeitas.");
+    };
+
+    actions.current = {
+        "adicionar-regra": () => {
+            if (config === null) pendingAdd.current = true;
+            else add();
+        },
+        "salvar-regras": () => {
+            if (hasProblems)
+                notify("Corrija as regras marcadas antes de salvar.");
+            else void save();
+        },
+        "desfazer-regras": undo,
     };
 
     return (
@@ -159,8 +203,7 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
                     tone="warning"
                     title="Não consegui ler as colunas dos seus dados."
                 >
-                    Dá pra escrever o nome da coluna à mão. O motivo foi:{" "}
-                    {columnsError}
+                    Você pode digitar o nome da coluna. Motivo: {columnsError}
                 </Notice>
             )}
 
@@ -171,7 +214,7 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
             </datalist>
 
             <section className="rules">
-                <h3>O que vai pra Pendências</h3>
+                <h3>O que vai para Pendências</h3>
                 {drafts.length === 0 && (
                     <p className="muted">
                         Nenhuma regra ainda. Sem regras, todas as linhas vão pro
@@ -189,12 +232,17 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
                         onCustom={() => setDialogFor(draft.id)}
                     />
                 ))}
-                <button type="button" className="add-rule" onClick={add}>
+                <button
+                    type="button"
+                    className="add-rule"
+                    onClick={add}
+                    title={`Adicionar regra${hint(shortcuts, "adicionar-regra")}`}
+                >
                     <span className="add-icon">+</span>
                     <span>
                         <strong>Adicionar regra</strong>
                         <small className="muted">
-                            Crie uma nova regra pra separar o que precisa de
+                            Crie uma nova regra para separar o que precisa de
                             atenção.
                         </small>
                     </span>
@@ -269,7 +317,8 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
                 <button
                     type="button"
                     className="button ghost"
-                    onClick={() => config && loadFrom(config)}
+                    onClick={undo}
+                    title={`Desfazer alterações${hint(shortcuts, "desfazer-regras")}`}
                 >
                     Desfazer alterações
                 </button>
@@ -278,6 +327,7 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
                     className="button primary"
                     disabled={saving || hasProblems || !config}
                     onClick={save}
+                    title={`Salvar regras${hint(shortcuts, "salvar-regras")}`}
                 >
                     {saving ? "Salvando..." : "Salvar regras"}
                 </button>
@@ -297,7 +347,7 @@ function RulesHeader() {
                     <span className="eyebrow">Regras de tratamento</span>
                     <h1>Configure suas regras</h1>
                     <p>
-                        Defina o que o Datera deve separar pra alguém olhar,
+                        Defina o que o Datera deve separar para alguém olhar,
                         usando frases simples.
                     </p>
                 </div>
@@ -307,7 +357,7 @@ function RulesHeader() {
                 <div>
                     <strong>Dica</strong>
                     <p className="small muted">
-                        Tudo que cair numa regra vai pra Pendências, com o
+                        Tudo que cair numa regra vai para Pendências, com o
                         motivo escrito do lado.
                     </p>
                 </div>
@@ -348,7 +398,7 @@ function RuleRow({
             <input
                 className="field"
                 list="colunas"
-                placeholder="escolha a coluna"
+                placeholder="Escolha a coluna"
                 value={draft.column}
                 aria-label="Coluna"
                 onChange={(event) => onChange({ column: event.target.value })}

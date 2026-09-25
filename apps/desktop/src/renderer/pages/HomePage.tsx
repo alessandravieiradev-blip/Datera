@@ -118,7 +118,7 @@ export function HomePage({ datera, onNavigate }: HomePageProps) {
         <div className="page">
             <header className="page-header">
                 <div>
-                    <h1>{greeting()} 👋</h1>
+                    <h1>{greeting()}</h1>
                     <p>
                         {current
                             ? "Seus dados estão organizados e prontos para o que você precisa."
@@ -167,8 +167,8 @@ export function HomePage({ datera, onNavigate }: HomePageProps) {
                         </button>
                     }
                 >
-                    A prévia faz tudo sem gravar nada, então dá pra testar à
-                    vontade.
+                    A prévia executa tudo sem gravar nada, então você pode
+                    testar à vontade.
                 </Notice>
             ) : (
                 <Dashboard

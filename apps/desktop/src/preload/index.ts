@@ -11,6 +11,8 @@ const api: DateraApi = {
     createNormalizerFile: () => ipcRenderer.invoke(IPC.createNormalizerFile),
     showInFolder: (filePath) => ipcRenderer.invoke(IPC.showInFolder, filePath),
     setTheme: (theme) => ipcRenderer.invoke(IPC.setTheme, theme),
+    setShortcuts: (shortcuts) =>
+        ipcRenderer.invoke(IPC.setShortcuts, shortcuts),
     readConfig: () => ipcRenderer.invoke(IPC.readConfig),
     saveConfig: (config) => ipcRenderer.invoke(IPC.saveConfig, config),
     createConfig: (config) => ipcRenderer.invoke(IPC.createConfig, config),

@@ -1339,3 +1339,115 @@ textarea.field {
 .swatch-system {
     background: linear-gradient(135deg, #f8fafc 50%, #0b1120 50%);
 }
+
+.toast {
+    position: fixed;
+    right: 32px;
+    bottom: 28px;
+    z-index: 20;
+    max-width: 420px;
+    padding: 12px 18px;
+    border-radius: var(--radius-small);
+    background: var(--text);
+    color: var(--background);
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: var(--modal-shadow);
+    animation: toast-in 0.18s ease-out;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+.keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+kbd {
+    min-width: 28px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.shortcut-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.shortcut-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.shortcut-list li:last-child {
+    border-bottom: none;
+}
+
+.shortcut-list li.editing {
+    margin: 0 -12px;
+    padding: 12px;
+    border-radius: var(--radius-small);
+    background: var(--blue-softer);
+}
+
+.shortcut-text strong {
+    display: block;
+    font-weight: 500;
+}
+
+.capturing {
+    color: var(--blue);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.shortcut-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.shortcut-actions .icon-button {
+    margin-left: 0;
+}
+
+.icon-button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.icon-button:disabled:hover {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.small-button {
+    padding: 7px 14px;
+    font-size: 14px;
+}
+
+.notice-actions {
+    display: flex;
+    gap: 8px;
+}

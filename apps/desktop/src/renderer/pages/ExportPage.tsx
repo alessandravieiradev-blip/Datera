@@ -8,14 +8,23 @@ import { PageId } from "../components/Sidebar";
 import { fileName, formatDuration, formatNumber } from "../lib/format";
 import { statsOf } from "../lib/stats";
 import { DateraState } from "../lib/useDatera";
+import { hint, Shortcuts } from "../lib/shortcuts";
+import type { Command } from "../App";
 import type { RunRecord } from "../../shared/api";
 
 interface ExportPageProps {
     datera: DateraState;
     onNavigate: (page: PageId) => void;
+    command: Command | null;
+    shortcuts: Shortcuts;
 }
 
-export function ExportPage({ datera, onNavigate }: ExportPageProps) {
+export function ExportPage({
+    datera,
+    onNavigate,
+    command,
+    shortcuts,
+}: ExportPageProps) {
     const [confirming, setConfirming] = useState(false);
     const confirmBox = useRef<HTMLDivElement>(null);
 
@@ -37,6 +46,12 @@ export function ExportPage({ datera, onNavigate }: ExportPageProps) {
         setConfirming(false);
         void datera.run(false);
     };
+
+    useEffect(() => {
+        if (!command || !hasConfig || running) return;
+        if (command.id === "ver-previa") preview();
+        if (command.id === "exportar") setConfirming(true);
+    }, [command?.seq]);
 
     return (
         <div className="page">
@@ -61,7 +76,7 @@ export function ExportPage({ datera, onNavigate }: ExportPageProps) {
                             className="button secondary"
                             onClick={() => onNavigate("configuracoes")}
                         >
-                            Ir pra Configurações
+                            Ir para Configurações
                         </button>
                     }
                 />
@@ -87,6 +102,7 @@ export function ExportPage({ datera, onNavigate }: ExportPageProps) {
                                 className="button secondary"
                                 disabled={running}
                                 onClick={preview}
+                                title={`Ver prévia${hint(shortcuts, "ver-previa")}`}
                             >
                                 <Icon name="eye" size={18} />
                                 Ver prévia
@@ -96,6 +112,7 @@ export function ExportPage({ datera, onNavigate }: ExportPageProps) {
                                 className="button primary"
                                 disabled={running}
                                 onClick={() => setConfirming(true)}
+                                title={`Exportar agora${hint(shortcuts, "exportar")}`}
                             >
                                 <Icon name="upload" size={18} />
                                 Exportar agora
@@ -154,8 +171,8 @@ function RunResult({
 }) {
     if (!record.ok || !record.report) {
         return (
-            <Notice tone="error" title="Não deu certo dessa vez.">
-                {record.error ?? "Aconteceu um erro que eu não esperava."}
+            <Notice tone="error" title="Não foi possível concluir.">
+                {record.error ?? "Ocorreu um erro inesperado."}
             </Notice>
         );
     }
@@ -169,7 +186,7 @@ function RunResult({
                 tone="success"
                 title={
                     record.dryRun
-                        ? "Prévia pronta! Nada foi gravado."
+                        ? "Prévia pronta. Nada foi gravado."
                         : "Exportação concluída!"
                 }
                 action={
@@ -179,7 +196,7 @@ function RunResult({
                             className="button primary"
                             onClick={onExport}
                         >
-                            Tá tudo certo, exportar
+                            Exportar agora
                         </button>
                     ) : undefined
                 }

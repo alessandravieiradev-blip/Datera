@@ -22,7 +22,9 @@ export type IconName =
     | "arrowLeft"
     | "close"
     | "code"
-    | "users";
+    | "users"
+    | "keyboard"
+    | "reset";
 
 const PATHS: Record<IconName, string[]> = {
     home: ["M3 10.5 12 3l9 7.5", "M5 9.5V21h5v-6h4v6h5V9.5"],
@@ -80,6 +82,14 @@ const PATHS: Record<IconName, string[]> = {
     ],
     close: ["M6 6l12 12", "M18 6L6 18"],
     code: ["M8 7l-5 5 5 5", "M16 7l5 5-5 5", "M14 4l-4 16"],
+    keyboard: [
+        "M3 6h18v12H3z",
+        "M7 10h.01",
+        "M11 10h.01",
+        "M15 10h.01",
+        "M17 14H7",
+    ],
+    reset: ["M4 12a8 8 0 1 0 2.3-5.6", "M4 4v5h5"],
     users: [
         "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
         "M2 21v-1a6 6 0 0 1 12 0v1",

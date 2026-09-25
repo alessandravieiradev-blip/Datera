@@ -16,6 +16,7 @@ export const IPC = {
     createNormalizerFile: "normalizers:create-file",
     showInFolder: "files:show-in-folder",
     setTheme: "settings:set-theme",
+    setShortcuts: "settings:set-shortcuts",
     log: "etl:log",
 } as const;
 
@@ -24,6 +25,7 @@ export type Theme = "system" | "light" | "dark";
 export interface Settings {
     configPath: string | null;
     theme: Theme;
+    shortcuts: Record<string, string>;
 }
 
 export interface RunRequest {
@@ -81,6 +83,7 @@ export interface DateraApi {
     createNormalizerFile(): Promise<TemplateResult>;
     showInFolder(filePath: string): Promise<void>;
     setTheme(theme: Theme): Promise<Settings>;
+    setShortcuts(shortcuts: Record<string, string>): Promise<Settings>;
     readConfig(): Promise<ConfigResult>;
     saveConfig(config: RawConfig): Promise<SaveResult>;
     createConfig(config: RawConfig): Promise<SaveResult | null>;

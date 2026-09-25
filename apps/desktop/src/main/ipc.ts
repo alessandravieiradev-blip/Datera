@@ -22,7 +22,12 @@ import {
     readConfigFile,
     writeConfigFile,
 } from "./configFile";
-import { isTheme, readSettings, saveSettings } from "./settings";
+import {
+    cleanShortcuts,
+    isTheme,
+    readSettings,
+    saveSettings,
+} from "./settings";
 import { applyTheme } from "./theme";
 import { addToHistory, readHistory } from "./history";
 import { readColumns, runWithConfig } from "./etl";
@@ -111,6 +116,13 @@ export function registerIpc(): void {
     });
 
     ipcMain.handle(IPC.listHistory, () => readHistory());
+
+    ipcMain.handle(IPC.setShortcuts, (_event, shortcuts: unknown) =>
+        saveSettings({
+            ...readSettings(),
+            shortcuts: cleanShortcuts(shortcuts),
+        }),
+    );
 
     ipcMain.handle(IPC.setTheme, (_event, theme: unknown) => {
         const current = readSettings();

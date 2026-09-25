@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import { registerIpc } from "./ipc";
 import { readSettings } from "./settings";
 import { applyTheme, backgroundColor } from "./theme";
@@ -53,9 +53,11 @@ function createWindow(): void {
     if (isDev) reloadOnRendererChange(window);
 }
 
-app.setAppUserModelId("io.github.alessandravieiradev.datera");
+if (app.isPackaged)
+    app.setAppUserModelId("io.github.alessandravieiradev.datera");
 
 app.whenReady().then(() => {
+    if (!isDev) Menu.setApplicationMenu(null);
     applyTheme(readSettings().theme);
     registerIpc();
     createWindow();

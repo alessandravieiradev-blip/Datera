@@ -92,7 +92,7 @@ export function HistoryPage({ history }: HistoryPageProps) {
                                                         size={14}
                                                         strokeWidth={2.5}
                                                     />
-                                                    Deu certo
+                                                    Concluída
                                                 </span>
                                             ) : (
                                                 <span
@@ -104,7 +104,7 @@ export function HistoryPage({ history }: HistoryPageProps) {
                                                         size={14}
                                                         strokeWidth={2.5}
                                                     />
-                                                    Deu erro
+                                                    Com erro
                                                 </span>
                                             )}
                                         </td>

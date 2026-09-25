@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { Icon, IconName } from "./Icon";
 import { Modal } from "./Modal";
 import { Notice } from "./Notice";
-import { patternProblem, RuleDraft } from "../lib/rules";
+import { defaultMessage, patternProblem, RuleDraft } from "../lib/rules";
 import { fileName } from "../lib/format";
 
 type Path = "format" | "normalizer" | "help";
@@ -25,7 +25,7 @@ const SYMBOLS = [
     ["^", "começo do texto"],
     ["$", "fim do texto"],
     ["\\d", "um número de 0 a 9"],
-    ["[A-Z]", "uma letra maiúscula (dá pra trocar o intervalo)"],
+    ["[A-Z]", "uma letra maiúscula (o intervalo pode ser trocado)"],
     ["{5}", "o que vem antes repete 5 vezes"],
     ["?", "o que vem antes é opcional"],
     ["+", "o que vem antes aparece uma ou mais vezes"],
@@ -111,15 +111,15 @@ function ChoosePath({ onChoose }: { onChoose: (path: Path) => void }) {
             id: "normalizer",
             icon: "code",
             title: "Um normalizador",
-            text: "Uma função pequena em JavaScript que decide se o valor vale ou não. Serve pra qualquer regra.",
+            text: "Uma função pequena em JavaScript que decide se o valor vale ou não. Serve para qualquer regra.",
             level: "Precisa de lógica de programação",
         },
         {
             id: "help",
             icon: "users",
             title: "Não sei fazer",
-            text: "Tudo bem! Eu te mostro o que pedir e pra quem.",
-            level: "Pra qualquer pessoa",
+            text: "Veja o que pedir e para quem.",
+            level: "Para qualquer pessoa",
         },
     ];
 
@@ -168,7 +168,7 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
     const [message, setMessage] = useState(
         draft.condition === "pattern" && draft.message
             ? draft.message
-            : `${column} fora do formato`,
+            : defaultMessage("pattern", column),
     );
     const [showSymbols, setShowSymbols] = useState(false);
 
@@ -181,7 +181,7 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
         <div className="dialog-page">
             <p className="muted">
                 Escolha um modelo ou escreva o seu. As linhas de{" "}
-                <strong>{column}</strong> que não seguirem esse formato vão pra
+                <strong>{column}</strong> que não seguirem esse formato vão para
                 Pendências.
             </p>
 
@@ -260,7 +260,7 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
                         if (line === "")
                             return (
                                 <li key={index} className="muted">
-                                    vazio: não é conferido
+                                    Vazio: não é conferido
                                 </li>
                             );
                         if (!regex)
@@ -282,7 +282,7 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
                                 />
                                 <code>{line}</code>
                                 <span>
-                                    {passes ? "passa" : "vai pra Pendências"}
+                                    {passes ? "Passa" : "Vai para Pendências"}
                                 </span>
                             </li>
                         );
@@ -339,7 +339,7 @@ function NormalizerPath({ draft, onBack, onApply }: PathProps) {
     const [message, setMessage] = useState(
         draft.condition === "normalizer" && draft.message
             ? draft.message
-            : `${column} inválido`,
+            : defaultMessage("normalizer", column),
     );
 
     const load = () => {
@@ -370,11 +370,11 @@ function NormalizerPath({ draft, onBack, onApply }: PathProps) {
             <h3>O que é um normalizador?</h3>
             <p>
                 É uma função que recebe o valor da célula e responde se ele
-                vale. Se não valer, devolve <code>null</code> e a linha vai pra
+                vale. Se não valer, devolve <code>null</code> e a linha vai para
                 Pendências. Se valer, devolve <code>{"{ key: valor }"}</code>.
             </p>
             <p className="muted">
-                Pra escrever um, você só precisa do básico de lógica de
+                Para escrever um, você só precisa do básico de lógica de
                 programação: variável, <code>if</code> e função. É JavaScript.
             </p>
             <pre className="code-block">{EXAMPLE_CODE}</pre>
@@ -388,7 +388,7 @@ function NormalizerPath({ draft, onBack, onApply }: PathProps) {
             <p>
                 Os normalizadores ficam num arquivo <code>.cjs</code> na mesma
                 pasta da sua configuração. O Datera cria um arquivo de exemplo
-                pra você e já deixa ele ligado na configuração.
+                para você e já deixa ele ligado na configuração.
             </p>
             <div className="file-actions">
                 <button
@@ -434,7 +434,7 @@ function NormalizerPath({ draft, onBack, onApply }: PathProps) {
                     no final.
                 </li>
                 <li>
-                    Salve, feche o Datera e abra de novo pra ele ler as
+                    Salve, feche o Datera e abra de novo para ele ler as
                     mudanças.
                 </li>
             </ol>
@@ -443,10 +443,10 @@ function NormalizerPath({ draft, onBack, onApply }: PathProps) {
             <h3>Escolha o normalizador</h3>
             <p className="muted">
                 As linhas de <strong>{column}</strong> que o normalizador
-                recusar vão pra Pendências.
+                recusar vão para Pendências.
             </p>
             {error && (
-                <Notice tone="error" title="Deu um problema.">
+                <Notice tone="error" title="Algo deu errado.">
                     {error}
                 </Notice>
             )}
@@ -545,7 +545,7 @@ function HelpPath({
 }) {
     const [copied, setCopied] = useState(false);
     const column = draft.column || "[nome da coluna]";
-    const request = `Oi! Uso o Datera pra organizar uma planilha e preciso de um normalizador pra coluna "${column}". A regra é: [explique aqui quando o valor vale e quando não vale]. O guia fica em github.com/alessandravieiradev-blip/datera, na parte "Criando o seu próprio normalizador". É um arquivo .cjs com uma função que devolve null quando o valor não vale.`;
+    const request = `Olá! Uso o Datera para organizar uma planilha e preciso de um normalizador para coluna "${column}". A regra é: [explique aqui quando o valor vale e quando não vale]. O guia fica em github.com/alessandravieiradev-blip/datera, na parte "Criando o seu próprio normalizador". É um arquivo .cjs com uma função que devolve null quando o valor não vale.`;
 
     const copy = async () => {
         try {
@@ -574,7 +574,7 @@ function HelpPath({
                     </button>
                 </li>
                 <li>
-                    <strong>Peça pra alguém que programe.</strong>
+                    <strong>Peça para alguém que programe.</strong>
                     <p className="muted">
                         Qualquer pessoa que saiba um pouco de JavaScript faz em
                         poucos minutos. Mande essa mensagem e complete a parte
@@ -606,12 +606,12 @@ function HelpPath({
                     </p>
                 </li>
                 <li>
-                    <strong>Use a versão pra quem programa.</strong>
+                    <strong>Use a versão para quem programa.</strong>
                     <p className="muted">
                         No GitHub do Datera tem a versão de terminal, com todas
                         as opções: merge por coluna, regras por grupo, fontes e
-                        destinos próprios. A configuração é a mesma, então dá
-                        pra alguém ajustar lá e você continuar usando por aqui.
+                        destinos próprios. A configuração é a mesma, então
+                        alguém pode ajustar lá e você continuar usando por aqui.
                     </p>
                     <button
                         type="button"
