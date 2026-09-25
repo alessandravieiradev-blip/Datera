@@ -3,10 +3,14 @@
     "version": "1.0.0",
     "description": "Limpa, unifica e organiza dados bagunçados de MySQL, CSV e JSON, e exporta pro Google Sheets, CSV ou JSON.",
     "main": "index.js",
+    "workspaces": [
+        "apps/*"
+    ],
     "scripts": {
         "start": "tsx src/main.ts",
         "example": "tsx src/main.ts --config examples/config.csv.json",
         "example:excel": "tsx src/main.ts --config examples/config.excel.json",
+        "desktop": "npm run dev -w apps/desktop",
         "test": "vitest",
         "typecheck": "tsc --noEmit",
         "test:connection": "tsx scripts/testConnection.ts",
