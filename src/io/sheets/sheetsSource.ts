@@ -1,4 +1,4 @@
-import { sheets_v4 } from "googleapis";
+import { sheets_v4 } from "@googleapis/sheets";
 import { TableRow } from "../../types";
 import { Source } from "../types";
 import { readSheet } from "./client";

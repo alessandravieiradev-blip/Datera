@@ -34,10 +34,10 @@
         "vitest": "^5.0.1"
     },
     "dependencies": {
+        "@googleapis/sheets": "^18.0.1",
         "commander": "^15.0.0",
         "dotenv": "^17.4.2",
         "exceljs": "^4.4.0",
-        "googleapis": "^181.0.0",
         "mysql2": "^3.24.4",
         "zod": "^4.6.5"
     },

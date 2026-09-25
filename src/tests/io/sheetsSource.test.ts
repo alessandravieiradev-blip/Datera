@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sheets_v4 } from "googleapis";
+import { sheets_v4 } from "@googleapis/sheets";
 import { SheetsSource } from "../../io/sheets/sheetsSource";
 
 function fakeSheets(tabs: Record<string, unknown[][]>) {

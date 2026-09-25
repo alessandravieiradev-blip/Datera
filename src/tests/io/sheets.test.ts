@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sheets_v4 } from "googleapis";
+import { sheets_v4 } from "@googleapis/sheets";
 import { writeData } from "../../io/sheets/client";
 
 type Call = { method: string; params: any };

@@ -1,15 +1,15 @@
-import { google, sheets_v4 } from "googleapis";
+import { auth, sheets as sheetsApi, sheets_v4 } from "@googleapis/sheets";
 import { TableRow } from "../../types";
 import { buildHeader } from "../header";
 import { consoleLogger, Logger } from "../../logger";
 
 export function createSheetsClient(credentialsPath: string): sheets_v4.Sheets {
-    const auth = new google.auth.GoogleAuth({
+    const credentials = new auth.GoogleAuth({
         keyFile: credentialsPath,
         scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
-    return google.sheets({ version: "v4", auth });
+    return sheetsApi({ version: "v4", auth: credentials });
 }
 
 interface TargetSheet {
