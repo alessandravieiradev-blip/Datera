@@ -89,7 +89,7 @@ export type NormalizerTestResult =
 
 export type TemplateResult = { ok: true; path: string } | Failure;
 
-export type HelpSection = "inicio" | "normalizador" | "regras";
+export type HelpSection = "inicio" | "normalizador" | "regras" | "dev";
 
 export type FileKind = "csv" | "excel" | "json" | "credentials";
 

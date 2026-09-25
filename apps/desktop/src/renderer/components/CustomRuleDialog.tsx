@@ -545,7 +545,7 @@ function HelpPath({
 }) {
     const [copied, setCopied] = useState(false);
     const column = draft.column || "[nome da coluna]";
-    const request = `Olá! Uso o Datera para organizar uma planilha e preciso de um normalizador para coluna "${column}". A regra é: [explique aqui quando o valor vale e quando não vale]. O guia fica em github.com/alessandravieiradev-blip/datera, na parte "Criando o seu próprio normalizador". É um arquivo .cjs com uma função que devolve null quando o valor não vale.`;
+    const request = `Olá! Uso o Datera para organizar uma planilha e preciso de um normalizador para coluna "${column}". A regra é: [explique aqui quando o valor vale e quando não vale]. O guia fica em github.com/alessandravieiradev-blip/datera, em docs/normalizadores.md, na parte "Criando o seu próprio normalizador". É um arquivo .cjs com uma função que devolve null quando o valor não vale.`;
 
     const copy = async () => {
         try {

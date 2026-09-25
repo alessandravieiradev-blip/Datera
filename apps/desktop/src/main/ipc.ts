@@ -44,12 +44,14 @@ import {
     saveModuleFile,
 } from "./files";
 
-const HELP_URL = "https://github.com/alessandravieiradev-blip/datera";
+const HELP_URL =
+    "https://github.com/alessandravieiradev-blip/datera/blob/main/docs/";
 
 const HELP_ANCHORS: Record<string, string> = {
-    inicio: "#readme",
-    normalizador: "#criando-o-seu-próprio-normalizador",
-    regras: "#separar-as-pendências-validation",
+    inicio: "gestores.md",
+    normalizador: "normalizadores.md#criando-o-seu-próprio-normalizador",
+    regras: "gestores.md#regras",
+    dev: "devs.md",
 };
 
 const FILE_FILTERS: Record<FileKind, { name: string; extensions: string[] }> = {
