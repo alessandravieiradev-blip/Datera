@@ -10,7 +10,7 @@
   <a href="https://github.com/alessandravieiradev-blip/datera/actions/workflows/ci.yml"><img src="https://github.com/alessandravieiradev-blip/datera/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
-O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um MySQL, de uma planilha do Excel, de um CSV ou de um JSON, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV ou num JSON.
+O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um MySQL, do Google Sheets, de uma planilha do Excel, de um CSV ou de um JSON, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV ou num JSON.
 
 Ele começou bem simples, era só pra copiar uma tabela do MySQL pra uma planilha. Só que aí eu fui vendo que dado de verdade vem uma bagunça: a mesma pessoa cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, informação espalhada em várias colunas. Então fui colocando coisa nova até conseguir resolver quase tudo mexendo só no `config.json`.
 
@@ -177,7 +177,7 @@ O `concat` também aceita o `distribute`, que espalha os valores em colunas (tem
 
 ## Fontes e destinos
 
-O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, Excel, CSV e JSON e escrever no Google Sheets, no Excel, em CSV e em JSON, misturando do jeito que quiser.
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, Google Sheets, Excel, CSV e JSON e escrever no Google Sheets, no Excel, em CSV e em JSON, misturando do jeito que quiser.
 
 ```json
 {
@@ -194,12 +194,13 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 
 ### Fontes (`source`)
 
-| `type`  | Campos                                                  | Observações                                                                                                                |
-| ------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `mysql` | `host`, `port`, `user`, `password`, `database`, `table` | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                 |
-| `csv`   | `path`, `delimiter?`, `encoding?`                       | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                |
-| `json`  | `path`, `recordsPath?`                                  | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"` |
-| `excel` | `path`, `sheet?`                                        | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                              |
+| `type`   | Campos                                                  | Observações                                                                                                                |
+| -------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `mysql`  | `host`, `port`, `user`, `password`, `database`, `table` | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                 |
+| `csv`    | `path`, `delimiter?`, `encoding?`                       | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                |
+| `json`   | `path`, `recordsPath?`                                  | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"` |
+| `excel`  | `path`, `sheet?`                                        | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                              |
+| `sheets` | `spreadsheetId`, `sheet?`, `credentialsPath?`           | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Sem `credentialsPath`, usa o mesmo das outras configs              |
 
 Umas coisas que eu aprendi apanhando:
 
@@ -254,6 +255,10 @@ fica assim:
 | `excel`  | `path`, `sheet?`                   | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
 
 O CSV sai com vírgula. Se for abrir no Excel em português, coloca `"delimiter": ";"`. Ele também sai com um caractere invisível no começo (o `bom`, que já vem ligado) pro Excel mostrar os acentos certo. Se o arquivo for pra outro programa e ele reclamar desse caractere, coloca `"bom": false`. E se a pasta do arquivo não existir, ele cria.
+
+Pra ler do Google Sheets, a planilha de origem também tem que estar compartilhada com o e-mail da service account (pode ser só como Leitor). Os números chegam como número e as datas chegam do jeito que aparecem na planilha.
+
+Dá pra ler e escrever na mesma planilha, mas não na mesma aba, porque ele limpa a aba de destino antes de escrever e ia apagar o que acabou de ler. Se a fonte e o destino forem a mesma planilha, coloca o `sheet` na fonte com o nome da aba de onde ler (e ela não pode ser a primeira, que é onde ele escreve). Se esquecer do `sheet`, ele avisa e nem começa.
 
 Sobre o Excel, umas coisas que acontecem por baixo:
 
@@ -1052,7 +1057,7 @@ src/
     header.ts             # monta o cabeçalho das saídas
     files.ts              # ler e escrever arquivo, nome do arquivo de pendências
     mysql/                # client.ts (conexão e leitura paginada) e mysqlSource.ts
-    sheets/               # client.ts (escrita em abas) e sheetsSink.ts
+    sheets/               # client.ts (leitura e escrita em abas), sheetsSource.ts e sheetsSink.ts
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
     json/                 # jsonSource.ts e jsonSink.ts
     excel/                # excelSource.ts, excelSink.ts, excelCell.ts (converte o valor da célula) e workbook.ts
@@ -1079,7 +1084,6 @@ scripts/                  # scripts pra testar na mão (banco, config, sheets)
 
 ## Ainda falta
 
-- ler do Google Sheets (hoje ele só escreve lá)
 - carregar adapters próprios por arquivo, igual já dá pra fazer com os normalizadores
 - pipeline de filtros configurável (hoje os modos são um switch fixo no `index.ts`)
 - build de produção (hoje roda tudo pelo `tsx`)

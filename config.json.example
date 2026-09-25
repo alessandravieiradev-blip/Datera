@@ -1,6 +1,6 @@
 {
     "source": {
-        "type": "Opcional. mysql, excel, csv ou json (veja o README). Sem source, usa os campos do MySQL abaixo",
+        "type": "Opcional. mysql, sheets, excel, csv ou json (veja o README). Sem source, usa os campos do MySQL abaixo",
         "path": "Só pra excel, csv e json. Ex: ./dados/alunos.xlsx"
     },
     "destination": {
