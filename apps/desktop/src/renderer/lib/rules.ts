@@ -1,13 +1,23 @@
 import type { RawConfig } from "../../shared/api";
 
 export type Condition =
-    "empty" | "email" | "digits" | "date" | "list" | "advanced";
+    | "empty"
+    | "email"
+    | "digits"
+    | "date"
+    | "list"
+    | "pattern"
+    | "normalizer"
+    | "advanced";
 
 export interface RuleDraft {
     id: string;
     column: string;
     condition: Condition;
     values: string;
+    pattern?: string | undefined;
+    flags?: string | undefined;
+    normalizer?: string | undefined;
     message?: string | undefined;
     original?: RawConfig | undefined;
 }
@@ -18,6 +28,8 @@ export const CONDITION_LABELS: Record<Condition, string> = {
     digits: "com algo que não é número",
     date: "com data fora do dd/mm/aaaa",
     list: "fora da lista",
+    pattern: "fora do formato próprio",
+    normalizer: "recusado pelo normalizador",
     advanced: "regra avançada (do arquivo)",
 };
 
@@ -41,6 +53,8 @@ const MESSAGES: Record<Condition, (column: string) => string> = {
     digits: (column) => `${column} com algo que não é número`,
     date: (column) => `${column} com data fora do formato`,
     list: (column) => `${column} fora da lista`,
+    pattern: (column) => `${column} fora do formato`,
+    normalizer: (column) => `${column} inválido`,
     advanced: (column) => `${column} inválido`,
 };
 
@@ -57,12 +71,14 @@ function text(value: unknown): string {
 function conditionOf(rule: RawConfig): Condition {
     if (rule.rule === "required") return "empty";
     if (rule.rule === "oneOf") return "list";
-    if (rule.rule === "pattern" && rule.flags === undefined) {
+    if (rule.rule === "pattern" && typeof rule.pattern === "string") {
         const match = (Object.keys(PATTERNS) as Condition[]).find(
             (condition) => PATTERNS[condition] === rule.pattern,
         );
-        if (match) return match;
+        return match && rule.flags === undefined ? match : "pattern";
     }
+    if (rule.rule === "normalizer" && typeof rule.normalizer === "string")
+        return "normalizer";
     return "advanced";
 }
 
@@ -76,6 +92,10 @@ export function rulesFromConfig(config: RawConfig): RuleDraft[] {
         column: text(rule.column),
         condition: conditionOf(rule),
         values: Array.isArray(rule.values) ? rule.values.join(", ") : "",
+        pattern: typeof rule.pattern === "string" ? rule.pattern : undefined,
+        flags: typeof rule.flags === "string" ? rule.flags : undefined,
+        normalizer:
+            typeof rule.normalizer === "string" ? rule.normalizer : undefined,
         message: typeof rule.message === "string" ? rule.message : undefined,
         original: rule,
     }));
@@ -88,6 +108,12 @@ function messageFor(draft: RuleDraft): string {
         text(original.column) === draft.column &&
         conditionOf(original) === draft.condition;
     if (unchanged && draft.message) return draft.message;
+    if (
+        (draft.condition === "pattern" || draft.condition === "normalizer") &&
+        draft.message
+    ) {
+        return draft.message;
+    }
     return MESSAGES[draft.condition](draft.column);
 }
 
@@ -102,6 +128,21 @@ export function ruleToConfig(draft: RuleDraft): RawConfig {
             .filter((value) => value !== "");
         return { ...base, rule: "oneOf", values, ignoreCase: true };
     }
+    if (draft.condition === "normalizer") {
+        return {
+            ...base,
+            rule: "normalizer",
+            normalizer: draft.normalizer ?? "",
+        };
+    }
+    if (draft.condition === "pattern") {
+        return {
+            ...base,
+            rule: "pattern",
+            pattern: draft.pattern ?? "",
+            ...(draft.flags ? { flags: draft.flags } : {}),
+        };
+    }
     return {
         ...base,
         rule: "pattern",
@@ -114,7 +155,25 @@ export function problemOf(draft: RuleDraft): string | null {
     if (draft.condition === "list" && draft.values.trim() === "") {
         return "Escreva os valores aceitos, separados por vírgula.";
     }
+    if (
+        draft.condition === "pattern" &&
+        patternProblem(draft.pattern ?? "", draft.flags)
+    ) {
+        return "O formato próprio está com problema. Clique em editar.";
+    }
+    if (draft.condition === "normalizer" && !draft.normalizer)
+        return "Escolha o normalizador.";
     return null;
+}
+
+export function patternProblem(pattern: string, flags?: string): string | null {
+    if (pattern.trim() === "") return "Escreva o formato.";
+    try {
+        new RegExp(pattern, (flags ?? "").replace(/[gy]/g, ""));
+        return null;
+    } catch {
+        return "Esse formato tem algum erro de escrita.";
+    }
 }
 
 export function withRules(config: RawConfig, drafts: RuleDraft[]): RawConfig {

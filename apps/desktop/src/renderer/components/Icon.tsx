@@ -19,7 +19,10 @@ export type IconName =
     | "calendar"
     | "folder"
     | "trash"
-    | "arrowLeft";
+    | "arrowLeft"
+    | "close"
+    | "code"
+    | "users";
 
 const PATHS: Record<IconName, string[]> = {
     home: ["M3 10.5 12 3l9 7.5", "M5 9.5V21h5v-6h4v6h5V9.5"],
@@ -74,6 +77,14 @@ const PATHS: Record<IconName, string[]> = {
         "M14 11v6",
         "M6 7l1 13h10l1-13",
         "M9 7V4h6v3",
+    ],
+    close: ["M6 6l12 12", "M18 6L6 18"],
+    code: ["M8 7l-5 5 5 5", "M16 7l5 5-5 5", "M14 4l-4 16"],
+    users: [
+        "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+        "M2 21v-1a6 6 0 0 1 12 0v1",
+        "M16 3.5a4 4 0 0 1 0 7",
+        "M22 21v-1a6 6 0 0 0-4-5.6",
     ],
     arrowLeft: ["M19 12H5", "M11 6l-6 6 6 6"],
     folder: [

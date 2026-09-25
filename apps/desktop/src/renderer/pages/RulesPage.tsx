@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CustomRuleDialog } from "../components/CustomRuleDialog";
 import { Icon } from "../components/Icon";
 import { Notice } from "../components/Notice";
 import { Panel } from "../components/Panel";
@@ -35,6 +36,7 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
     const [columnsError, setColumnsError] = useState<string | null>(null);
     const [status, setStatus] = useState<Status>(null);
     const [saving, setSaving] = useState(false);
+    const [dialogFor, setDialogFor] = useState<string | null>(null);
     const configPath = datera.settings.configPath;
 
     const loadFrom = (loaded: RawConfig) => {
@@ -113,6 +115,7 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
         ]);
     };
 
+    const dialogDraft = drafts.find((draft) => draft.id === dialogFor);
     const canMerge =
         config !== null &&
         typeof config.mergeKeyColumn === "string" &&
@@ -183,6 +186,7 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
                         problem={problems[index] ?? null}
                         onChange={(change) => update(draft.id, change)}
                         onRemove={() => remove(draft.id)}
+                        onCustom={() => setDialogFor(draft.id)}
                     />
                 ))}
                 <button type="button" className="add-rule" onClick={add}>
@@ -250,6 +254,17 @@ export function RulesPage({ datera, onNavigate }: RulesPageProps) {
 
             {status && <Notice tone={status.tone} title={status.text} />}
 
+            {dialogDraft && (
+                <CustomRuleDialog
+                    draft={dialogDraft}
+                    onClose={() => setDialogFor(null)}
+                    onApply={(change) => {
+                        update(dialogDraft.id, change);
+                        setDialogFor(null);
+                    }}
+                />
+            )}
+
             <footer className="page-footer">
                 <button
                     type="button"
@@ -307,13 +322,24 @@ interface RuleRowProps {
     problem: string | null;
     onChange: (change: Partial<RuleDraft>) => void;
     onRemove: () => void;
+    onCustom: () => void;
 }
 
-function RuleRow({ number, draft, problem, onChange, onRemove }: RuleRowProps) {
-    const advanced = draft.condition === "advanced";
-    const options: Condition[] = advanced
-        ? ["advanced", ...EDITABLE_CONDITIONS]
-        : EDITABLE_CONDITIONS;
+const OTHER = "outra";
+
+function RuleRow({
+    number,
+    draft,
+    problem,
+    onChange,
+    onRemove,
+    onCustom,
+}: RuleRowProps) {
+    const options: Condition[] = EDITABLE_CONDITIONS.includes(draft.condition)
+        ? EDITABLE_CONDITIONS
+        : [draft.condition, ...EDITABLE_CONDITIONS];
+    const custom =
+        draft.condition === "pattern" || draft.condition === "normalizer";
 
     return (
         <div className="panel rule-row">
@@ -332,16 +358,35 @@ function RuleRow({ number, draft, problem, onChange, onRemove }: RuleRowProps) {
                 className="field"
                 value={draft.condition}
                 aria-label="Condição"
-                onChange={(event) =>
-                    onChange({ condition: event.target.value as Condition })
-                }
+                onChange={(event) => {
+                    if (event.target.value === OTHER) onCustom();
+                    else
+                        onChange({
+                            condition: event.target.value as Condition,
+                        });
+                }}
             >
                 {options.map((condition) => (
                     <option key={condition} value={condition}>
                         {CONDITION_LABELS[condition]}
                     </option>
                 ))}
+                <option value={OTHER}>Outra regra...</option>
             </select>
+            {custom && (
+                <button
+                    type="button"
+                    className="chip-button"
+                    onClick={onCustom}
+                >
+                    <code>
+                        {draft.condition === "pattern"
+                            ? draft.pattern
+                            : draft.normalizer}
+                    </code>
+                    editar
+                </button>
+            )}
             {draft.condition === "list" && (
                 <input
                     className="field"
