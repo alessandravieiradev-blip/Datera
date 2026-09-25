@@ -4,7 +4,11 @@ export type Condition =
     | "empty"
     | "email"
     | "digits"
+    | "number"
     | "date"
+    | "cep"
+    | "letters"
+    | "short"
     | "list"
     | "pattern"
     | "normalizer"
@@ -23,40 +27,60 @@ export interface RuleDraft {
 }
 
 export const CONDITION_LABELS: Record<Condition, string> = {
-    empty: "vazio",
-    email: "com e-mail inválido",
-    digits: "com algo que não é número",
-    date: "com data fora do dd/mm/aaaa",
-    list: "fora da lista",
-    pattern: "fora do formato próprio",
-    normalizer: "recusado pelo normalizador",
-    advanced: "regra avançada (do arquivo)",
+    empty: "Vazio",
+    email: "Com e-mail inválido",
+    digits: "Com algo além de dígitos (0 a 9)",
+    number: "Com número inválido (aceita vírgula)",
+    date: "Com data inválida (dd/mm/aaaa)",
+    cep: "Com CEP inválido",
+    letters: "Com números ou símbolos (só letras)",
+    short: "Curto demais (menos de 3 caracteres)",
+    list: "Fora da lista",
+    pattern: "Fora do formato próprio",
+    normalizer: "Recusado pelo normalizador",
+    advanced: "Regra avançada (do arquivo)",
 };
 
 export const EDITABLE_CONDITIONS: Condition[] = [
     "empty",
     "email",
     "digits",
+    "number",
     "date",
+    "cep",
+    "letters",
+    "short",
     "list",
 ];
 
 const PATTERNS: Partial<Record<Condition, string>> = {
     email: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
     digits: "^\\d+$",
+    number: "^-?(\\d+|\\d{1,3}(\\.\\d{3})+)([.,]\\d+)?$",
     date: "^\\d{2}/\\d{2}/\\d{4}$",
+    cep: "^\\d{5}-?\\d{3}$",
+    letters: "^[A-Za-zÀ-ÿ' -]+$",
+    short: "^.{3,}$",
 };
 
 const MESSAGES: Record<Condition, (column: string) => string> = {
-    empty: (column) => `${column} vazio`,
-    email: (column) => `${column} com e-mail inválido`,
-    digits: (column) => `${column} com algo que não é número`,
-    date: (column) => `${column} com data fora do formato`,
-    list: (column) => `${column} fora da lista`,
-    pattern: (column) => `${column} fora do formato`,
-    normalizer: (column) => `${column} inválido`,
-    advanced: (column) => `${column} inválido`,
+    empty: (column) => `Campo "${column}" vazio`,
+    email: (column) => `E-mail inválido em "${column}"`,
+    digits: (column) => `Só dígitos são aceitos em "${column}"`,
+    number: (column) => `Número inválido em "${column}"`,
+    date: (column) => `Data inválida em "${column}"`,
+    cep: (column) => `CEP inválido em "${column}"`,
+    letters: (column) => `Só letras são aceitas em "${column}"`,
+    short: (column) => `Valor curto demais em "${column}"`,
+    list: (column) => `Valor fora da lista em "${column}"`,
+    pattern: (column) => `Formato inválido em "${column}"`,
+    normalizer: (column) => `Valor inválido em "${column}"`,
+    advanced: (column) => `Valor inválido em "${column}"`,
 };
+
+export function defaultMessage(condition: Condition, column: string): string {
+    return MESSAGES[condition](column);
+}
 
 let counter = 0;
 export function newId(): string {
