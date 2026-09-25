@@ -1,0 +1,66 @@
+{
+    "source": {
+        "type": "csv",
+        "path": "./examples/alunos.csv"
+    },
+    "destination": {
+        "type": "excel",
+        "path": "./examples/saida/resultado.xlsx",
+        "sheet": "Alunos"
+    },
+    "mode": "merge",
+    "fillEmpty": [
+        {
+            "column": "cidade",
+            "default": "não informada"
+        }
+    ],
+    "validation": {
+        "rules": [
+            {
+                "column": "matricula",
+                "rule": "required",
+                "message": "sem matrícula"
+            },
+            {
+                "column": "email",
+                "rule": "pattern",
+                "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+                "message": "e-mail fora do formato"
+            },
+            {
+                "column": "plano",
+                "rule": "oneOf",
+                "values": ["mensal", "trimestral", "anual"],
+                "ignoreCase": true
+            }
+        ]
+    },
+    "mergeKeyColumn": "matricula",
+    "mergeKeyNormalizer": "digitsOnly",
+    "mergeColumns": [
+        {
+            "column": "nome",
+            "strategy": "extra-column"
+        },
+        {
+            "column": "instrumento 1",
+            "strategy": "concat",
+            "separator": " | ",
+            "distribute": {
+                "columns": ["instrumento 1", "instrumento 2"],
+                "sources": ["instrumento 2"],
+                "overflowInto": "outros instrumentos"
+            }
+        },
+        {
+            "column": "plano",
+            "strategy": "overwrite"
+        },
+        {
+            "column": "cidade",
+            "strategy": "concat",
+            "separator": " | "
+        }
+    ]
+}

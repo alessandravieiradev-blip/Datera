@@ -6,6 +6,7 @@
     "scripts": {
         "start": "tsx src/index.ts",
         "example": "tsx src/index.ts --config examples/config.csv.json",
+        "example:excel": "tsx src/index.ts --config examples/config.excel.json",
         "test": "vitest",
         "typecheck": "tsc --noEmit",
         "test:connection": "tsx scripts/testConnection.ts",
