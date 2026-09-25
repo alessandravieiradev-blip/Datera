@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { readTable, createPool } from "../src/db";
+import { readTable, createPool } from "../src/io/mysql/client";
 import { requireEnv } from "../src/env";
 
 async function main() {

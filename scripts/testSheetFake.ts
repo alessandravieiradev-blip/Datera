@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { writeData, createSheetsClient } from "../src/sheets";
+import { writeData, createSheetsClient } from "../src/io/sheets/client";
 import { requireEnv } from "../src/env";
 
 async function main() {

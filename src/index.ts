@@ -16,7 +16,7 @@ import {
 import {
     registerBuiltinKeyNormalizers,
     loadNormalizerModules,
-} from "./filters/normalizers";
+} from "./normalizers";
 
 async function runRawMode(rows: TableRow[]): Promise<TableRow[]> {
     return rows;
