@@ -402,7 +402,7 @@ export function App() {
             group: "Ajuda",
             label: "Abrir o guia no GitHub",
             keys: "F1",
-            run: () => void window.datera.openHelp("inicio"),
+            run: () => void window.datera.openHelp("dev"),
         },
     ];
 
