@@ -11,6 +11,7 @@ import { ExcelSource } from "./excel/excelSource";
 import { ExcelSink } from "./excel/excelSink";
 import { SheetsSource } from "./sheets/sheetsSource";
 import { createCustomSink, createCustomSource } from "./custom/registry";
+import { consoleLogger, Logger } from "../logger";
 
 const DEFAULT_MYSQL_PORT = 3306;
 
@@ -21,7 +22,10 @@ function required<T>(value: T | undefined, what: string): T {
     return value;
 }
 
-export function createSource(config: EtlConfig): Source {
+export function createSource(
+    config: EtlConfig,
+    logger: Logger = consoleLogger,
+): Source {
     const source = config.source ?? { type: "mysql" as const };
 
     switch (source.type) {
@@ -44,6 +48,7 @@ export function createSource(config: EtlConfig): Source {
                     ),
                 },
                 required(source.table ?? config.tableName, "a tabela do MySQL"),
+                logger,
             );
         case "csv":
             return new CsvSource(source);
@@ -63,11 +68,18 @@ export function createSource(config: EtlConfig): Source {
             );
         }
         case "custom":
-            return createCustomSource(source.adapter, source.options ?? {});
+            return createCustomSource(
+                source.adapter,
+                source.options ?? {},
+                logger,
+            );
     }
 }
 
-export function createSink(config: EtlConfig): Sink {
+export function createSink(
+    config: EtlConfig,
+    logger: Logger = consoleLogger,
+): Sink {
     assertNotSameSheet(config);
     const destination = config.destination ?? { type: "sheets" as const };
 
@@ -84,18 +96,20 @@ export function createSink(config: EtlConfig): Sink {
             return new SheetsSink(
                 createSheetsClient(credentialsPath),
                 spreadsheetId,
+                logger,
             );
         }
         case "csv":
-            return new CsvSink(destination);
+            return new CsvSink(destination, logger);
         case "json":
-            return new JsonSink(destination);
+            return new JsonSink(destination, logger);
         case "excel":
-            return new ExcelSink(destination);
+            return new ExcelSink(destination, logger);
         case "custom":
             return createCustomSink(
                 destination.adapter,
                 destination.options ?? {},
+                logger,
             );
     }
 }

@@ -1,5 +1,6 @@
 import mysql, { Pool } from "mysql2/promise";
 import { TableRow } from "../../types";
+import { consoleLogger, Logger } from "../../logger";
 
 export interface MysqlConnection {
     host: string;
@@ -35,6 +36,7 @@ function isRetryableError(error: unknown): boolean {
 
 async function withRetry<T>(
     fn: () => Promise<T>,
+    logger: Logger,
     maxRetries: number = 3,
     baseDelayMs: number = 500,
 ): Promise<T> {
@@ -48,7 +50,7 @@ async function withRetry<T>(
             }
 
             const delay = baseDelayMs * 2 ** attempt;
-            console.error(
+            logger.warn(
                 `Erro de conexão com o banco. Tentando de novo em ${delay}ms (tentativa ${attempt + 1}/${maxRetries})...`,
             );
             await new Promise((resolve) => setTimeout(resolve, delay));
@@ -66,16 +68,19 @@ export async function* readTableInBatches(
     pool: Pool,
     tableName: string,
     batchSize: number = DEFAULT_BATCH_SIZE,
+    logger: Logger = consoleLogger,
 ): AsyncGenerator<TableRow[]> {
     let offset = 0;
 
     while (true) {
-        const [rows] = await withRetry(() =>
-            pool.query(`SELECT * FROM ?? LIMIT ? OFFSET ?`, [
-                tableName,
-                batchSize,
-                offset,
-            ]),
+        const [rows] = await withRetry(
+            () =>
+                pool.query(`SELECT * FROM ?? LIMIT ? OFFSET ?`, [
+                    tableName,
+                    batchSize,
+                    offset,
+                ]),
+            logger,
         );
         const batch = rows as TableRow[];
 
@@ -96,10 +101,16 @@ export async function* readTableInBatches(
 export async function readTable(
     pool: Pool,
     tableName: string,
+    logger: Logger = consoleLogger,
 ): Promise<TableRow[]> {
     const allRows: TableRow[] = [];
 
-    for await (const batch of readTableInBatches(pool, tableName)) {
+    for await (const batch of readTableInBatches(
+        pool,
+        tableName,
+        DEFAULT_BATCH_SIZE,
+        logger,
+    )) {
         allRows.push(...batch);
     }
 

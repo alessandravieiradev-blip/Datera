@@ -1,8 +1,20 @@
 import { Sink, Source } from "../types";
+import { consoleLogger, Logger } from "../../logger";
 
 export type AdapterOptions = Record<string, unknown>;
-export type SourceFactory = (options: AdapterOptions) => Source;
-export type SinkFactory = (options: AdapterOptions) => Sink;
+
+export interface AdapterContext {
+    logger: Logger;
+}
+
+export type SourceFactory = (
+    options: AdapterOptions,
+    context: AdapterContext,
+) => Source;
+export type SinkFactory = (
+    options: AdapterOptions,
+    context: AdapterContext,
+) => Sink;
 
 const sources = new Map<string, SourceFactory>();
 const sinks = new Map<string, SinkFactory>();
@@ -47,8 +59,9 @@ export function registerSinkAdapter(name: string, factory: SinkFactory): void {
 export function createCustomSource(
     name: string,
     options: AdapterOptions,
+    logger: Logger = consoleLogger,
 ): Source {
-    const source = find(sources, "Fonte", name)(options);
+    const source = find(sources, "Fonte", name)(options, { logger });
     if (typeof source?.read !== "function") {
         throw new Error(
             `A fonte "${name}" precisa devolver um objeto com o método read().`,
@@ -57,8 +70,12 @@ export function createCustomSource(
     return source;
 }
 
-export function createCustomSink(name: string, options: AdapterOptions): Sink {
-    const sink = find(sinks, "Destino", name)(options);
+export function createCustomSink(
+    name: string,
+    options: AdapterOptions,
+    logger: Logger = consoleLogger,
+): Sink {
+    const sink = find(sinks, "Destino", name)(options, { logger });
     if (typeof sink?.write !== "function") {
         throw new Error(
             `O destino "${name}" precisa devolver um objeto com o método write().`,

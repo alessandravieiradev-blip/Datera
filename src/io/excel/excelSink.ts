@@ -4,6 +4,7 @@ import { TableRow } from "../../types";
 import { Sink, SinkWriteOptions } from "../types";
 import { buildHeader } from "../header";
 import { openWorkbook, saveWorkbook } from "./workbook";
+import { consoleLogger, Logger } from "../../logger";
 
 export interface ExcelSinkOptions {
     path: string;
@@ -22,7 +23,10 @@ export function safeSheetName(name: string): string {
 }
 
 export class ExcelSink implements Sink {
-    constructor(private readonly options: ExcelSinkOptions) {}
+    constructor(
+        private readonly options: ExcelSinkOptions,
+        private readonly logger: Logger = consoleLogger,
+    ) {}
 
     async write(
         rows: TableRow[],
@@ -65,7 +69,7 @@ export class ExcelSink implements Sink {
         }
 
         await saveWorkbook(workbook, this.options.path);
-        console.log(
+        this.logger.info(
             `${rows.length} linhas escritas na aba "${sheetName}" de ${this.options.path}.`,
         );
     }

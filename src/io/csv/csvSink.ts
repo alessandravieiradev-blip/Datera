@@ -3,6 +3,7 @@ import { Sink, SinkWriteOptions } from "../types";
 import { buildHeader } from "../header";
 import { toCsv } from "./csvFormat";
 import { extraOutputPath, writeTextFile } from "../files";
+import { consoleLogger, Logger } from "../../logger";
 
 export interface CsvSinkOptions {
     path: string;
@@ -11,7 +12,10 @@ export interface CsvSinkOptions {
 }
 
 export class CsvSink implements Sink {
-    constructor(private readonly options: CsvSinkOptions) {}
+    constructor(
+        private readonly options: CsvSinkOptions,
+        private readonly logger: Logger = consoleLogger,
+    ) {}
 
     async write(
         rows: TableRow[],
@@ -34,6 +38,6 @@ export class CsvSink implements Sink {
         const bom = (this.options.bom ?? true) ? "\uFEFF" : "";
 
         writeTextFile(filePath, bom + content + (content ? "\r\n" : ""));
-        console.log(`${rows.length} linhas escritas em ${filePath}.`);
+        this.logger.info(`${rows.length} linhas escritas em ${filePath}.`);
     }
 }

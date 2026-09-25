@@ -1,6 +1,7 @@
 import { google, sheets_v4 } from "googleapis";
 import { TableRow } from "../../types";
 import { buildHeader } from "../header";
+import { consoleLogger, Logger } from "../../logger";
 
 export function createSheetsClient(credentialsPath: string): sheets_v4.Sheets {
     const auth = new google.auth.GoogleAuth({
@@ -18,6 +19,7 @@ interface TargetSheet {
 
 export interface WriteOptions {
     sheetName?: string | undefined;
+    logger?: Logger | undefined;
 }
 
 function quoteSheetTitle(title: string): string {
@@ -46,6 +48,7 @@ async function resolveSheet(
     sheets: sheets_v4.Sheets,
     spreadsheetId: string,
     sheetName: string | undefined,
+    logger: Logger = consoleLogger,
 ): Promise<TargetSheet> {
     const existing = await listSheets(sheets, spreadsheetId);
     const found =
@@ -70,7 +73,7 @@ async function resolveSheet(
         throw new Error(`Não consegui criar a aba "${sheetName}".`);
     }
 
-    console.log(`Aba "${sheetName}" criada.`);
+    logger.info(`Aba "${sheetName}" criada.`);
     return { title: sheetName, sheetId };
 }
 
@@ -159,13 +162,19 @@ export async function writeData(
     data: TableRow[],
     options: WriteOptions = {},
 ) {
-    const target = await resolveSheet(sheets, spreadsheetId, options.sheetName);
+    const logger = options.logger ?? consoleLogger;
+    const target = await resolveSheet(
+        sheets,
+        spreadsheetId,
+        options.sheetName,
+        logger,
+    );
     const range = quoteSheetTitle(target.title);
 
     await sheets.spreadsheets.values.clear({ spreadsheetId, range });
 
     if (data.length === 0) {
-        console.log(`Nenhum dado pra escrever na aba "${target.title}".`);
+        logger.info(`Nenhum dado pra escrever na aba "${target.title}".`);
         return;
     }
 
@@ -183,5 +192,5 @@ export async function writeData(
 
     await formatSheet(sheets, spreadsheetId, target.sheetId, header.length);
 
-    console.log(`${data.length} linhas escritas na aba "${target.title}".`);
+    logger.info(`${data.length} linhas escritas na aba "${target.title}".`);
 }
