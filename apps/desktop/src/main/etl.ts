@@ -1,8 +1,23 @@
 import fs from "fs";
 import path from "path";
 import { parse } from "dotenv";
-import { EtlConfig, loadConfig, Logger, runEtl } from "../../../../src";
-import { LogEntry, LogLevel, RunRecord, RunRequest } from "../shared/api";
+import {
+    EtlConfig,
+    loadConfig,
+    Logger,
+    runEtl,
+    silentLogger,
+} from "../../../../src";
+import { createSource } from "../../../../src/io/factory";
+import { loadAdapterModules } from "../../../../src/io/custom/loader";
+import { buildHeader } from "../../../../src/io/header";
+import {
+    ColumnsResult,
+    LogEntry,
+    LogLevel,
+    RunRecord,
+    RunRequest,
+} from "../shared/api";
 
 const PREVIEW_SIZE = 20;
 
@@ -73,6 +88,32 @@ function describe(config: EtlConfig): { source: string; destination: string } {
     };
 }
 
+async function insideConfigFolder<T>(
+    configPath: string,
+    task: () => Promise<T>,
+): Promise<T> {
+    if (running) {
+        throw new Error("Já tem uma execução rodando. Espera ela terminar.");
+    }
+    running = true;
+    enableTypeScriptModules();
+    const previousDir = process.cwd();
+    const configDir = path.dirname(configPath);
+    const restoreEnv = useEnvFile(configDir);
+    try {
+        process.chdir(configDir);
+        return await task();
+    } finally {
+        process.chdir(previousDir);
+        restoreEnv();
+        running = false;
+    }
+}
+
+function messageOf(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
 export async function runWithConfig(
     configPath: string | null,
     request: RunRequest,
@@ -92,43 +133,53 @@ export async function runWithConfig(
             error: "Escolha o arquivo de configuração antes de rodar.",
         };
     }
-    if (running) {
+
+    const logger = createIpcLogger(send);
+    try {
+        return await insideConfigFolder(configPath, async () => {
+            const config = loadConfig(configPath);
+            const labels = describe(config);
+            const report = await runEtl(config, {
+                dryRun: request.dryRun,
+                logger,
+                previewSize: PREVIEW_SIZE,
+            });
+            return {
+                ...record,
+                ok: true,
+                sourceLabel: labels.source,
+                destinationLabel: labels.destination,
+                report,
+            };
+        });
+    } catch (error) {
+        logger.error("Deu erro:", error);
+        return { ...record, error: messageOf(error) };
+    }
+}
+
+export async function readColumns(
+    configPath: string | null,
+): Promise<ColumnsResult> {
+    if (configPath === null) {
         return {
-            ...record,
-            error: "Já tem uma execução rodando. Espera ela terminar.",
+            ok: false,
+            error: "Escolha o arquivo de configuração primeiro.",
         };
     }
-
-    running = true;
-    enableTypeScriptModules();
-    const logger = createIpcLogger(send);
-    const previousDir = process.cwd();
-    const configDir = path.dirname(configPath);
-    const restoreEnv = useEnvFile(configDir);
-
     try {
-        process.chdir(configDir);
-        const config = loadConfig(configPath);
-        const labels = describe(config);
-        const report = await runEtl(config, {
-            dryRun: request.dryRun,
-            logger,
-            previewSize: PREVIEW_SIZE,
+        return await insideConfigFolder(configPath, async () => {
+            const config = loadConfig(configPath);
+            loadAdapterModules(config.adapterModules ?? []);
+            const source = createSource(config, silentLogger);
+            try {
+                const rows = await source.read();
+                return { ok: true, columns: buildHeader(rows) };
+            } finally {
+                await source.close?.();
+            }
         });
-        return {
-            ...record,
-            ok: true,
-            sourceLabel: labels.source,
-            destinationLabel: labels.destination,
-            report,
-        };
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logger.error("Deu erro:", error);
-        return { ...record, error: message };
-    } finally {
-        process.chdir(previousDir);
-        restoreEnv();
-        running = false;
+        return { ok: false, error: messageOf(error) };
     }
 }
