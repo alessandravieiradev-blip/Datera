@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "start": "tsx src/index.ts",
+        "example": "tsx src/index.ts --config examples/config.csv.json",
         "test": "vitest",
         "typecheck": "tsc --noEmit",
         "test:connection": "tsx scripts/testConnection.ts",

@@ -28,3 +28,6 @@ coverage/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Saída dos exemplos
+examples/saida/
