@@ -6,7 +6,7 @@ export type FileEncoding = "utf-8" | "latin1";
 export function slugify(name: string): string {
     return name
         .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
@@ -35,4 +35,16 @@ export function readTextFile(
 export function writeTextFile(filePath: string, content: string): void {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content, "utf8");
+}
+
+export function readBinaryFile(filePath: string): Buffer {
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Arquivo não encontrado: ${filePath}`);
+    }
+    return fs.readFileSync(filePath);
+}
+
+export function writeBinaryFile(filePath: string, content: Buffer): void {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
 }
