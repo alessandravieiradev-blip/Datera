@@ -21,6 +21,11 @@ export const sourceSchema = z.discriminatedUnion("type", [
         path: z.string(),
         recordsPath: z.string().optional(),
     }),
+    z.object({
+        type: z.literal("excel"),
+        path: z.string(),
+        sheet: z.string().min(1).optional(),
+    }),
 ]);
 
 export const destinationSchema = z.discriminatedUnion("type", [
@@ -38,6 +43,11 @@ export const destinationSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("json"),
         path: z.string(),
+    }),
+    z.object({
+        type: z.literal("excel"),
+        path: z.string(),
+        sheet: z.string().min(1).optional(),
     }),
 ]);
 
