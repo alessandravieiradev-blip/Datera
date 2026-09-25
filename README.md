@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="docs/assets/datera-icon.png" alt="Ícone do Datera" width="128">
+  <img src="docs/assets/datera-banner.png" alt="Datera: dados bagunçados entrando de um lado e saindo organizados do outro">
 </p>
-
-<h1 align="center">Datera</h1>
 
 <p align="center">Ferramenta pra limpar e juntar dados bagunçados de planilha, banco e arquivo.</p>
 
