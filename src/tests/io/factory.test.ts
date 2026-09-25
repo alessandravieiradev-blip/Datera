@@ -7,6 +7,8 @@ import { JsonSource } from "../../io/json/jsonSource";
 import { SheetsSink } from "../../io/sheets/sheetsSink";
 import { CsvSink } from "../../io/csv/csvSink";
 import { JsonSink } from "../../io/json/jsonSink";
+import { ExcelSource } from "../../io/excel/excelSource";
+import { ExcelSink } from "../../io/excel/excelSink";
 
 const legacy = {
     mode: "raw",
@@ -46,6 +48,17 @@ describe("createSource e createSink", () => {
         expect(createSink(csv)).toBeInstanceOf(JsonSink);
         expect(createSource(json)).toBeInstanceOf(JsonSource);
         expect(createSink(json)).toBeInstanceOf(CsvSink);
+    });
+
+    it("escolhe o excel pra ler e escrever", () => {
+        const excel = config({
+            mode: "raw",
+            source: { type: "excel", path: "a.xlsx", sheet: "Alunos" },
+            destination: { type: "excel", path: "b.xlsx" },
+        });
+
+        expect(createSource(excel)).toBeInstanceOf(ExcelSource);
+        expect(createSink(excel)).toBeInstanceOf(ExcelSink);
     });
 
     it("source mysql pode completar o que falta com os campos antigos", () => {
