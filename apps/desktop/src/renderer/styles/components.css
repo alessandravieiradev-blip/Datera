@@ -54,12 +54,12 @@ code {
 }
 
 .button.primary {
-    background: var(--blue);
-    color: #fff;
+    background: var(--button);
+    color: var(--on-accent);
 }
 
 .button.primary:hover:not(:disabled) {
-    background: var(--blue-dark);
+    background: var(--button-hover);
 }
 
 .button.secondary {
@@ -80,7 +80,7 @@ code {
 .button.large {
     padding: 16px 26px;
     font-size: 17px;
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
+    box-shadow: var(--button-shadow);
 }
 
 .link {
@@ -137,7 +137,7 @@ code {
 
 .tone-orange {
     background: var(--warning-soft);
-    color: #d97706;
+    color: var(--orange-icon);
 }
 
 .tone-purple {
@@ -264,7 +264,7 @@ code {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    color: #fff;
+    color: var(--on-success);
 }
 
 .trend-good .trend-icon {
@@ -273,7 +273,7 @@ code {
 
 .trend-bad .trend-icon {
     background: var(--warning);
-    color: var(--text);
+    color: #0f172a;
 }
 
 .trend-number {
@@ -334,7 +334,7 @@ code {
     height: 24px;
     border-radius: 50%;
     background: var(--success);
-    color: #fff;
+    color: var(--on-success);
 }
 
 .tag {
@@ -381,8 +381,8 @@ code {
 }
 
 .notice-success {
-    border-color: #bbf7d0;
-    background: #f0fdf4;
+    border-color: var(--success-border);
+    background: var(--success-bg);
 }
 
 .notice-success .notice-icon {
@@ -390,17 +390,17 @@ code {
 }
 
 .notice-warning {
-    border-color: #fde68a;
-    background: #fffbeb;
+    border-color: var(--warning-border);
+    background: var(--warning-bg);
 }
 
 .notice-warning .notice-icon {
-    color: #d97706;
+    color: var(--orange-icon);
 }
 
 .notice-error {
-    border-color: #fecaca;
-    background: #fef2f2;
+    border-color: var(--error-border);
+    background: var(--error-bg);
 }
 
 .notice-error .notice-icon {
@@ -879,15 +879,15 @@ code {
 }
 
 .current .step-number {
-    border-color: var(--blue);
-    background: var(--blue);
-    color: #fff;
+    border-color: var(--button);
+    background: var(--button);
+    color: var(--on-accent);
 }
 
 .done .step-number {
     border-color: var(--success);
     background: var(--success);
-    color: #fff;
+    color: var(--on-success);
 }
 
 .step-body {
@@ -1027,7 +1027,7 @@ code {
     align-items: center;
     justify-content: center;
     padding: 32px;
-    background: rgba(15, 23, 42, 0.35);
+    background: var(--overlay);
 }
 
 .modal {
@@ -1037,7 +1037,7 @@ code {
     max-height: 100%;
     border-radius: 18px;
     background: var(--surface);
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+    box-shadow: var(--modal-shadow);
 }
 
 .modal-header {
@@ -1206,7 +1206,8 @@ textarea.field {
     margin: 0;
     padding: 16px 18px;
     border-radius: var(--radius-small);
-    background: #0f172a;
+    border: 1px solid var(--border);
+    background: #0b1120;
     color: #e2e8f0;
     font-family: "Cascadia Code", Consolas, monospace;
     font-size: 13px;
@@ -1292,4 +1293,49 @@ textarea.field {
     width: 22px;
     border-radius: 999px;
     background: var(--blue);
+}
+
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.theme-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.theme-option.selected {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-soft);
+}
+
+.theme-swatch {
+    width: 100%;
+    height: 56px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+}
+
+.swatch-light {
+    background: linear-gradient(90deg, #ffffff 30%, #f8fafc 30%);
+}
+
+.swatch-dark {
+    background: linear-gradient(90deg, #111a2e 30%, #0b1120 30%);
+}
+
+.swatch-system {
+    background: linear-gradient(135deg, #f8fafc 50%, #0b1120 50%);
 }

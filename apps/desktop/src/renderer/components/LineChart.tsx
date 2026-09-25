@@ -72,7 +72,7 @@ export function LineChart({ points }: LineChartProps) {
             <polyline
                 points={line}
                 fill="none"
-                stroke="#2563EB"
+                stroke="var(--blue)"
                 strokeWidth={2.5}
             />
             {coords.map((c, index) => (
@@ -81,8 +81,8 @@ export function LineChart({ points }: LineChartProps) {
                         cx={c.x}
                         cy={c.y}
                         r={5}
-                        fill="#2563EB"
-                        stroke="#fff"
+                        fill="var(--blue)"
+                        stroke="var(--surface)"
                         strokeWidth={2}
                     />
                     <text

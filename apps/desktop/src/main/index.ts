@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { app, BrowserWindow } from "electron";
 import { registerIpc } from "./ipc";
+import { readSettings } from "./settings";
+import { applyTheme, backgroundColor } from "./theme";
 
 const isDev = process.env.DATERA_DEV === "1";
 const rendererDir = path.join(__dirname, "..", "renderer");
@@ -32,7 +34,7 @@ function createWindow(): void {
         minWidth: 1100,
         minHeight: 700,
         title: "Datera",
-        backgroundColor: "#F8FAFC",
+        backgroundColor: backgroundColor(),
         ...(fs.existsSync(iconPath) ? { icon: iconPath } : {}),
         autoHideMenuBar: true,
         show: false,
@@ -54,6 +56,7 @@ function createWindow(): void {
 app.setAppUserModelId("io.github.alessandravieiradev.datera");
 
 app.whenReady().then(() => {
+    applyTheme(readSettings().theme);
     registerIpc();
     createWindow();
     app.on("activate", () => {

@@ -16,7 +16,10 @@ export interface DateraState {
 
 export function useDatera(): DateraState {
     const [loading, setLoading] = useState(true);
-    const [settings, setSettings] = useState<Settings>({ configPath: null });
+    const [settings, setSettings] = useState<Settings>({
+        configPath: null,
+        theme: "system",
+    });
     const [history, setHistory] = useState<RunRecord[]>([]);
     const [running, setRunning] = useState(false);
     const [lastRun, setLastRun] = useState<RunRecord>();

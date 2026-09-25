@@ -2,6 +2,21 @@ import { Icon } from "../components/Icon";
 import { Panel } from "../components/Panel";
 import { PageId } from "../components/Sidebar";
 import { DateraState } from "../lib/useDatera";
+import type { Theme } from "../../shared/api";
+
+const THEMES: { id: Theme; label: string; text: string }[] = [
+    {
+        id: "system",
+        label: "Igual ao Windows",
+        text: "Muda sozinho junto com o computador.",
+    },
+    { id: "light", label: "Claro", text: "Fundo claro o tempo todo." },
+    {
+        id: "dark",
+        label: "Escuro",
+        text: "Fundo escuro, mais confortável à noite.",
+    },
+];
 
 interface SettingsPageProps {
     datera: DateraState;
@@ -52,6 +67,38 @@ export function SettingsPage({ datera, onNavigate }: SettingsPageProps) {
                     >
                         {configPath ? "Trocar arquivo" : "Escolher arquivo"}
                     </button>
+                </div>
+            </Panel>
+            <Panel title="Aparência">
+                <div
+                    className="theme-options"
+                    role="radiogroup"
+                    aria-label="Tema"
+                >
+                    {THEMES.map((theme) => (
+                        <button
+                            key={theme.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={datera.settings.theme === theme.id}
+                            className={
+                                datera.settings.theme === theme.id
+                                    ? "theme-option selected"
+                                    : "theme-option"
+                            }
+                            onClick={async () =>
+                                datera.applySettings(
+                                    await window.datera.setTheme(theme.id),
+                                )
+                            }
+                        >
+                            <span
+                                className={`theme-swatch swatch-${theme.id}`}
+                            />
+                            <strong>{theme.label}</strong>
+                            <span className="muted small">{theme.text}</span>
+                        </button>
+                    ))}
                 </div>
             </Panel>
         </div>

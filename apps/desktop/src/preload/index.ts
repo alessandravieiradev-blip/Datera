@@ -10,6 +10,7 @@ const api: DateraApi = {
     listNormalizers: () => ipcRenderer.invoke(IPC.listNormalizers),
     createNormalizerFile: () => ipcRenderer.invoke(IPC.createNormalizerFile),
     showInFolder: (filePath) => ipcRenderer.invoke(IPC.showInFolder, filePath),
+    setTheme: (theme) => ipcRenderer.invoke(IPC.setTheme, theme),
     readConfig: () => ipcRenderer.invoke(IPC.readConfig),
     saveConfig: (config) => ipcRenderer.invoke(IPC.saveConfig, config),
     createConfig: (config) => ipcRenderer.invoke(IPC.createConfig, config),

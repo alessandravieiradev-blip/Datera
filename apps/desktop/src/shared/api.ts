@@ -15,11 +15,15 @@ export const IPC = {
     listNormalizers: "normalizers:list",
     createNormalizerFile: "normalizers:create-file",
     showInFolder: "files:show-in-folder",
+    setTheme: "settings:set-theme",
     log: "etl:log",
 } as const;
 
+export type Theme = "system" | "light" | "dark";
+
 export interface Settings {
     configPath: string | null;
+    theme: Theme;
 }
 
 export interface RunRequest {
@@ -76,6 +80,7 @@ export interface DateraApi {
     listNormalizers(): Promise<NormalizersResult>;
     createNormalizerFile(): Promise<TemplateResult>;
     showInFolder(filePath: string): Promise<void>;
+    setTheme(theme: Theme): Promise<Settings>;
     readConfig(): Promise<ConfigResult>;
     saveConfig(config: RawConfig): Promise<SaveResult>;
     createConfig(config: RawConfig): Promise<SaveResult | null>;

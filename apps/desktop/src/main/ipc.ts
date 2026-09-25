@@ -22,7 +22,8 @@ import {
     readConfigFile,
     writeConfigFile,
 } from "./configFile";
-import { readSettings, saveSettings } from "./settings";
+import { isTheme, readSettings, saveSettings } from "./settings";
+import { applyTheme } from "./theme";
 import { addToHistory, readHistory } from "./history";
 import { readColumns, runWithConfig } from "./etl";
 import { createNormalizerTemplate, listNormalizers } from "./normalizers";
@@ -110,6 +111,13 @@ export function registerIpc(): void {
     });
 
     ipcMain.handle(IPC.listHistory, () => readHistory());
+
+    ipcMain.handle(IPC.setTheme, (_event, theme: unknown) => {
+        const current = readSettings();
+        if (!isTheme(theme)) return current;
+        applyTheme(theme);
+        return saveSettings({ ...current, theme });
+    });
 
     ipcMain.handle(IPC.readConfig, () => {
         const { configPath } = readSettings();
