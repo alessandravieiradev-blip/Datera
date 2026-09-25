@@ -9,6 +9,7 @@ import { CsvSink } from "../../io/csv/csvSink";
 import { JsonSink } from "../../io/json/jsonSink";
 import { ExcelSource } from "../../io/excel/excelSource";
 import { ExcelSink } from "../../io/excel/excelSink";
+import { SheetsSource } from "../../io/sheets/sheetsSource";
 
 const legacy = {
     mode: "raw",
@@ -59,6 +60,39 @@ describe("createSource e createSink", () => {
 
         expect(createSource(excel)).toBeInstanceOf(ExcelSource);
         expect(createSink(excel)).toBeInstanceOf(ExcelSink);
+    });
+
+    it("lê do google sheets usando as credenciais antigas se a fonte não tiver", () => {
+        const sheets = config({
+            mode: "raw",
+            credentialsPath: "./credentials.json",
+            source: {
+                type: "sheets",
+                spreadsheetId: "origem",
+                sheet: "Alunos",
+            },
+            destination: { type: "csv", path: "b.csv" },
+        });
+
+        expect(createSource(sheets)).toBeInstanceOf(SheetsSource);
+    });
+
+    it("não deixa ler e escrever na mesma aba da mesma planilha", () => {
+        const mesma = config({
+            mode: "raw",
+            credentialsPath: "./credentials.json",
+            source: { type: "sheets", spreadsheetId: "id" },
+            destination: { type: "sheets", spreadsheetId: "id" },
+        });
+        const outraAba = config({
+            mode: "raw",
+            credentialsPath: "./credentials.json",
+            source: { type: "sheets", spreadsheetId: "id", sheet: "Cadastro" },
+            destination: { type: "sheets", spreadsheetId: "id" },
+        });
+
+        expect(() => createSink(mesma)).toThrow("mesma aba");
+        expect(createSink(outraAba)).toBeInstanceOf(SheetsSink);
     });
 
     it("source mysql pode completar o que falta com os campos antigos", () => {
