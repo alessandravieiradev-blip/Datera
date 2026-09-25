@@ -19,7 +19,6 @@ export interface ValidationResult {
     pending: TableRow[];
 }
 
-// separa as linhas que passam em todas as regras das que tem algum problema
 export class RowValidator {
     private readonly checks: Check[];
 
@@ -27,7 +26,6 @@ export class RowValidator {
         rules: ValidationRule[],
         private readonly reasonColumn: string = DEFAULT_REASON_COLUMN,
     ) {
-        // monta tudo aqui pra regex ou normalizador errado dar erro antes de ler o banco
         this.checks = rules.map((rule) => this.buildCheck(rule));
     }
 
@@ -45,7 +43,6 @@ export class RowValidator {
                 continue;
             }
 
-            // motivo vai na primeira coluna pra ficar facil de ler na aba
             const withReason: TableRow = { [this.reasonColumn]: null, ...row };
             withReason[this.reasonColumn] = Array.from(new Set(reasons)).join(
                 "; ",
@@ -75,7 +72,6 @@ export class RowValidator {
                     isValid: () => true,
                 };
             case "pattern": {
-                // g e y fazem o test() lembrar a posicao da ultima busca, ai uma linha afeta a outra
                 const flags = (rule.flags ?? "").replace(/[gy]/g, "");
                 const regex = new RegExp(rule.pattern, flags);
                 return {

@@ -3,7 +3,6 @@ import path from "path";
 
 export type FileEncoding = "utf-8" | "latin1";
 
-// tira acento e simbolo pra virar pedaco de nome de arquivo: "Pendências" -> "pendencias"
 export function slugify(name: string): string {
     return name
         .normalize("NFD")
@@ -13,7 +12,6 @@ export function slugify(name: string): string {
         .replace(/^-+|-+$/g, "");
 }
 
-// saida extra fica do lado da principal: resultado.csv -> resultado.pendencias.csv
 export function extraOutputPath(
     mainPath: string,
     name: string | undefined,

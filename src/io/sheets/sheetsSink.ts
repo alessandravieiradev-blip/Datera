@@ -9,7 +9,6 @@ export class SheetsSink implements Sink {
         private readonly spreadsheetId: string,
     ) {}
 
-    // no sheets a saida extra vira uma aba com esse nome
     async write(
         rows: TableRow[],
         options: SinkWriteOptions = {},

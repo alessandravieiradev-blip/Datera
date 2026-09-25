@@ -9,7 +9,6 @@ export function loadJsonConfig(filePath: string): EtlConfig {
     return etlConfigSchema.parse(parsedData);
 }
 
-// variavel de ambiente vence o json, igual antes
 function withMysqlEnv(
     source: SourceConfig | undefined,
 ): SourceConfig | undefined {

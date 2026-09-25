@@ -9,7 +9,6 @@ export interface JsonSourceOptions {
 
 type Json = unknown;
 
-// objeto dentro de objeto vira coluna com ponto: { endereco: { cidade } } -> "endereco.cidade"
 function flatten(value: Json, prefix: string, row: TableRow): void {
     if (value === null || value === undefined) {
         row[prefix] = null;
@@ -46,7 +45,6 @@ export class JsonSource implements Source {
             throw error;
         }
 
-        // recordsPath tipo "dados.alunos" pra quando a lista ta dentro de outras chaves
         for (const key of this.options.recordsPath?.split(".") ?? []) {
             data =
                 typeof data === "object" && data !== null

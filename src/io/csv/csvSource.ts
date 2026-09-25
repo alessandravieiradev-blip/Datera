@@ -26,7 +26,6 @@ export class CsvSource implements Source {
             const row: TableRow = {};
             columns.forEach((column, index) => {
                 const value = values[index];
-                // celula vazia vira null, igual vem do banco
                 row[column] =
                     value === undefined || value === "" ? null : value;
             });

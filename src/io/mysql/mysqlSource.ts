@@ -12,7 +12,6 @@ export class MysqlSource implements Source {
     ) {}
 
     async read(): Promise<TableRow[]> {
-        // so abre a conexao na hora de ler, nao quando cria a classe
         this.pool ??= createPool(this.connection);
         return readTable(this.pool, this.table);
     }

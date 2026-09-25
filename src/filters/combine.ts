@@ -2,7 +2,6 @@ import { Filter } from "./types";
 import { TableRow } from "../types";
 import { CombineColumnsConfig } from "./combineTypes";
 
-// junta varias colunas da mesma linha numa so, roda antes do dedupe/merge
 export class CombineFilter implements Filter<TableRow> {
     constructor(private readonly combinations: CombineColumnsConfig[]) {}
 
@@ -16,7 +15,6 @@ export class CombineFilter implements Filter<TableRow> {
         );
 
         return rows.map((row) => {
-            // calcula tudo antes de apagar pq uma combinacao pode usar coluna de outra
             const combined = new Map<string, string | null>();
             for (const combination of this.combinations) {
                 combined.set(combination.into, this.combine(row, combination));
@@ -25,7 +23,6 @@ export class CombineFilter implements Filter<TableRow> {
         });
     }
 
-    // remonta a linha pra coluna nova nao ir pro final da planilha
     private rebuildRow(
         row: TableRow,
         combined: Map<string, string | null>,
@@ -64,7 +61,6 @@ export class CombineFilter implements Filter<TableRow> {
             const raw = row[column];
             const text =
                 raw === null || raw === undefined ? "" : String(raw).trim();
-            // se falta alguma parte nao combina, pra nao sair valor pela metade
             if (text === "") return null;
             values.push(text);
         }

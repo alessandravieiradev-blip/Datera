@@ -22,7 +22,6 @@ async function runRawMode(rows: TableRow[]): Promise<TableRow[]> {
     return rows;
 }
 
-// etapas que rodam antes do modo, na ordem: preencher vazios e depois juntar colunas
 function prepareRows(rows: TableRow[], config: EtlConfig): TableRow[] {
     let prepared = rows;
     if (config.fillEmpty)
@@ -32,7 +31,6 @@ function prepareRows(rows: TableRow[], config: EtlConfig): TableRow[] {
     return prepared;
 }
 
-// linha com problema vai pra aba de pendencias e nao passa pelo modo
 function validateRows(rows: TableRow[], config: EtlConfig): ValidationResult {
     if (!config.validation) return { valid: rows, pending: [] };
 

@@ -2,7 +2,6 @@ import { TableRow } from "../types";
 import { MergeColumnConfig } from "./mergeTypes";
 import { DEFAULT_SEPARATOR, presentValues } from "./mergeStrategies";
 
-// linhas sem chave nunca se juntam entre si, no maximo viram uma linha resumida
 export function buildUnkeyedRows(
     rows: TableRow[],
     label: string,

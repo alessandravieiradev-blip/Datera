@@ -106,7 +106,6 @@ export class MergeFilter implements Filter<TableRow> {
         return this.columns.some((c) => c.byGroup?.[category] !== undefined);
     }
 
-    // linha sozinha so passa pelo distribute, senao a coluna fica diferente na planilha
     private distributeOnly(row: TableRow): TableRow {
         const distributed = this.columns.filter(
             (c) => c.strategy === "concat" && c.distribute !== undefined,

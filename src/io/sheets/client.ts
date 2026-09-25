@@ -20,12 +20,10 @@ export interface WriteOptions {
     sheetName?: string | undefined;
 }
 
-// nome de aba com espaco ou apostrofo precisa de aspas simples no A1 notation
 function quoteSheetTitle(title: string): string {
     return `'${title.replace(/'/g, "''")}'`;
 }
 
-// sem nome usa a primeira aba, com nome usa a aba e cria ela se nao existir
 async function resolveSheet(
     sheets: sheets_v4.Sheets,
     spreadsheetId: string,
@@ -126,7 +124,6 @@ export async function writeData(
     const target = await resolveSheet(sheets, spreadsheetId, options.sheetName);
     const range = quoteSheetTitle(target.title);
 
-    // limpa antes pra nao sobrar linha de uma rodada anterior maior que essa
     await sheets.spreadsheets.values.clear({ spreadsheetId, range });
 
     if (data.length === 0) {

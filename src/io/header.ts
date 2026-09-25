@@ -1,6 +1,5 @@
 import { TableRow } from "../types";
 
-// junta as colunas de todas as linhas e poe coluna_2, coluna_3... logo depois da coluna base
 export function buildHeader(data: TableRow[]): string[] {
     const seen = new Set<string>();
     const orderedKeys: string[] = [];

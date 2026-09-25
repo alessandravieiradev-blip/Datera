@@ -17,7 +17,6 @@ function required<T>(value: T | undefined, what: string): T {
     return value;
 }
 
-// sem "source" usa os campos antigos (dbHost, tableName...) como mysql
 export function createSource(config: EtlConfig): Source {
     const source = config.source ?? { type: "mysql" as const };
 
@@ -49,7 +48,6 @@ export function createSource(config: EtlConfig): Source {
     }
 }
 
-// sem "destination" usa os campos antigos (spreadsheetId, credentialsPath) como sheets
 export function createSink(config: EtlConfig): Sink {
     const destination = config.destination ?? { type: "sheets" as const };
 

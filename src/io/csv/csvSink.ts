@@ -31,7 +31,6 @@ export class CsvSink implements Sink {
             rows.length === 0
                 ? ""
                 : toCsv([header, ...lines], this.options.delimiter ?? ",");
-        // o bom faz o excel entender acento em utf-8
         const bom = (this.options.bom ?? true) ? "\uFEFF" : "";
 
         writeTextFile(filePath, bom + content + (content ? "\r\n" : ""));

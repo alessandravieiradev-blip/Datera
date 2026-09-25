@@ -1,7 +1,6 @@
 import { TableRow } from "../types";
 import { DistributeConfig } from "./mergeTypes";
 
-// como cada coluna junta os valores de varias linhas num valor so
 export type CellValue = string | number | null;
 
 export const DEFAULT_SEPARATOR = "; ";
@@ -59,7 +58,6 @@ export function mergeConcatDistributed(
         ),
     );
 
-    // limpa os destinos antes pra nao sobrar valor velho da primeira linha
     for (const destination of columns) {
         if (destination in merged) merged[destination] = null;
     }

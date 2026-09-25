@@ -8,7 +8,6 @@ export const etlConfigSchema = z
     .object({
         source: sourceSchema.optional(),
         destination: destinationSchema.optional(),
-        // campos antigos, continuam valendo como source mysql e destination sheets
         tableName: z.string().optional(),
         spreadsheetId: z.string().optional(),
         credentialsPath: z.string().optional(),

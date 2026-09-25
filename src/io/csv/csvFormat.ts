@@ -5,7 +5,6 @@ export function stripBom(text: string): string {
     return text.startsWith(BOM) ? text.slice(1) : text;
 }
 
-// olha so a primeira linha e escolhe o separador que mais aparece fora de aspas
 export function detectDelimiter(text: string): string {
     let best = ",";
     let bestCount = 0;
@@ -27,7 +26,6 @@ export function detectDelimiter(text: string): string {
     return best;
 }
 
-// le o csv caractere por caractere pq aspas podem ter separador e quebra de linha dentro
 export function parseCsv(text: string, delimiter: string): string[][] {
     const rows: string[][] = [];
     let row: string[] = [];
@@ -75,7 +73,6 @@ export function parseCsv(text: string, delimiter: string): string[][] {
         rows.push(row);
     }
 
-    // linha totalmente vazia (tipo enter no fim do arquivo) nao conta
     return rows.filter((r) => !(r.length === 1 && r[0] === ""));
 }
 
