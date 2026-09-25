@@ -25,6 +25,7 @@ export const etlConfigSchema = z
         mergeRejectedKeyLabel: z.string().optional(),
         mergeKeyNormalizer: z.string().optional(),
         normalizerModules: z.array(z.string()).optional(),
+        adapterModules: z.array(z.string()).optional(),
         fillEmpty: z.array(fillEmptySchema).optional(),
         combineColumns: z.array(combineColumnsSchema).optional(),
         validation: validationSchema.optional(),

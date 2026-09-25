@@ -32,6 +32,11 @@ export const sourceSchema = z.discriminatedUnion("type", [
         credentialsPath: z.string().optional(),
         sheet: z.string().min(1).optional(),
     }),
+    z.object({
+        type: z.literal("custom"),
+        adapter: z.string().min(1),
+        options: z.record(z.string(), z.unknown()).optional(),
+    }),
 ]);
 
 export const destinationSchema = z.discriminatedUnion("type", [
@@ -54,6 +59,11 @@ export const destinationSchema = z.discriminatedUnion("type", [
         type: z.literal("excel"),
         path: z.string(),
         sheet: z.string().min(1).optional(),
+    }),
+    z.object({
+        type: z.literal("custom"),
+        adapter: z.string().min(1),
+        options: z.record(z.string(), z.unknown()).optional(),
     }),
 ]);
 
