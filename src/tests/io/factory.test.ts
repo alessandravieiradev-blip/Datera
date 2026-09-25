@@ -78,21 +78,78 @@ describe("createSource e createSink", () => {
     });
 
     it("não deixa ler e escrever na mesma aba da mesma planilha", () => {
-        const mesma = config({
+        const semAbaNaFonte = config({
             mode: "raw",
             credentialsPath: "./credentials.json",
             source: { type: "sheets", spreadsheetId: "id" },
             destination: { type: "sheets", spreadsheetId: "id" },
         });
-        const outraAba = config({
+        const semAbaNoDestino = config({
             mode: "raw",
             credentialsPath: "./credentials.json",
             source: { type: "sheets", spreadsheetId: "id", sheet: "Cadastro" },
             destination: { type: "sheets", spreadsheetId: "id" },
         });
+        const destinoNaFonte = config({
+            mode: "raw",
+            credentialsPath: "./credentials.json",
+            source: { type: "sheets", spreadsheetId: "id", sheet: "Cadastro" },
+            destination: {
+                type: "sheets",
+                spreadsheetId: "id",
+                sheet: "cadastro ",
+            },
+        });
+        const pendenciasNaFonte = config({
+            mode: "raw",
+            credentialsPath: "./credentials.json",
+            source: {
+                type: "sheets",
+                spreadsheetId: "id",
+                sheet: "Pendências",
+            },
+            destination: {
+                type: "sheets",
+                spreadsheetId: "id",
+                sheet: "Resultado",
+            },
+            validation: { rules: [{ column: "Aluno", rule: "required" }] },
+        });
+        const outraAba = config({
+            mode: "raw",
+            credentialsPath: "./credentials.json",
+            source: { type: "sheets", spreadsheetId: "id", sheet: "Cadastro" },
+            destination: {
+                type: "sheets",
+                spreadsheetId: "id",
+                sheet: "Resultado",
+            },
+        });
+        const outraPlanilha = config({
+            mode: "raw",
+            credentialsPath: "./credentials.json",
+            source: { type: "sheets", spreadsheetId: "original" },
+            destination: { type: "sheets", spreadsheetId: "copia" },
+        });
 
-        expect(() => createSink(mesma)).toThrow("mesma aba");
+        expect(() => createSink(semAbaNaFonte)).toThrow('"sheet" na fonte');
+        expect(() => createSink(semAbaNoDestino)).toThrow('"sheet" no destino');
+        expect(() => createSink(destinoNaFonte)).toThrow('A aba "Cadastro"');
+        expect(() => createSink(pendenciasNaFonte)).toThrow(
+            'A aba "Pendências"',
+        );
         expect(createSink(outraAba)).toBeInstanceOf(SheetsSink);
+        expect(createSink(outraPlanilha)).toBeInstanceOf(SheetsSink);
+    });
+
+    it("não deixa o destino ser o mesmo arquivo da fonte", () => {
+        const mesmoArquivo = config({
+            mode: "raw",
+            source: { type: "excel", path: "./alunos.xlsx" },
+            destination: { type: "excel", path: "alunos.xlsx" },
+        });
+
+        expect(() => createSink(mesmoArquivo)).toThrow("mesmo arquivo");
     });
 
     it("source mysql pode completar o que falta com os campos antigos", () => {

@@ -8,6 +8,7 @@ export class SheetsSink implements Sink {
     constructor(
         private readonly sheets: sheets_v4.Sheets,
         private readonly spreadsheetId: string,
+        private readonly sheet?: string | undefined,
         private readonly logger: Logger = consoleLogger,
     ) {}
 
@@ -16,7 +17,7 @@ export class SheetsSink implements Sink {
         options: SinkWriteOptions = {},
     ): Promise<void> {
         await writeData(this.sheets, this.spreadsheetId, rows, {
-            sheetName: options.name,
+            sheetName: options.name ?? this.sheet,
             logger: this.logger,
         });
     }

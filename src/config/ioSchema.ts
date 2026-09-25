@@ -44,6 +44,7 @@ export const destinationSchema = z.discriminatedUnion("type", [
         type: z.literal("sheets"),
         spreadsheetId: z.string().optional(),
         credentialsPath: z.string().optional(),
+        sheet: z.string().min(1).optional(),
     }),
     z.object({
         type: z.literal("csv"),

@@ -12,6 +12,7 @@ import { ExcelSink } from "./excel/excelSink";
 import { SheetsSource } from "./sheets/sheetsSource";
 import { createCustomSink, createCustomSource } from "./custom/registry";
 import { consoleLogger, Logger } from "../logger";
+import { assertSourceIsSafe } from "./safety";
 
 const DEFAULT_MYSQL_PORT = 3306;
 
@@ -80,7 +81,7 @@ export function createSink(
     config: EtlConfig,
     logger: Logger = consoleLogger,
 ): Sink {
-    assertNotSameSheet(config);
+    assertSourceIsSafe(config);
     const destination = config.destination ?? { type: "sheets" as const };
 
     switch (destination.type) {
@@ -96,6 +97,7 @@ export function createSink(
             return new SheetsSink(
                 createSheetsClient(credentialsPath),
                 spreadsheetId,
+                destination.sheet,
                 logger,
             );
         }
@@ -111,18 +113,5 @@ export function createSink(
                 destination.options ?? {},
                 logger,
             );
-    }
-}
-
-function assertNotSameSheet(config: EtlConfig): void {
-    const source = config.source;
-    const destination = config.destination ?? { type: "sheets" as const };
-    if (source?.type !== "sheets" || destination.type !== "sheets") return;
-
-    const destinationId = destination.spreadsheetId ?? config.spreadsheetId;
-    if (source.spreadsheetId === destinationId && source.sheet === undefined) {
-        throw new Error(
-            'A fonte e o destino são a mesma aba da mesma planilha, e ela seria apagada antes de escrever. Coloque "sheet" na fonte com o nome da aba de onde ler.',
-        );
     }
 }
