@@ -26,6 +26,12 @@ export const sourceSchema = z.discriminatedUnion("type", [
         path: z.string(),
         sheet: z.string().min(1).optional(),
     }),
+    z.object({
+        type: z.literal("sheets"),
+        spreadsheetId: z.string().min(1),
+        credentialsPath: z.string().optional(),
+        sheet: z.string().min(1).optional(),
+    }),
 ]);
 
 export const destinationSchema = z.discriminatedUnion("type", [

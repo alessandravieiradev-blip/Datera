@@ -9,6 +9,7 @@ import { CsvSink } from "./csv/csvSink";
 import { JsonSink } from "./json/jsonSink";
 import { ExcelSource } from "./excel/excelSource";
 import { ExcelSink } from "./excel/excelSink";
+import { SheetsSource } from "./sheets/sheetsSource";
 
 const DEFAULT_MYSQL_PORT = 3306;
 
@@ -49,10 +50,22 @@ export function createSource(config: EtlConfig): Source {
             return new JsonSource(source);
         case "excel":
             return new ExcelSource(source);
+        case "sheets": {
+            const credentialsPath = required(
+                source.credentialsPath ?? config.credentialsPath,
+                "o caminho das credenciais do Google",
+            );
+            return new SheetsSource(
+                createSheetsClient(credentialsPath),
+                source.spreadsheetId,
+                source.sheet,
+            );
+        }
     }
 }
 
 export function createSink(config: EtlConfig): Sink {
+    assertNotSameSheet(config);
     const destination = config.destination ?? { type: "sheets" as const };
 
     switch (destination.type) {
@@ -76,5 +89,18 @@ export function createSink(config: EtlConfig): Sink {
             return new JsonSink(destination);
         case "excel":
             return new ExcelSink(destination);
+    }
+}
+
+function assertNotSameSheet(config: EtlConfig): void {
+    const source = config.source;
+    const destination = config.destination ?? { type: "sheets" as const };
+    if (source?.type !== "sheets" || destination.type !== "sheets") return;
+
+    const destinationId = destination.spreadsheetId ?? config.spreadsheetId;
+    if (source.spreadsheetId === destinationId && source.sheet === undefined) {
+        throw new Error(
+            'A fonte e o destino são a mesma aba da mesma planilha, e ela seria apagada antes de escrever. Coloque "sheet" na fonte com o nome da aba de onde ler.',
+        );
     }
 }
