@@ -1,5 +1,5 @@
 import { TableRow } from "../types";
-import { getKeyNormalizer } from "./keyNormalizers";
+import { getKeyNormalizer } from "../normalizers/registry";
 import { ValidationRule } from "./validateTypes";
 
 export const DEFAULT_PENDING_SHEET = "Pendências";

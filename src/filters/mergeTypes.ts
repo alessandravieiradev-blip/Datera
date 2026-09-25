@@ -1,4 +1,4 @@
-import { KeyNormalizer } from "./keyNormalizers";
+import { KeyNormalizer } from "../normalizers/registry";
 
 export type MergeColumnStrategy = "concat" | "overwrite" | "extra-column";
 
