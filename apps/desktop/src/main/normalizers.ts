@@ -2,9 +2,14 @@ import fs from "fs";
 import path from "path";
 import { listKeyNormalizers } from "../../../../src/normalizers/registry";
 import { registerBuiltinKeyNormalizers } from "../../../../src/normalizers";
-import { NormalizersResult, RawConfig, TemplateResult } from "../shared/api";
+import {
+    NormalizerTestResult,
+    NormalizersResult,
+    RawConfig,
+    TemplateResult,
+} from "../shared/api";
 import { readConfigFile, writeConfigFile } from "./configFile";
-import { enableTypeScriptModules } from "./etl";
+import { enableTypeScriptModules, forgetModule } from "./etl";
 
 const TEMPLATE_NAME = "normalizadores.cjs";
 
@@ -39,7 +44,8 @@ function modulesOf(config: RawConfig): string[] {
         : [];
 }
 
-function namesIn(filePath: string): string[] {
+function normalizersIn(filePath: string): Record<string, unknown> {
+    forgetModule(filePath);
     const loaded = require(filePath) as { normalizers?: unknown } | null;
     const normalizers = loaded?.normalizers;
     if (typeof normalizers !== "object" || normalizers === null) {
@@ -47,7 +53,62 @@ function namesIn(filePath: string): string[] {
             `O arquivo ${path.basename(filePath)} precisa exportar um objeto "normalizers".`,
         );
     }
-    return Object.keys(normalizers);
+    return normalizers as Record<string, unknown>;
+}
+
+function namesIn(filePath: string): string[] {
+    return Object.keys(normalizersIn(filePath));
+}
+
+function describeResult(result: unknown): { text: string; valid: boolean } {
+    if (result === null)
+        return { text: "null (vai para Pendências)", valid: false };
+    if (typeof result === "object" && result !== null && "key" in result) {
+        const { key, group } = result as { key: unknown; group?: unknown };
+        const groupText = group === undefined ? "" : `, grupo ${String(group)}`;
+        return {
+            text: `chave ${JSON.stringify(key)}${groupText}`,
+            valid: true,
+        };
+    }
+    return {
+        text: `resposta inesperada: ${JSON.stringify(result)}`,
+        valid: false,
+    };
+}
+
+export function testNormalizer(
+    filePath: string,
+    name: string,
+    values: string[],
+): NormalizerTestResult {
+    enableTypeScriptModules();
+    try {
+        const normalizer = normalizersIn(filePath)[name];
+        if (typeof normalizer !== "function") {
+            return {
+                ok: false,
+                error: `"${name}" não é uma função exportada em normalizers.`,
+            };
+        }
+        const results = values.map((value) => {
+            try {
+                const { text, valid } = describeResult(normalizer(value));
+                return { value, result: text, valid };
+            } catch (error) {
+                const reason =
+                    error instanceof Error ? error.message : String(error);
+                return { value, result: `erro: ${reason}`, valid: false };
+            }
+        });
+        return { ok: true, results };
+    } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        return {
+            ok: false,
+            error: `Não consegui carregar o arquivo: ${reason}`,
+        };
+    }
 }
 
 export function listNormalizers(configPath: string | null): NormalizersResult {

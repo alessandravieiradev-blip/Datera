@@ -4,6 +4,12 @@ import { readJson, writeJson } from "./storage";
 const FILE = "settings.json";
 const THEMES: Theme[] = ["system", "light", "dark"];
 
+let defaultTheme: Theme = "system";
+
+export function setDefaultTheme(theme: Theme): void {
+    defaultTheme = theme;
+}
+
 export function isTheme(value: unknown): value is Theme {
     return THEMES.some((theme) => theme === value);
 }
@@ -27,7 +33,7 @@ export function readSettings(): Settings {
     return {
         configPath:
             typeof saved.configPath === "string" ? saved.configPath : null,
-        theme: isTheme(saved.theme) ? saved.theme : "system",
+        theme: isTheme(saved.theme) ? saved.theme : defaultTheme,
         shortcuts: cleanShortcuts(saved.shortcuts),
     };
 }

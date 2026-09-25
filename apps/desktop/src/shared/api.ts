@@ -17,6 +17,11 @@ export const IPC = {
     showInFolder: "files:show-in-folder",
     setTheme: "settings:set-theme",
     setShortcuts: "settings:set-shortcuts",
+    readConfigText: "config:read-text",
+    saveConfigText: "config:save-text",
+    readModuleFile: "modules:read",
+    saveModuleFile: "modules:save",
+    testNormalizer: "normalizers:test",
     log: "etl:log",
 } as const;
 
@@ -30,6 +35,8 @@ export interface Settings {
 
 export interface RunRequest {
     dryRun: boolean;
+    configText?: string | undefined;
+    previewSize?: number | undefined;
 }
 
 export interface RunRecord {
@@ -67,6 +74,19 @@ export type NormalizersResult =
     | { ok: true; builtin: string[]; custom: string[]; files: string[] }
     | Failure;
 
+export type TextResult = { ok: true; path: string; text: string } | Failure;
+
+export type WriteResult = { ok: true } | Failure;
+
+export interface NormalizerTest {
+    value: string;
+    result: string;
+    valid: boolean;
+}
+
+export type NormalizerTestResult =
+    { ok: true; results: NormalizerTest[] } | Failure;
+
 export type TemplateResult = { ok: true; path: string } | Failure;
 
 export type HelpSection = "inicio" | "normalizador" | "regras";
@@ -84,6 +104,15 @@ export interface DateraApi {
     showInFolder(filePath: string): Promise<void>;
     setTheme(theme: Theme): Promise<Settings>;
     setShortcuts(shortcuts: Record<string, string>): Promise<Settings>;
+    readConfigText(): Promise<TextResult>;
+    saveConfigText(text: string): Promise<WriteResult>;
+    readModuleFile(filePath: string): Promise<TextResult>;
+    saveModuleFile(filePath: string, text: string): Promise<WriteResult>;
+    testNormalizer(
+        filePath: string,
+        name: string,
+        values: string[],
+    ): Promise<NormalizerTestResult>;
     readConfig(): Promise<ConfigResult>;
     saveConfig(config: RawConfig): Promise<SaveResult>;
     createConfig(config: RawConfig): Promise<SaveResult | null>;

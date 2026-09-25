@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { BuildOptions } from "esbuild";
 
-const appDir = path.resolve(__dirname, "..");
+export const appDir = process.cwd();
 export const outDir = path.join(appDir, "out");
 const rendererSrc = path.join(appDir, "src", "renderer");
 const rendererOut = path.join(outDir, "renderer");

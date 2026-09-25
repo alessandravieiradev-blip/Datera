@@ -13,6 +13,14 @@ const api: DateraApi = {
     setTheme: (theme) => ipcRenderer.invoke(IPC.setTheme, theme),
     setShortcuts: (shortcuts) =>
         ipcRenderer.invoke(IPC.setShortcuts, shortcuts),
+    readConfigText: () => ipcRenderer.invoke(IPC.readConfigText),
+    saveConfigText: (text) => ipcRenderer.invoke(IPC.saveConfigText, text),
+    readModuleFile: (filePath) =>
+        ipcRenderer.invoke(IPC.readModuleFile, filePath),
+    saveModuleFile: (filePath, text) =>
+        ipcRenderer.invoke(IPC.saveModuleFile, filePath, text),
+    testNormalizer: (filePath, name, values) =>
+        ipcRenderer.invoke(IPC.testNormalizer, filePath, name, values),
     readConfig: () => ipcRenderer.invoke(IPC.readConfig),
     saveConfig: (config) => ipcRenderer.invoke(IPC.saveConfig, config),
     createConfig: (config) => ipcRenderer.invoke(IPC.createConfig, config),

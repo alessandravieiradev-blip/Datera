@@ -5,9 +5,12 @@ import {
     EtlConfig,
     loadConfig,
     Logger,
+    parseConfig,
     runEtl,
     silentLogger,
 } from "../../../../src";
+import { clearKeyNormalizers } from "../../../../src/normalizers/registry";
+import { clearCustomAdapters } from "../../../../src/io/custom/registry";
 import { createSource } from "../../../../src/io/factory";
 import { loadAdapterModules } from "../../../../src/io/custom/loader";
 import { buildHeader } from "../../../../src/io/header";
@@ -20,6 +23,7 @@ import {
 } from "../shared/api";
 
 const PREVIEW_SIZE = 20;
+const MAX_PREVIEW_SIZE = 500;
 
 const SOURCE_LABELS: Record<string, string> = {
     mysql: "Banco de dados",
@@ -88,6 +92,42 @@ function describe(config: EtlConfig): { source: string; destination: string } {
     };
 }
 
+export function forgetModule(filePath: string): void {
+    const resolved = require.resolve(filePath);
+    delete require.cache[resolved];
+}
+
+function reloadModules(config: EtlConfig): void {
+    clearKeyNormalizers();
+    clearCustomAdapters();
+    for (const modulePath of [
+        ...(config.normalizerModules ?? []),
+        ...(config.adapterModules ?? []),
+    ]) {
+        try {
+            forgetModule(path.resolve(modulePath));
+        } catch {
+            continue;
+        }
+    }
+}
+
+function readConfigFrom(
+    configPath: string,
+    configText: string | undefined,
+): EtlConfig {
+    if (configText === undefined) return loadConfig(configPath);
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(configText);
+    } catch (error) {
+        throw new Error(
+            `O JSON da configuração tem um erro: ${messageOf(error)}`,
+        );
+    }
+    return parseConfig(parsed);
+}
+
 async function insideConfigFolder<T>(
     configPath: string,
     task: () => Promise<T>,
@@ -139,12 +179,16 @@ export async function runWithConfig(
     const logger = createIpcLogger(send);
     try {
         return await insideConfigFolder(configPath, async () => {
-            const config = loadConfig(configPath);
+            const config = readConfigFrom(configPath, request.configText);
+            reloadModules(config);
             const labels = describe(config);
             const report = await runEtl(config, {
                 dryRun: request.dryRun,
                 logger,
-                previewSize: PREVIEW_SIZE,
+                previewSize: Math.min(
+                    request.previewSize ?? PREVIEW_SIZE,
+                    MAX_PREVIEW_SIZE,
+                ),
             });
             return {
                 ...record,
@@ -172,6 +216,7 @@ export async function readColumns(
     try {
         return await insideConfigFolder(configPath, async () => {
             const config = loadConfig(configPath);
+            reloadModules(config);
             loadAdapterModules(config.adapterModules ?? []);
             const source = createSource(config, silentLogger);
             try {

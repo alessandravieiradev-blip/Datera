@@ -1,9 +1,7 @@
-import path from "path";
 import { ChildProcess, spawn } from "child_process";
 import { context, Plugin } from "esbuild";
-import { copyHtml, nodeOptions, rendererOptions } from "./esbuild";
+import { appDir, copyHtml, nodeOptions, rendererOptions } from "./esbuild";
 
-const appDir = path.resolve(__dirname, "..");
 const electronPath = require("electron") as unknown as string;
 
 let electron: ChildProcess | undefined;

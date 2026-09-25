@@ -31,7 +31,18 @@ import {
 import { applyTheme } from "./theme";
 import { addToHistory, readHistory } from "./history";
 import { readColumns, runWithConfig } from "./etl";
-import { createNormalizerTemplate, listNormalizers } from "./normalizers";
+import {
+    createNormalizerTemplate,
+    listNormalizers,
+    testNormalizer,
+} from "./normalizers";
+import {
+    allowedModulePath,
+    readConfigText,
+    readModuleFile,
+    saveConfigText,
+    saveModuleFile,
+} from "./files";
 
 const HELP_URL = "https://github.com/alessandravieiradev-blip/datera";
 
@@ -116,6 +127,56 @@ export function registerIpc(): void {
     });
 
     ipcMain.handle(IPC.listHistory, () => readHistory());
+
+    ipcMain.handle(IPC.readConfigText, () =>
+        readConfigText(readSettings().configPath),
+    );
+
+    ipcMain.handle(IPC.saveConfigText, (_event, text: unknown) =>
+        typeof text === "string"
+            ? saveConfigText(readSettings().configPath, text)
+            : { ok: false, error: "Texto inválido." },
+    );
+
+    ipcMain.handle(IPC.readModuleFile, (_event, filePath: unknown) =>
+        typeof filePath === "string"
+            ? readModuleFile(readSettings().configPath, filePath)
+            : { ok: false, error: "Caminho inválido." },
+    );
+
+    ipcMain.handle(
+        IPC.saveModuleFile,
+        (_event, filePath: unknown, text: unknown) =>
+            typeof filePath === "string" && typeof text === "string"
+                ? saveModuleFile(readSettings().configPath, filePath, text)
+                : { ok: false, error: "Dados inválidos." },
+    );
+
+    ipcMain.handle(
+        IPC.testNormalizer,
+        (_event, filePath: unknown, name: unknown, values: unknown) => {
+            const resolved =
+                typeof filePath === "string"
+                    ? allowedModulePath(readSettings().configPath, filePath)
+                    : null;
+            if (
+                resolved === null ||
+                typeof name !== "string" ||
+                !Array.isArray(values)
+            ) {
+                return { ok: false, error: "Dados inválidos." };
+            }
+            return testNormalizer(
+                resolved,
+                name,
+                values
+                    .filter(
+                        (value): value is string => typeof value === "string",
+                    )
+                    .slice(0, 50),
+            );
+        },
+    );
 
     ipcMain.handle(IPC.setShortcuts, (_event, shortcuts: unknown) =>
         saveSettings({
@@ -220,7 +281,17 @@ export function registerIpc(): void {
         };
         const record = await runWithConfig(
             readSettings().configPath,
-            { dryRun: request?.dryRun === true },
+            {
+                dryRun: request?.dryRun === true,
+                configText:
+                    typeof request?.configText === "string"
+                        ? request.configText
+                        : undefined,
+                previewSize:
+                    typeof request?.previewSize === "number"
+                        ? request.previewSize
+                        : undefined,
+            },
             send,
         );
         addToHistory(record);

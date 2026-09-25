@@ -434,8 +434,8 @@ function NormalizerPath({ draft, onBack, onApply }: PathProps) {
                     no final.
                 </li>
                 <li>
-                    Salve, feche o Datera e abra de novo para ele ler as
-                    mudanças.
+                    Salve o arquivo. Na próxima prévia o Datera já usa a versão
+                    nova.
                 </li>
             </ol>
         </div>,

@@ -5,6 +5,12 @@
     "description": "Aplicativo do Datera pra usar sem terminal.",
     "author": "Alessandra Vieira",
     "main": "out/main/index.js",
+    "datera": {
+        "appId": "io.github.alessandravieiradev.datera",
+        "productName": "Datera",
+        "artifactName": "Datera-Setup-${version}.${ext}",
+        "shortcutName": "Datera"
+    },
     "scripts": {
         "dev": "tsx scripts/dev.ts",
         "build": "tsx scripts/build.ts",
