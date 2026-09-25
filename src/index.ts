@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { readTable, createPool } from "./db";
-import { writeData, createSheetsClient } from "./sheets";
+import { createSink, createSource } from "./io/factory";
+import { Source } from "./io/types";
 import { loadConfig, EtlConfig } from "./config";
 import { options, validateMode } from "./cli";
 import { DedupeFilter } from "./filters/dedupe";
@@ -55,11 +55,13 @@ async function main() {
 
     const mode = validateMode(options.mode ?? config.mode ?? "raw");
 
-    const pool = createPool(config);
+    let source: Source | undefined;
 
     try {
-        const rawRows = await readTable(pool, config.tableName);
-        console.log(`${rawRows.length} linhas lidas do banco.`);
+        source = createSource(config);
+        const sink = createSink(config);
+        const rawRows = await source.read();
+        console.log(`${rawRows.length} linhas lidas.`);
 
         const { valid: rows, pending } = validateRows(
             prepareRows(rawRows, config),
@@ -107,19 +109,17 @@ async function main() {
                 throw new Error(`Modo não implementado: ${mode}`);
         }
 
-        const sheets = createSheetsClient(config);
-        await writeData(sheets, config.spreadsheetId, processedRows);
+        await sink.write(processedRows);
         if (config.validation) {
-            await writeData(sheets, config.spreadsheetId, pending, {
-                sheetName:
-                    config.validation.pendingSheet ?? DEFAULT_PENDING_SHEET,
+            await sink.write(pending, {
+                name: config.validation.pendingSheet ?? DEFAULT_PENDING_SHEET,
             });
         }
         console.log("ETL concluído com sucesso!");
     } catch (error) {
         console.error("Deu erro no ETL: ", error);
     } finally {
-        await pool.end();
+        await source?.close?.();
     }
 }
 
