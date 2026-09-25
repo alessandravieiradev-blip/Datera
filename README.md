@@ -128,6 +128,7 @@ Os campos do modo `merge` (só o `mergeKeyColumn` e o `mergeColumns` são obriga
 | `mergeKeyNormalizer`    | Nome do normalizador de chave (veja a seção [Normalizadores de chave](#normalizadores-de-chave)). Padrão: `trim`                         |
 | `mergeRejectedKeyLabel` | Rótulo das linhas cuja chave o normalizador rejeitou (padrão: `(<coluna> inválido)`)                                                     |
 | `normalizerModules`     | Lista de caminhos de arquivos com normalizadores criados por você                                                                        |
+| `adapterModules`        | Lista de caminhos de arquivos com fontes e destinos criados por você                                                                     |
 
 Sobre as linhas sem chave (`unkeyed`): por padrão cada linha sem chave vai pro fim da planilha, uma por linha, com o rótulo. Se uma coluna do `mergeColumns` tiver `"unkeyed": { "strategy": "collapse-column", "into": "Nome da coluna nova", "separator": " | " }`, os valores dela nessas linhas são juntados numa coluna só, numa linha só. Aí ficam no máximo duas linhas, uma pras chaves vazias e outra pras rejeitadas. As outras colunas dessas linhas não vão junto.
 
@@ -201,6 +202,7 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 | `json`   | `path`, `recordsPath?`                                  | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"` |
 | `excel`  | `path`, `sheet?`                                        | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                              |
 | `sheets` | `spreadsheetId`, `sheet?`, `credentialsPath?`           | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Sem `credentialsPath`, usa o mesmo das outras configs              |
+| `custom` | `adapter`, `options?`                                   | Um adapter seu, carregado pelo `adapterModules`. Veja [E se o meu formato não tá aqui?](#e-se-o-meu-formato-não-tá-aqui)   |
 
 Umas coisas que eu aprendi apanhando:
 
@@ -253,6 +255,7 @@ fica assim:
 | `csv`    | `path`, `delimiter?`, `bom?`       | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
 | `json`   | `path`                             | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
 | `excel`  | `path`, `sheet?`                   | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
+| `custom` | `adapter`, `options?`              | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                |
 
 O CSV sai com vírgula. Se for abrir no Excel em português, coloca `"delimiter": ";"`. Ele também sai com um caractere invisível no começo (o `bom`, que já vem ligado) pro Excel mostrar os acentos certo. Se o arquivo for pra outro programa e ele reclamar desse caractere, coloca `"bom": false`. E se a pasta do arquivo não existir, ele cria.
 
@@ -272,6 +275,46 @@ Sobre o Excel, umas coisas que acontecem por baixo:
 ### E a config antiga?
 
 Continua funcionando igual. Sem `source`, ele usa `dbHost`, `dbUser`, `tableName`... como MySQL, e sem `destination` usa `spreadsheetId` e `credentialsPath` como Google Sheets. O `.env` continua valendo mais que o `config.json` nos dois jeitos.
+
+### E se o meu formato não tá aqui?
+
+Dá pra escrever o seu próprio adapter sem mexer no código do projeto, do mesmo jeitinho que os normalizadores. Por exemplo, uma fonte que lê um `.txt` com um valor por linha. Cria um arquivo, tipo `local/meusAdapters.cjs`:
+
+```js
+const fs = require("fs");
+
+const linhasDeTexto = (options) => ({
+    read: async () =>
+        fs
+            .readFileSync(options.path, "utf8")
+            .split(/\r?\n/)
+            .map((linha) => linha.trim())
+            .filter((linha) => linha !== "")
+            .map((linha) => ({ [options.column ?? "valor"]: linha })),
+});
+
+module.exports = { sources: { linhasDeTexto } };
+```
+
+E na config:
+
+```json
+{
+    "adapterModules": ["./local/meusAdapters.cjs"],
+    "source": {
+        "type": "custom",
+        "adapter": "linhasDeTexto",
+        "options": { "path": "./alunos.txt", "column": "nome" }
+    }
+}
+```
+
+O que precisa saber:
+
+- o arquivo exporta `sources` (fontes), `sinks` (destinos) ou os dois. O nome de cada um é o que vai no `adapter` da config
+- cada um é uma função que recebe o `options` da config e devolve um objeto. Fonte tem que ter `read()`, que devolve a lista de linhas. Destino tem que ter `write(rows, { name })`, e o `name` vem preenchido quando é a saída de pendências
+- pode ser `.ts` (funciona com `npm start`), `.js` ou `.cjs`
+- se o nome não existir, ou se a função não devolver o objeto certo, ele avisa antes de começar
 
 ## Exemplos, do mais simples ao mais completo
 
@@ -1061,6 +1104,7 @@ src/
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
     json/                 # jsonSource.ts e jsonSink.ts
     excel/                # excelSource.ts, excelSink.ts, excelCell.ts (converte o valor da célula) e workbook.ts
+    custom/               # registry.ts e loader.ts dos adapters que vêm de arquivo seu
   filters/
     types.ts              # interface Filter
     fillEmpty.ts          # preenche célula vazia
@@ -1084,6 +1128,5 @@ scripts/                  # scripts pra testar na mão (banco, config, sheets)
 
 ## Ainda falta
 
-- carregar adapters próprios por arquivo, igual já dá pra fazer com os normalizadores
 - pipeline de filtros configurável (hoje os modos são um switch fixo no `index.ts`)
 - build de produção (hoje roda tudo pelo `tsx`)

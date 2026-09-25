@@ -1,10 +1,10 @@
 {
     "source": {
-        "type": "Opcional. mysql, sheets, excel, csv ou json (veja o README). Sem source, usa os campos do MySQL abaixo",
+        "type": "Opcional. mysql, sheets, excel, csv, json ou custom (veja o README). Sem source, usa os campos do MySQL abaixo",
         "path": "Só pra excel, csv e json. Ex: ./dados/alunos.xlsx"
     },
     "destination": {
-        "type": "Opcional. sheets, excel, csv ou json. Sem destination, usa spreadsheetId e credentialsPath",
+        "type": "Opcional. sheets, excel, csv, json ou custom. Sem destination, usa spreadsheetId e credentialsPath",
         "path": "Só pra excel, csv e json. Ex: ./saida/resultado.xlsx"
     },
     "tableName": "clientes",
@@ -111,6 +111,9 @@
     "mergeKeyNormalizer": "Opcional. Nome de um normalizador de chave, trim, lowercase, digitsOnly, alphanumeric ou um seu (default: trim)",
     "normalizerModules": [
         "Opcional. Caminhos de arquivos com normalizadores seus, ex: ./local/meusNormalizers.ts"
+    ],
+    "adapterModules": [
+        "Opcional. Caminhos de arquivos com fontes e destinos seus, ex: ./local/meusAdapters.cjs"
     ],
     "mergeRejectedKeyLabel": "Opcional. Rótulo pras linhas cuja chave o normalizador rejeitou (default: '(<coluna> inválido)')",
     "dbHost": "localhost",
