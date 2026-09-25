@@ -1,6 +1,6 @@
 {
-    "source": { "type": "csv", "path": "./examples/alunos.csv" },
-    "destination": { "type": "csv", "path": "./examples/saida/resultado.csv" },
+    "source": { "type": "csv", "path": "./alunos.csv" },
+    "destination": { "type": "csv", "path": "./saida/resultado.csv" },
     "mode": "merge",
     "fillEmpty": [{ "column": "cidade", "default": "não informada" }],
     "validation": {

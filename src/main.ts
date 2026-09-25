@@ -1,4 +1,5 @@
 import "dotenv/config";
+import path from "path";
 import { parseCli } from "./cli";
 import { loadConfig } from "./config";
 import { consoleLogger } from "./logger";
@@ -9,7 +10,9 @@ async function main(): Promise<void> {
     const logger = consoleLogger;
 
     try {
-        const config = loadConfig(cli.config);
+        const configPath = path.resolve(cli.config);
+        process.chdir(path.dirname(configPath));
+        const config = loadConfig(configPath);
         const report = await runEtl(config, {
             mode: cli.mode === undefined ? undefined : parseMode(cli.mode),
             dryRun: cli.dryRun,

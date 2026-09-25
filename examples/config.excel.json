@@ -1,11 +1,11 @@
 {
     "source": {
         "type": "csv",
-        "path": "./examples/alunos.csv"
+        "path": "./alunos.csv"
     },
     "destination": {
         "type": "excel",
-        "path": "./examples/saida/resultado.xlsx",
+        "path": "./saida/resultado.xlsx",
         "sheet": "Alunos"
     },
     "mode": "merge",

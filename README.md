@@ -1067,6 +1067,8 @@ Pra usar outro arquivo de config:
 npm start -- --config ./outro-config.json
 ```
 
+Os caminhos que estão dentro da config (arquivos, credenciais, normalizadores) contam a partir da pasta onde a config está. Por isso a `examples/config.csv.json` usa só `./alunos.csv`.
+
 Se você quer ver o que vai sair antes de mexer na planilha de verdade, usa o `--dry-run`. Ele faz tudo igualzinho, só que não grava nada, e no fim mostra as primeiras linhas do resultado numa tabelinha:
 
 ```bash
