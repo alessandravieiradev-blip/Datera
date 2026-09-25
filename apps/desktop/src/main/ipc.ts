@@ -1,3 +1,4 @@
+import path from "path";
 import {
     BrowserWindow,
     dialog,
@@ -24,8 +25,15 @@ import {
 import { readSettings, saveSettings } from "./settings";
 import { addToHistory, readHistory } from "./history";
 import { readColumns, runWithConfig } from "./etl";
+import { createNormalizerTemplate, listNormalizers } from "./normalizers";
 
-const HELP_URL = "https://github.com/alessandravieiradev-blip/datera#readme";
+const HELP_URL = "https://github.com/alessandravieiradev-blip/datera";
+
+const HELP_ANCHORS: Record<string, string> = {
+    inicio: "#readme",
+    normalizador: "#criando-o-seu-próprio-normalizador",
+    regras: "#separar-as-pendências-validation",
+};
 
 const FILE_FILTERS: Record<FileKind, { name: string; extensions: string[] }> = {
     csv: { name: "Arquivo CSV", extensions: ["csv"] },
@@ -162,7 +170,29 @@ export function registerIpc(): void {
         });
     });
 
-    ipcMain.handle(IPC.openHelp, () => shell.openExternal(HELP_URL));
+    ipcMain.handle(IPC.openHelp, (_event, section: unknown) => {
+        const anchor =
+            typeof section === "string" ? HELP_ANCHORS[section] : undefined;
+        return shell.openExternal(
+            `${HELP_URL}${anchor ?? HELP_ANCHORS.inicio}`,
+        );
+    });
+
+    ipcMain.handle(IPC.listNormalizers, () =>
+        listNormalizers(readSettings().configPath),
+    );
+
+    ipcMain.handle(IPC.createNormalizerFile, () =>
+        createNormalizerTemplate(readSettings().configPath),
+    );
+
+    ipcMain.handle(IPC.showInFolder, (_event, filePath: unknown) => {
+        const { configPath } = readSettings();
+        if (typeof filePath !== "string" || configPath === null) return;
+        const folder = path.dirname(configPath);
+        if (!path.resolve(filePath).startsWith(folder)) return;
+        shell.showItemInFolder(filePath);
+    });
 
     ipcMain.handle(IPC.run, async (event, request: RunRequest) => {
         const send = (entry: LogEntry) => {

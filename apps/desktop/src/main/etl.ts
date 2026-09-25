@@ -33,7 +33,7 @@ const SOURCE_LABELS: Record<string, string> = {
 let running = false;
 let typeScriptReady = false;
 
-function enableTypeScriptModules(): void {
+export function enableTypeScriptModules(): void {
     if (typeScriptReady) return;
     typeScriptReady = true;
     try {

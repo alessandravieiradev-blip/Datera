@@ -12,6 +12,9 @@ export const IPC = {
     readColumns: "config:columns",
     pickFile: "dialog:pick-file",
     pickSaveFile: "dialog:pick-save-file",
+    listNormalizers: "normalizers:list",
+    createNormalizerFile: "normalizers:create-file",
+    showInFolder: "files:show-in-folder",
     log: "etl:log",
 } as const;
 
@@ -54,6 +57,14 @@ export type SaveResult = { ok: true; settings: Settings } | Failure;
 
 export type ColumnsResult = { ok: true; columns: string[] } | Failure;
 
+export type NormalizersResult =
+    | { ok: true; builtin: string[]; custom: string[]; files: string[] }
+    | Failure;
+
+export type TemplateResult = { ok: true; path: string } | Failure;
+
+export type HelpSection = "inicio" | "normalizador" | "regras";
+
 export type FileKind = "csv" | "excel" | "json" | "credentials";
 
 export interface DateraApi {
@@ -61,7 +72,10 @@ export interface DateraApi {
     chooseConfig(): Promise<Settings>;
     run(request: RunRequest): Promise<RunRecord>;
     listHistory(): Promise<RunRecord[]>;
-    openHelp(): Promise<void>;
+    openHelp(section?: HelpSection): Promise<void>;
+    listNormalizers(): Promise<NormalizersResult>;
+    createNormalizerFile(): Promise<TemplateResult>;
+    showInFolder(filePath: string): Promise<void>;
     readConfig(): Promise<ConfigResult>;
     saveConfig(config: RawConfig): Promise<SaveResult>;
     createConfig(config: RawConfig): Promise<SaveResult | null>;
