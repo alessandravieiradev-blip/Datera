@@ -1111,10 +1111,12 @@ Na primeira vez ele pergunta de onde vêm os dados e onde salvar o resultado, nu
 
 O que dá pra fazer nele:
 
-- na tela de Regras, montar frases tipo "Quando `email` estiver com e-mail inválido, mandar para Pendências" e escolher o que fazer com os cadastros repetidos
+- na tela de Regras, montar frases tipo "Quando `email` estiver com e-mail inválido, mandar para Pendências" (tem regras prontas pra campo vazio, e-mail, número, data, CEP, só letras, texto curto demais e lista de valores) e escolher o que fazer com os cadastros repetidos
 - em Exportar, ver uma prévia (não grava nada) e depois exportar de verdade, com confirmação
 - no Início, ver os números e gráficos da última exportação e como as pendências foram mudando
 - no Histórico, ver todas as vezes que rodou
+- trocar pra tema escuro em Configurações (ou deixar igual ao Windows)
+- usar atalhos de teclado pra quase tudo, tipo `Ctrl+P` pra prévia e `Ctrl+S` pra salvar as regras. Na aba Atalhos dá pra ver todos e trocar qualquer um
 
 Pra gerar o instalador do Windows:
 
