@@ -1,8 +1,8 @@
-# ETL MySQL → Google Sheets
+# ETL de limpeza e unificação de dados
 
-Um ETL em TypeScript que lê uma tabela (ou view) do MySQL, arruma os dados e joga numa planilha do Google Sheets.
+Um ETL em TypeScript que lê dados de um banco MySQL, de um CSV ou de um JSON, arruma tudo e escreve numa planilha do Google Sheets, num CSV ou num JSON.
 
-Comecei ele só pra copiar uma tabela pra planilha, mas aí fui vendo que dado de verdade vem todo bagunçado: gente cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, a mesma informação espalhada em várias colunas... Então fui adicionando coisas até dar pra resolver quase tudo só mexendo no `config.json`, sem precisar programar nada.
+Comecei ele só pra copiar uma tabela do MySQL pra uma planilha, mas aí fui vendo que dado de verdade vem todo bagunçado: gente cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, a mesma informação espalhada em várias colunas... Então fui adicionando coisas até dar pra resolver quase tudo só mexendo no `config.json`, sem precisar programar nada.
 
 O que dá pra fazer hoje:
 
@@ -14,14 +14,46 @@ O que dá pra fazer hoje:
 - preencher células vazias e juntar colunas antes de tudo
 - espalhar valores em várias colunas sem jogar nenhum fora
 - separar as linhas com problema numa aba de pendências, com o motivo escrito do lado
+- ler e escrever em formatos diferentes (MySQL, CSV, JSON, Google Sheets) sem mudar nada das regras
 
-Se você quer ver funcionando antes de ler a configuração toda, pode pular direto pros [exemplos](#exemplos-do-mais-simples-ao-mais-completo).
+Se você quer ver funcionando antes de ler a configuração toda, roda o [teste em 1 minuto](#teste-em-1-minuto) ou pula direto pros [exemplos](#exemplos-do-mais-simples-ao-mais-completo).
+
+## Teste em 1 minuto
+
+Não precisa de banco nem de conta no Google pra ver funcionando. Tem um CSV de exemplo (alunos de uma escola de música, com cadastro repetido, e-mail errado e plano que não existe) na pasta `examples/`:
+
+```bash
+npm install
+npm run example
+```
+
+Ele lê o `examples/alunos.csv`, arruma tudo e escreve dois arquivos em `examples/saida/`:
+
+**`resultado.csv`**, com os cadastros juntados:
+
+| matricula | nome        | nome_2 | email            | instrumento 1 | instrumento 2 | plano  | cidade        | outros instrumentos |
+| --------- | ----------- | ------ | ---------------- | ------------- | ------------- | ------ | ------------- | ------------------- |
+| 2024-0042 | Lia Martins | Lia M. | `lia@email.com`  | violão        | ukulele       | Mensal | Pelotas       | piano               |
+| 2024-0051 | Theo Souza  |        | `theo@email.com` | bateria       |               | anual  | Rio Grande    |                     |
+| 2024-0077 | Duda Alves  |        | `duda@email.com` | voz           | violino       | mensal | não informada |                     |
+
+**`resultado.pendencias.csv`**, com o que precisa de alguém olhar:
+
+| Motivo                        | matricula | nome       | email            | instrumento 1 | instrumento 2 | plano      | cidade  |
+| ----------------------------- | --------- | ---------- | ---------------- | ------------- | ------------- | ---------- | ------- |
+| e-mail fora do formato        | 2024-0060 | Nina Rocha | nina.email.com   | piano         |               | trimestral | Pelotas |
+| sem matrícula                 |           | Caio Lima  | `caio@email.com` | voz           |               | mensal     | Canguçu |
+| plano com valor não permitido | 2024-0077 | Duda Alves | `duda@email.com` | flauta        | voz           | semanal    | Pelotas |
+
+A config que faz isso é a `examples/config.csv.json`. Vale abrir ela do lado dos arquivos pra ver o que cada parte fez: `2024-0042` e `20240042` viraram a mesma aluna por causa do normalizador `digitsOnly`, os instrumentos foram espalhados em colunas com o `distribute`, e a cidade vazia ganhou `não informada` pelo `fillEmpty`.
 
 ## Sumário
 
+- [Teste em 1 minuto](#teste-em-1-minuto)
 - [Instalação](#instalação)
 - [Configuração](#configuração)
 - [Como os dados passam pelo ETL](#como-os-dados-passam-pelo-etl)
+- [Fontes e destinos](#fontes-e-destinos)
 - [Exemplos, do mais simples ao mais completo](#exemplos-do-mais-simples-ao-mais-completo)
 - [Preparando os dados](#preparando-os-dados)
 - [Distribuir valores em várias colunas](#distribuir-valores-em-várias-colunas-distribute)
@@ -39,7 +71,7 @@ npm install
 
 ## Configuração
 
-O projeto usa três arquivos que não vão pro git. Copie os exemplos e preencha com dados reais:
+O projeto usa três arquivos que não vão pro git. Copie os exemplos e preencha com dados reais (se for usar só CSV ou JSON, só o `config.json` já basta):
 
 ```bash
 cp .env.example .env
@@ -68,6 +100,8 @@ Substitua o conteúdo pela chave JSON de uma service account do Google Cloud. De
 
 | Campo                                                | O que colocar                                                                           |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `source`                                             | De onde ler: MySQL, CSV ou JSON. Veja [Fontes e destinos](#fontes-e-destinos)           |
+| `destination`                                        | Onde escrever: Google Sheets, CSV ou JSON. Veja [Fontes e destinos](#fontes-e-destinos) |
 | `tableName`, `spreadsheetId`, `credentialsPath`      | Mesmos valores do `.env` (servem de reserva caso o `.env` não defina)                   |
 | `mode`                                               | `"raw"`, `"dedupe"` ou `"merge"`                                                        |
 | `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env`                                                                  |
@@ -100,11 +134,11 @@ Quando um valor existe tanto no `.env` quanto no `config.json`, o `.env` tem pri
 ## Como os dados passam pelo ETL
 
 ```text
-banco (tabela ou view)
+fonte: MySQL, CSV ou JSON
    │
    ├─ fillEmpty        preenche células vazias          (opcional)
    ├─ combineColumns   junta colunas da mesma linha      (opcional)
-   ├─ validation       separa as linhas com problema     (opcional) ──► aba "Pendências"
+   ├─ validation       separa as linhas com problema     (opcional) ──► aba ou arquivo de pendências
    │
    ├─ modo (só com as linhas válidas)
    │    raw     escreve do jeito que veio
@@ -112,7 +146,7 @@ banco (tabela ou view)
    │    merge   junta as linhas com a mesma chave
    │
    ▼
-primeira aba da planilha
+destino: Google Sheets (primeira aba), CSV ou JSON
 ```
 
 ### Modos
@@ -130,6 +164,90 @@ primeira aba da planilha
 | `extra-column` | O primeiro fica na coluna e os outros vão pra `<coluna>_2`, `<coluna>_3`...         | `azul`, `verde`, `azul`            |
 
 O `concat` também aceita o `distribute`, que espalha os valores em colunas (tem exemplo lá embaixo). E nas três, célula vazia é ignorada.
+
+## Fontes e destinos
+
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Hoje dá pra ler de **MySQL, CSV e JSON** e escrever no **Google Sheets, CSV e JSON**, em qualquer combinação.
+
+```json
+{
+    "source": { "type": "csv", "path": "./dados/alunos.csv" },
+    "destination": {
+        "type": "sheets",
+        "spreadsheetId": "...",
+        "credentialsPath": "./credentials.json"
+    }
+}
+```
+
+Por dentro, todo mundo vira a mesma coisa: uma lista de linhas, cada linha um objeto `{ coluna: valor }`. Os filtros (fillEmpty, validation, merge...) só conhecem esse formato, então eles nem sabem de onde o dado veio. Cada formato tem uma pecinha que só converte do formato dela pra essa lista (ou o contrário). Isso tem nome, é o padrão Adapter, e é o que deixa colocar formato novo sem mexer no resto.
+
+### Fontes (`source`)
+
+| `type`  | Campos                                                  | Observações                                                                                                                |
+| ------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `mysql` | `host`, `port`, `user`, `password`, `database`, `table` | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                 |
+| `csv`   | `path`, `delimiter?`, `encoding?`                       | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                |
+| `json`  | `path`, `recordsPath?`                                  | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"` |
+
+Umas coisas que aprendi fazendo:
+
+- o Excel em português salva CSV com `;` e não com `,`. Por isso a detecção automática
+- CSV antigo, exportado de sistema velho, às vezes vem em `latin1`. Se os acentos aparecerem tipo `JoÃ£o`, coloca `"encoding": "latin1"`
+- no CSV, célula vazia vira vazio de verdade (igual `null` do banco), então `required` e `fillEmpty` funcionam igual
+- no JSON, objeto dentro de objeto vira coluna com ponto, e lista simples vira texto separado por vírgula
+
+Exemplo com JSON, usando `"recordsPath": "dados.alunos"`:
+
+```json
+{
+    "dados": {
+        "alunos": [
+            {
+                "nome": "Lia",
+                "matricula": 42,
+                "endereco": {
+                    "cidade": "Pelotas",
+                    "bairro": "Centro"
+                },
+                "instrumentos": ["violão", "ukulele"]
+            },
+            {
+                "nome": "Theo",
+                "matricula": 51,
+                "endereco": {
+                    "cidade": "Rio Grande",
+                    "bairro": null
+                },
+                "instrumentos": ["bateria"]
+            }
+        ]
+    }
+}
+```
+
+vira:
+
+| nome | matricula | endereco.cidade | endereco.bairro | instrumentos    |
+| ---- | --------- | --------------- | --------------- | --------------- |
+| Lia  | 42        | Pelotas         | Centro          | violão, ukulele |
+| Theo | 51        | Rio Grande      |                 | bateria         |
+
+### Destinos (`destination`)
+
+| `type`   | Campos                             | A aba de pendências vira                                              |
+| -------- | ---------------------------------- | --------------------------------------------------------------------- |
+| `sheets` | `spreadsheetId`, `credentialsPath` | outra aba na mesma planilha                                           |
+| `csv`    | `path`, `delimiter?`, `bom?`       | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`   |
+| `json`   | `path`                             | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json` |
+
+- o CSV sai com vírgula por padrão. Se for abrir no Excel em português, coloca `"delimiter": ";"`
+- o `bom` (padrão `true`) é um caractere invisível no começo do arquivo que faz o Excel entender os acentos. Se o arquivo for pra outro programa e ele reclamar, coloca `"bom": false`
+- a pasta do arquivo é criada sozinha se não existir
+
+### E a config antiga?
+
+Continua funcionando igualzinho. Sem `source`, o ETL usa `dbHost`, `dbUser`, `tableName`... como MySQL, e sem `destination` usa `spreadsheetId` e `credentialsPath` como Google Sheets. As variáveis do `.env` continuam valendo mais que o `config.json`, nos dois formatos.
 
 ## Exemplos, do mais simples ao mais completo
 
@@ -932,6 +1050,7 @@ Importante: a cada rodada o ETL **limpa a aba antes de escrever** (a primeira ab
 
 | Comando                   | O que faz                                                          |
 | ------------------------- | ------------------------------------------------------------------ |
+| `npm run example`         | Roda o exemplo com CSV, sem precisar de banco nem Google           |
 | `npm test`                | Testes unitários (Vitest), sem precisar de banco ou planilha reais |
 | `npm run test:config`     | Carrega e valida o `config.json`                                   |
 | `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas               |
@@ -947,6 +1066,17 @@ src/
   env.ts              # helpers de variável de ambiente
   sheets.ts           # autenticação e escrita no Google Sheets
   index.ts            # entrypoint: liga leitura → preparação → filtro → escrita
+  io/
+    types.ts          # interfaces Source e Sink
+    factory.ts        # escolhe o adapter pela config
+    mysqlSource.ts    # lê do MySQL
+    csvSource.ts      # lê CSV
+    jsonSource.ts     # lê JSON
+    sheetsSink.ts     # escreve no Google Sheets
+    csvSink.ts        # escreve CSV
+    jsonSink.ts       # escreve JSON
+    csvFormat.ts      # leitor e escritor de CSV (aspas, separador, bom)
+    header.ts         # monta o cabeçalho das saídas
   filters/
     types.ts          # interface Filter<T>
     fillEmpty.ts      # preenche célula vazia (fillEmpty)
@@ -959,10 +1089,13 @@ src/
     normalizers/      # normalizadores prontos e carregador de módulos externos
   tests/              # testes unitários (Vitest)
 local/                # (ignorada pelo git) seus normalizadores e testes pessoais
+examples/             # CSV e config de exemplo (npm run example)
 scripts/              # scripts manuais de smoke test (banco, config, sheets)
 ```
 
 ## Ainda falta
 
+- Ler e escrever Excel (`.xlsx`) e ler do Google Sheets
+- Deixar carregar adapters próprios por arquivo, igual os normalizadores
 - Pipeline de filtros configurável (hoje os modos são um switch fixo no `index.ts`)
 - Build de produção (hoje roda tudo via `tsx`)
