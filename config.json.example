@@ -1,11 +1,11 @@
 {
     "source": {
-        "type": "Opcional. mysql, csv ou json (veja o README). Sem source, usa os campos do MySQL abaixo",
-        "path": "Só pra csv e json. Ex: ./dados/alunos.csv"
+        "type": "Opcional. mysql, excel, csv ou json (veja o README). Sem source, usa os campos do MySQL abaixo",
+        "path": "Só pra excel, csv e json. Ex: ./dados/alunos.xlsx"
     },
     "destination": {
-        "type": "Opcional. sheets, csv ou json. Sem destination, usa spreadsheetId e credentialsPath",
-        "path": "Só pra csv e json. Ex: ./saida/resultado.csv"
+        "type": "Opcional. sheets, excel, csv ou json. Sem destination, usa spreadsheetId e credentialsPath",
+        "path": "Só pra excel, csv e json. Ex: ./saida/resultado.xlsx"
     },
     "tableName": "clientes",
     "spreadsheetId": "seu_id_aqui",

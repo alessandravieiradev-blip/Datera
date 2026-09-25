@@ -10,7 +10,7 @@
   <a href="https://github.com/alessandravieiradev-blip/datera/actions/workflows/ci.yml"><img src="https://github.com/alessandravieiradev-blip/datera/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
-O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um MySQL, de um CSV ou de um JSON, arruma o que dá e escreve tudo numa planilha do Google Sheets, num CSV ou num JSON.
+O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um MySQL, de uma planilha do Excel, de um CSV ou de um JSON, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV ou num JSON.
 
 Ele começou bem simples, era só pra copiar uma tabela do MySQL pra uma planilha. Só que aí eu fui vendo que dado de verdade vem uma bagunça: a mesma pessoa cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, informação espalhada em várias colunas. Então fui colocando coisa nova até conseguir resolver quase tudo mexendo só no `config.json`.
 
@@ -24,7 +24,7 @@ Hoje ele consegue:
 - preencher células vazias e juntar colunas antes de tudo
 - espalhar valores em várias colunas sem jogar nenhum fora
 - separar as linhas com problema numa aba de pendências, com o motivo escrito do lado
-- ler e escrever em formatos diferentes (MySQL, CSV, JSON, Google Sheets) sem mudar nada das regras
+- ler e escrever em formatos diferentes (MySQL, Excel, CSV, JSON, Google Sheets) sem mudar nada das regras
 
 Se quiser ver ele rodando antes de ler tudo, tem o [teste em 1 minuto](#teste-em-1-minuto) logo aqui embaixo, ou dá pra ir direto nos [exemplos](#exemplos-do-mais-simples-ao-mais-completo).
 
@@ -54,6 +54,8 @@ E o `resultado.pendencias.csv` fica com o que precisa de alguém dar uma olhada:
 | plano com valor não permitido | 2024-0077 | Duda Alves | `duda@email.com` | flauta        | voz           | semanal    | Pelotas |
 
 Quem faz tudo isso é a `examples/config.csv.json`. Vale abrir ela do lado dos arquivos. Dá pra ver que `2024-0042` e `20240042` viraram a mesma aluna por causa do normalizador `digitsOnly`, que os instrumentos foram espalhados em colunas pelo `distribute` e que a cidade vazia virou `não informada` por causa do `fillEmpty`.
+
+Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coisa mas gera um `examples/saida/resultado.xlsx`, com os alunos numa aba e as pendências em outra.
 
 ## Sumário
 
@@ -175,7 +177,7 @@ O `concat` também aceita o `distribute`, que espalha os valores em colunas (tem
 
 ## Fontes e destinos
 
-O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, CSV e JSON e escrever no Google Sheets, em CSV e em JSON, misturando do jeito que quiser.
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, Excel, CSV e JSON e escrever no Google Sheets, no Excel, em CSV e em JSON, misturando do jeito que quiser.
 
 ```json
 {
@@ -197,6 +199,7 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 | `mysql` | `host`, `port`, `user`, `password`, `database`, `table` | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                 |
 | `csv`   | `path`, `delimiter?`, `encoding?`                       | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                |
 | `json`  | `path`, `recordsPath?`                                  | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"` |
+| `excel` | `path`, `sheet?`                                        | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                              |
 
 Umas coisas que eu aprendi apanhando:
 
@@ -243,13 +246,23 @@ fica assim:
 
 ### Destinos (`destination`)
 
-| `type`   | Campos                             | A aba de pendências vira                                              |
-| -------- | ---------------------------------- | --------------------------------------------------------------------- |
-| `sheets` | `spreadsheetId`, `credentialsPath` | outra aba na mesma planilha                                           |
-| `csv`    | `path`, `delimiter?`, `bom?`       | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`   |
-| `json`   | `path`                             | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json` |
+| `type`   | Campos                             | A aba de pendências vira                                                                         |
+| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `sheets` | `spreadsheetId`, `credentialsPath` | outra aba na mesma planilha                                                                      |
+| `csv`    | `path`, `delimiter?`, `bom?`       | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
+| `json`   | `path`                             | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
+| `excel`  | `path`, `sheet?`                   | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
 
 O CSV sai com vírgula. Se for abrir no Excel em português, coloca `"delimiter": ";"`. Ele também sai com um caractere invisível no começo (o `bom`, que já vem ligado) pro Excel mostrar os acentos certo. Se o arquivo for pra outro programa e ele reclamar desse caractere, coloca `"bom": false`. E se a pasta do arquivo não existir, ele cria.
+
+Sobre o Excel, umas coisas que acontecem por baixo:
+
+- célula com fórmula vira o valor calculado, não a fórmula
+- data vira texto no formato `2024-03-10` (ou com a hora junto, se tiver hora)
+- texto com negrito, cor ou link vira texto normal
+- linha totalmente vazia é pulada
+- na saída o arquivo é recriado toda vez que roda, então não guarda coisa sua dentro dele. O cabeçalho sai em negrito e fixo, e a largura das colunas se ajusta sozinha
+- o Excel não aceita alguns caracteres em nome de aba (tipo `/` e `:`) nem nome com mais de 31 letras, então ele arruma isso sozinho
 
 ### E a config antiga?
 
@@ -1011,6 +1024,7 @@ Uma coisa importante: toda vez que roda, ele limpa a aba antes de escrever (a pr
 | Comando                   | O que faz                                                          |
 | ------------------------- | ------------------------------------------------------------------ |
 | `npm run example`         | Roda o exemplo com CSV, sem precisar de banco nem Google           |
+| `npm run example:excel`   | O mesmo exemplo, mas gerando um arquivo do Excel                   |
 | `npm test`                | Testes unitários (Vitest), sem precisar de banco ou planilha reais |
 | `npm run test:config`     | Carrega e valida o `config.json`                                   |
 | `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas               |
@@ -1041,6 +1055,7 @@ src/
     sheets/               # client.ts (escrita em abas) e sheetsSink.ts
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
     json/                 # jsonSource.ts e jsonSink.ts
+    excel/                # excelSource.ts, excelSink.ts, excelCell.ts (converte o valor da célula) e workbook.ts
   filters/
     types.ts              # interface Filter
     fillEmpty.ts          # preenche célula vazia
@@ -1064,7 +1079,7 @@ scripts/                  # scripts pra testar na mão (banco, config, sheets)
 
 ## Ainda falta
 
-- ler e escrever Excel (`.xlsx`) e ler do Google Sheets
+- ler do Google Sheets (hoje ele só escreve lá)
 - carregar adapters próprios por arquivo, igual já dá pra fazer com os normalizadores
 - pipeline de filtros configurável (hoje os modos são um switch fixo no `index.ts`)
 - build de produção (hoje roda tudo pelo `tsx`)
