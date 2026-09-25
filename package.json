@@ -1,7 +1,7 @@
 {
-    "name": "etl-mysql-sheets",
+    "name": "datera",
     "version": "1.0.0",
-    "description": "",
+    "description": "Limpa, unifica e organiza dados bagunçados de MySQL, CSV e JSON, e exporta pro Google Sheets, CSV ou JSON.",
     "main": "index.js",
     "scripts": {
         "start": "tsx src/index.ts",
