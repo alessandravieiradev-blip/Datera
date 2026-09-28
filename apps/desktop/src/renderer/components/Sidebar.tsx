@@ -72,17 +72,14 @@ export function Sidebar({
                         title={`${item.label}${hint(shortcuts, item.action)}`}
                         onClick={() => onNavigate(item.id)}
                     >
-                        <Icon name={item.icon} />
+                        <Icon name={item.icon} size={18} />
                         {item.label}
                     </button>
                 ))}
             </nav>
             <button type="button" className="help" onClick={onHelp}>
-                <Icon name="help" />
-                <span>
-                    <strong>Precisa de ajuda?</strong>
-                    <small>Abre o guia do Datera.</small>
-                </span>
+                <Icon name="help" size={18} />
+                Guia de uso
             </button>
         </aside>
     );
