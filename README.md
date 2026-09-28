@@ -15,7 +15,29 @@
 
 ## O que é
 
-O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um banco (MySQL, PostgreSQL, SQL Server ou SQLite), do Google Sheets, de uma planilha do Excel, de um CSV, de um JSON ou de um XML, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV, num JSON ou num XML.
+O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de banco, planilha ou arquivo, arruma o que dá e escreve o resultado organizado em outro lugar:
+
+```mermaid
+flowchart LR
+    subgraph fontes["Lê de"]
+        direction TB
+        B["Bancos<br/>MySQL · PostgreSQL<br/>SQL Server · SQLite"]
+        P1["Planilhas<br/>Google Sheets · Excel"]
+        A1["Arquivos<br/>CSV · JSON<br/>XML · Parquet"]
+    end
+    subgraph destinos["Escreve em"]
+        direction TB
+        P2["Planilhas<br/>Google Sheets · Excel"]
+        A2["Arquivos<br/>CSV · JSON<br/>XML · Parquet"]
+    end
+    B --> D((Datera))
+    P1 --> D
+    A1 --> D
+    D --> P2
+    D --> A2
+    classDef datera fill:#2563EB,stroke:#2563EB,color:#ffffff
+    class D datera
+```
 
 Ele começou bem simples, era só pra copiar uma tabela do MySQL pra uma planilha. Só que aí eu fui vendo que dado de verdade vem uma bagunça: a mesma pessoa cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, informação espalhada em várias colunas. Então fui colocando coisa nova até conseguir resolver quase tudo mexendo só no `config.json`.
 
@@ -41,11 +63,11 @@ fonte ──► prepara ──► separa o que tem problema ──► tira ou ju
                                └──► pendências (com o motivo de cada uma)
 ```
 
-1. **Fonte:** lê de onde os dados estão (MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON ou XML).
+1. **Fonte:** lê de onde os dados estão.
 2. **Prepara:** preenche célula vazia e junta colunas, se você pedir.
 3. **Pendências:** as linhas que quebram alguma regra (e-mail inválido, campo vazio, valor fora da lista...) vão pra uma aba ou arquivo à parte.
 4. **Repetidos:** deixa como está, tira as linhas repetidas ou junta as linhas da mesma pessoa sem perder nada.
-5. **Destino:** escreve o resultado (Google Sheets, Excel, CSV, JSON ou XML).
+5. **Destino:** escreve o resultado onde você escolheu.
 
 Hoje ele consegue:
 

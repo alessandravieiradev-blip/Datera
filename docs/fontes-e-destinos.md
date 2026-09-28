@@ -8,7 +8,7 @@
 
 # Fontes e destinos
 
-O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON e XML e escrever no Google Sheets, no Excel, em CSV, em JSON e em XML, misturando do jeito que quiser.
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON, XML e Parquet e escrever no Google Sheets, no Excel, em CSV, em JSON, em XML e em Parquet, misturando do jeito que quiser.
 
 ```json
 {
@@ -34,6 +34,7 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 | `csv`       | `path`, `delimiter?`, `encoding?`                                                              | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                                  |
 | `json`      | `path`, `recordsPath?`                                                                         | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"`                   |
 | `xml`       | `path`, `recordsPath?`                                                                         | Cada registro vira uma linha. O `recordsPath` começa pelo elemento principal, tipo `"escola.alunos.aluno"`. Veja [XML](#xml)                 |
+| `parquet`   | `path`                                                                                         | Arquivo `.parquet`. Veja [Parquet](#parquet)                                                                                                 |
 | `excel`     | `path`, `sheet?`                                                                               | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                                                |
 | `sheets`    | `spreadsheetId`, `sheet?`, `credentialsPath?`                                                  | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Sem `credentialsPath`, usa o mesmo das outras configs                                |
 | `custom`    | `adapter`, `options?`                                                                          | Um adapter seu, carregado pelo `adapterModules`. Veja [E se o meu formato não tá aqui?](fontes-e-destinos.md#e-se-o-meu-formato-não-tá-aqui) |
@@ -83,14 +84,15 @@ fica assim:
 
 ## Destinos (`destination`)
 
-| `type`   | Campos                                       | A aba de pendências vira                                                                         |
-| -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `sheets` | `spreadsheetId`, `credentialsPath`, `sheet?` | outra aba na mesma planilha (a principal é a primeira aba, ou a que você colocar em `sheet`)     |
-| `csv`    | `path`, `delimiter?`, `bom?`                 | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
-| `json`   | `path`                                       | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
-| `xml`    | `path`, `root?`, `record?`                   | outro arquivo do lado: `resultado.xml` → `resultado.pendencias.xml`                              |
-| `excel`  | `path`, `sheet?`                             | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
-| `custom` | `adapter`, `options?`                        | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                |
+| `type`    | Campos                                       | A aba de pendências vira                                                                         |
+| --------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `sheets`  | `spreadsheetId`, `credentialsPath`, `sheet?` | outra aba na mesma planilha (a principal é a primeira aba, ou a que você colocar em `sheet`)     |
+| `csv`     | `path`, `delimiter?`, `bom?`                 | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
+| `json`    | `path`                                       | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
+| `xml`     | `path`, `root?`, `record?`                   | outro arquivo do lado: `resultado.xml` → `resultado.pendencias.xml`                              |
+| `parquet` | `path`                                       | outro arquivo do lado: `resultado.parquet` → `resultado.pendencias.parquet`                      |
+| `excel`   | `path`, `sheet?`                             | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
+| `custom`  | `adapter`, `options?`                        | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                |
 
 O CSV sai com vírgula. Se for abrir no Excel em português, coloca `"delimiter": ";"`. Ele também sai com um caractere invisível no começo (o `bom`, que já vem ligado) pro Excel mostrar os acentos certo. Se o arquivo for pra outro programa e ele reclamar desse caractere, coloca `"bom": false`. E se a pasta do arquivo não existir, ele cria.
 
@@ -209,6 +211,26 @@ Na saída, `root` é o elemento de fora e `record` o de cada linha. Sem eles, fi
 ```
 
 Cada coluna vira um elemento, e coluna vazia vira elemento vazio. Nome de coluna com espaço ou que começa com número não vale em XML, então ele troca o que não pode por `_`: `instrumento 1` vira `<instrumento_1>` e `1a aula` vira `<_1a_aula>`. Quando isso acontece, aparece um aviso no log. O arquivo sai em UTF-8, e o que ele escreve ele consegue ler de volta igualzinho.
+
+## Parquet
+
+Parquet é o formato que quem trabalha com dados em quantidade usa muito (pandas, Spark, DuckDB, BigQuery). Ele guarda por coluna, é comprimido e já diz o tipo de cada coluna, então o arquivo fica bem menor que um CSV e ninguém precisa adivinhar se `12` é texto ou número.
+
+```json
+"source": { "type": "parquet", "path": "./alunos.parquet" },
+"destination": { "type": "parquet", "path": "./saida/resultado.parquet" }
+```
+
+Na leitura:
+
+- número inteiro, decimal e texto chegam do jeito que são
+- data vira texto no formato `2024-03-10` (ou com a hora junto) e verdadeiro/falso vira `true`/`false`
+- coluna com grupo dentro vira coluna com ponto (`endereco.cidade`) e lista simples vira texto separado por vírgula, igual no JSON
+- lê arquivo sem compressão e com as compressões mais comuns (snappy, gzip, zstd, brotli)
+
+Na escrita, ele escolhe o tipo de cada coluna olhando os valores: se todos forem número inteiro, a coluna sai como inteiro; se tiver número com vírgula, sai como decimal; e se tiver qualquer texto no meio, a coluna inteira sai como texto. Célula vazia sai vazia (o `null` do Parquet). Se não tiver nenhuma linha pra gravar, ele apaga o arquivo antigo em vez de deixar um resultado velho lá.
+
+Por baixo ele usa o `hyparquet`, que é todo em JavaScript e não precisa instalar nada no computador.
 
 ## E a config antiga?
 

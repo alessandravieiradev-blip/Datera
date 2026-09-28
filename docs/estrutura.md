@@ -44,6 +44,7 @@ src/
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
     json/                 # jsonSource.ts e jsonSink.ts
     xml/                  # xmlParse.ts (leitor de XML), xmlSource.ts e xmlSink.ts
+    parquet/              # parquetLibrary.ts (usa o hyparquet), parquetSource.ts e parquetSink.ts
     excel/                # excelSource.ts, excelSink.ts, excelCell.ts (converte o valor da célula) e workbook.ts
     custom/               # registry.ts e loader.ts dos adapters que vêm de arquivo seu
   filters/
