@@ -24,7 +24,8 @@
     --text-muted: #64748b;
     --radius: 14px;
     --radius-small: 10px;
-    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.04);
+    --shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.04);
     --font-title: "Poppins", "Segoe UI", sans-serif;
     --font-body: "Inter", "Segoe UI", sans-serif;
     --button: #2563eb;
@@ -41,6 +42,9 @@
     --overlay: rgba(15, 23, 42, 0.35);
     --modal-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
     --button-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
+    --focus: #2563eb;
+    --field-border: #7b8799;
+    --success-text: #15803d;
     color-scheme: light;
 }
 
@@ -81,6 +85,9 @@
         --overlay: rgba(2, 6, 23, 0.65);
         --modal-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
         --button-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        --focus: #60a5fa;
+        --field-border: #5a6781;
+        --success-text: #4ade80;
         color-scheme: dark;
     }
 }
@@ -137,6 +144,25 @@ button {
 }
 
 :focus-visible {
-    outline: 3px solid var(--blue-light);
+    outline: 3px solid var(--focus);
     outline-offset: 2px;
+}
+
+[tabindex="-1"]:focus {
+    outline: none;
+}
+
+.section-heading {
+    font-size: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

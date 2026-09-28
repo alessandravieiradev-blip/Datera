@@ -45,7 +45,9 @@ code {
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
-    transition: background 0.15s, box-shadow 0.15s;
+    transition:
+        background 0.15s,
+        box-shadow 0.15s;
 }
 
 .button:disabled {
@@ -132,7 +134,7 @@ code {
 
 .tone-green {
     background: var(--success-soft);
-    color: var(--success);
+    color: var(--success-text);
 }
 
 .tone-orange {
@@ -286,7 +288,7 @@ code {
 
 .trend-good .trend-number {
     background: var(--success-soft);
-    color: var(--success);
+    color: var(--success-text);
 }
 
 .trend-bad .trend-number {
@@ -386,7 +388,7 @@ code {
 }
 
 .notice-success .notice-icon {
-    color: var(--success);
+    color: var(--success-text);
 }
 
 .notice-warning {
@@ -584,7 +586,7 @@ code {
 
 .status-ok {
     background: var(--success-soft);
-    color: var(--success);
+    color: var(--success-text);
 }
 
 .status-error {
@@ -698,7 +700,7 @@ code {
 .field {
     min-width: 0;
     padding: 10px 14px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-small);
     background: var(--background);
     color: var(--text);
@@ -718,10 +720,12 @@ code {
     min-width: 0;
 }
 
-.field:focus {
-    border-color: var(--blue-light);
-    outline: none;
-    box-shadow: 0 0 0 3px var(--blue-soft);
+.field:focus-visible {
+    border-color: var(--focus);
+}
+
+.field[aria-invalid="true"] {
+    border-color: var(--error-text);
 }
 
 .small-field {
@@ -1022,6 +1026,7 @@ code {
 .overlay {
     position: fixed;
     inset: 0;
+    overscroll-behavior: contain;
     z-index: 10;
     display: flex;
     align-items: center;
@@ -1055,6 +1060,7 @@ code {
 .modal-body {
     padding: 24px 28px;
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .dialog-page {
@@ -1191,7 +1197,7 @@ textarea.field {
 }
 
 .test-results .pass {
-    color: var(--success);
+    color: var(--success-text);
 }
 
 .test-results .fail {
@@ -1450,4 +1456,30 @@ kbd {
 .notice-actions {
     display: flex;
     gap: 8px;
+}
+
+.choice-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-detail {
+    display: block;
+    max-width: 320px;
+    margin-top: 4px;
+    color: var(--error-text);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.page.loading {
+    color: var(--text-muted);
+}
+
+.toast-region {
+    position: fixed;
+    right: 0;
+    bottom: 0;
 }
