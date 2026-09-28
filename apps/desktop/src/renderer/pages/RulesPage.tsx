@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { CustomRuleDialog } from "../components/CustomRuleDialog";
 import { Icon } from "../components/Icon";
 import { Notice } from "../components/Notice";
+import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
 import { PageId } from "../components/Sidebar";
 import {
@@ -234,43 +235,44 @@ export function RulesPage({
                 ))}
             </datalist>
 
-            <section className="rules">
-                <h2 className="section-heading">O que vai para Pendências</h2>
+            <section className="rules" aria-labelledby="regras-titulo">
+                <div className="section-head">
+                    <h2 className="section-heading" id="regras-titulo">
+                        O que vai para Pendências
+                    </h2>
+                    <button
+                        type="button"
+                        className="button secondary small-button"
+                        onClick={add}
+                        title={`Adicionar regra${hint(shortcuts, "adicionar-regra")}`}
+                    >
+                        Adicionar regra
+                    </button>
+                </div>
                 {drafts.length === 0 && (
                     <p className="muted">
                         Nenhuma regra ainda. Sem regras, todas as linhas vão
                         para o resultado.
                     </p>
                 )}
-                {drafts.map((draft, index) => (
-                    <RuleRow
-                        key={draft.id}
-                        number={index + 1}
-                        draft={draft}
-                        problem={problems[index] ?? null}
-                        onChange={(change) => update(draft.id, change)}
-                        onRemove={() => remove(draft.id)}
-                        onCustom={() => setDialogFor(draft.id)}
-                    />
-                ))}
-                <button
-                    type="button"
-                    className="add-rule"
-                    onClick={add}
-                    title={`Adicionar regra${hint(shortcuts, "adicionar-regra")}`}
-                >
-                    <span className="add-icon">+</span>
-                    <span>
-                        <strong>Adicionar regra</strong>
-                        <small className="muted">
-                            Crie uma nova regra para separar o que precisa de
-                            atenção.
-                        </small>
-                    </span>
-                </button>
+                {drafts.length > 0 && (
+                    <div className="rule-list">
+                        {drafts.map((draft, index) => (
+                            <RuleRow
+                                key={draft.id}
+                                number={index + 1}
+                                draft={draft}
+                                problem={problems[index] ?? null}
+                                onChange={(change) => update(draft.id, change)}
+                                onRemove={() => remove(draft.id)}
+                                onCustom={() => setDialogFor(draft.id)}
+                            />
+                        ))}
+                    </div>
+                )}
             </section>
 
-            <Panel title="E os cadastros repetidos?">
+            <Panel title="Cadastros repetidos">
                 <div className="choices">
                     <label className="choice">
                         <input
@@ -365,31 +367,10 @@ export function RulesPage({
 
 function RulesHeader() {
     return (
-        <header className="page-header">
-            <div className="header-with-icon">
-                <span className="header-icon">
-                    <Icon name="rules" size={30} />
-                </span>
-                <div>
-                    <span className="eyebrow">Regras de tratamento</span>
-                    <h1>Configure suas regras</h1>
-                    <p>
-                        Defina o que o Datera deve separar para alguém olhar,
-                        usando frases simples.
-                    </p>
-                </div>
-            </div>
-            <aside className="tip">
-                <Icon name="info" />
-                <div>
-                    <strong>Dica</strong>
-                    <p className="small muted">
-                        Tudo que cair numa regra vai para Pendências, com o
-                        motivo escrito do lado.
-                    </p>
-                </div>
-            </aside>
-        </header>
+        <PageHeader
+            title="Regras"
+            meta="Toda linha que cair numa regra vai para Pendências, com o motivo ao lado."
+        />
     );
 }
 
@@ -421,7 +402,7 @@ function RuleRow({
     const invalid = problem !== null;
 
     return (
-        <div className="panel rule-row">
+        <div className="rule-row">
             <span className="rule-number">{number}</span>
             <span>Quando</span>
             <input
@@ -484,18 +465,13 @@ function RuleRow({
                     }
                 />
             )}
-            <span>mandar para</span>
-            <span className="chip">
-                <Icon name="folder" size={18} />
-                Pendências
-            </span>
             <button
                 type="button"
                 className="icon-button"
                 aria-label={`Apagar a regra ${number}`}
                 onClick={onRemove}
             >
-                <Icon name="trash" size={20} />
+                <Icon name="trash" size={18} />
             </button>
             {problem && (
                 <p className="rule-problem" id={problemId}>
