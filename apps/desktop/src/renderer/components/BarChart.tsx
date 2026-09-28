@@ -36,7 +36,14 @@ export function BarChart({ bars }: BarChartProps) {
     const maxChars = Math.max(6, Math.floor((slot - 6) / CHAR_WIDTH));
 
     return (
-        <svg className="chart" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img">
+        <svg
+            className="chart"
+            viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+            role="img"
+            aria-label={bars
+                .map((bar) => `${bar.label}: ${formatNumber(bar.value)}`)
+                .join(", ")}
+        >
             {ticks.map((tick) => {
                 const y = TOP + plotHeight - (tick / max) * plotHeight;
                 return (

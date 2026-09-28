@@ -3,10 +3,9 @@ interface ToastProps {
 }
 
 export function Toast({ text }: ToastProps) {
-    if (!text) return null;
     return (
-        <div className="toast" role="status" aria-live="polite">
-            {text}
+        <div className="toast-region" role="status" aria-live="polite">
+            {text && <div className="toast">{text}</div>}
         </div>
     );
 }

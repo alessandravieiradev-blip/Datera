@@ -39,7 +39,14 @@ export function LineChart({ points }: LineChartProps) {
             : "";
 
     return (
-        <svg className="chart" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img">
+        <svg
+            className="chart"
+            viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+            role="img"
+            aria-label={`Pendências por exportação: ${points
+                .map((point) => `${point.label}, ${formatNumber(point.value)}`)
+                .join("; ")}`}
+        >
             <defs>
                 <linearGradient id="area-fill" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor="#2563EB" stopOpacity="0.16" />

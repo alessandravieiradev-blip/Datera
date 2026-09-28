@@ -1,4 +1,11 @@
-import { ReactNode, useState } from "react";
+import {
+    KeyboardEvent,
+    ReactNode,
+    useEffect,
+    useId,
+    useRef,
+    useState,
+} from "react";
 import { Icon, IconName } from "../components/Icon";
 import { Notice } from "../components/Notice";
 import { PageId } from "../components/Sidebar";
@@ -87,6 +94,16 @@ interface SetupWizardProps {
 export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
     const [step, setStep] = useState(0);
     const [draft, setDraft] = useState<WizardDraft>(EMPTY_DRAFT);
+    const pageRef = useRef<HTMLDivElement>(null);
+    const firstStep = useRef(true);
+
+    useEffect(() => {
+        if (firstStep.current) {
+            firstStep.current = false;
+            return;
+        }
+        pageRef.current?.querySelector<HTMLElement>(".step-body h2")?.focus();
+    }, [step]);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
@@ -122,7 +139,7 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
     };
 
     return (
-        <div className="page">
+        <div className="page" ref={pageRef}>
             <header className="page-header">
                 <div>
                     <span className="eyebrow">Configuração inicial</span>
@@ -144,6 +161,7 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
                 {STEPS.map((label, index) => (
                     <li
                         key={label}
+                        aria-current={index === step ? "step" : undefined}
                         className={
                             index === step
                                 ? "current"
@@ -180,7 +198,7 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
             {step === 1 && (
                 <ChoiceStep
                     title="Onde salvar o resultado?"
-                    subtitle="O destino é apagado e escrito de novo toda vez, então use um lugar só pro Datera."
+                    subtitle="O destino é apagado e escrito de novo toda vez, então use um lugar só para o Datera."
                     options={DESTINATIONS}
                     selected={draft.destination}
                     onSelect={(destination) => set({ destination })}
@@ -213,9 +231,9 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
                     Voltar
                 </button>
                 <div className="footer-right">
-                    {blocker && step > 0 && (
-                        <span className="muted small">{blocker}</span>
-                    )}
+                    <span className="muted small" role="status">
+                        {blocker && step > 0 ? blocker : ""}
+                    </span>
                     {step < STEPS.length - 1 ? (
                         <button
                             type="button"
@@ -233,7 +251,7 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
                             disabled={saving}
                             onClick={finish}
                         >
-                            {saving ? "Salvando..." : "Salvar configuração"}
+                            {saving ? "Salvando…" : "Salvar configuração"}
                         </button>
                     )}
                 </div>
@@ -257,16 +275,49 @@ function ChoiceStep<T extends string>({
     selected,
     onSelect,
 }: ChoiceStepProps<T>) {
+    const titleId = useId();
+    const focusIndex = Math.max(
+        options.findIndex((option) => option.id === selected),
+        0,
+    );
+
+    const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        const moves: Record<string, number> = {
+            ArrowRight: 1,
+            ArrowDown: 1,
+            ArrowLeft: -1,
+            ArrowUp: -1,
+        };
+        const move = moves[event.key];
+        if (move === undefined) return;
+        event.preventDefault();
+        const next = (focusIndex + move + options.length) % options.length;
+        const option = options[next];
+        if (!option) return;
+        onSelect(option.id);
+        const buttons =
+            event.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]');
+        buttons[next]?.focus();
+    };
+
     return (
         <section className="step-body">
-            <h2>{title}</h2>
+            <h2 id={titleId} tabIndex={-1}>
+                {title}
+            </h2>
             <p className="muted">{subtitle}</p>
-            <div className="option-grid" role="radiogroup">
-                {options.map((option) => (
+            <div
+                className="option-grid"
+                role="radiogroup"
+                aria-labelledby={titleId}
+                onKeyDown={onKeyDown}
+            >
+                {options.map((option, index) => (
                     <button
                         key={option.id}
                         type="button"
                         role="radio"
+                        tabIndex={index === focusIndex ? 0 : -1}
                         aria-checked={selected === option.id}
                         className={
                             selected === option.id
@@ -354,7 +405,7 @@ function DetailsStep({
 }) {
     return (
         <section className="step-body">
-            <h2>Só mais uns detalhes</h2>
+            <h2 tabIndex={-1}>Só mais uns detalhes</h2>
             <p className="muted">
                 Diga onde estão os dados e onde o resultado vai ficar.
             </p>
@@ -377,6 +428,8 @@ function DetailsStep({
                         >
                             <input
                                 className="field"
+                                spellCheck={false}
+                                autoComplete="off"
                                 value={draft.sourceSheet}
                                 onChange={(event) =>
                                     set({ sourceSheet: event.target.value })
@@ -392,7 +445,10 @@ function DetailsStep({
                             >
                                 <input
                                     className="field"
-                                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                                    spellCheck={false}
+                                    autoComplete="off"
+                                    type="url"
+                                    placeholder="https://docs.google.com/spreadsheets/d/…"
                                     value={draft.sourceLink}
                                     onChange={(event) =>
                                         set({ sourceLink: event.target.value })
@@ -405,6 +461,8 @@ function DetailsStep({
                             >
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     value={draft.sourceSheet}
                                     onChange={(event) =>
                                         set({ sourceSheet: event.target.value })
@@ -418,6 +476,8 @@ function DetailsStep({
                             <Field label="Servidor">
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     value={draft.host}
                                     onChange={(event) =>
                                         set({ host: event.target.value })
@@ -427,6 +487,8 @@ function DetailsStep({
                             <Field label="Porta">
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     inputMode="numeric"
                                     value={draft.port}
                                     onChange={(event) =>
@@ -437,6 +499,8 @@ function DetailsStep({
                             <Field label="Usuário">
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     value={draft.user}
                                     onChange={(event) =>
                                         set({ user: event.target.value })
@@ -449,6 +513,8 @@ function DetailsStep({
                             >
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     type="password"
                                     value={draft.password}
                                     onChange={(event) =>
@@ -459,6 +525,8 @@ function DetailsStep({
                             <Field label="Banco">
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     value={draft.database}
                                     onChange={(event) =>
                                         set({ database: event.target.value })
@@ -468,6 +536,8 @@ function DetailsStep({
                             <Field label="Tabela">
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     value={draft.table}
                                     onChange={(event) =>
                                         set({ table: event.target.value })
@@ -504,7 +574,10 @@ function DetailsStep({
                             >
                                 <input
                                     className="field"
-                                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                                    spellCheck={false}
+                                    autoComplete="off"
+                                    type="url"
+                                    placeholder="https://docs.google.com/spreadsheets/d/…"
                                     value={draft.destinationLink}
                                     onChange={(event) =>
                                         set({
@@ -519,6 +592,8 @@ function DetailsStep({
                             >
                                 <input
                                     className="field"
+                                    spellCheck={false}
+                                    autoComplete="off"
                                     value={draft.destinationSheet}
                                     onChange={(event) =>
                                         set({
@@ -554,7 +629,7 @@ function DetailsStep({
 function SummaryStep({ draft }: { draft: WizardDraft }) {
     return (
         <section className="step-body">
-            <h2>Tudo pronto!</h2>
+            <h2 tabIndex={-1}>Tudo pronto!</h2>
             <p className="muted">Confere se ficou do jeito que você queria:</p>
             <div className="panel summary">
                 <p>

@@ -9,6 +9,7 @@ import { fileName, formatDuration, formatNumber } from "../lib/format";
 import { statsOf } from "../lib/stats";
 import { DateraState } from "../lib/useDatera";
 import { hint, Shortcuts } from "../lib/shortcuts";
+import { prefersReducedMotion } from "../lib/focusTrap";
 import type { Command } from "../App";
 import type { RunRecord } from "../../shared/api";
 
@@ -27,13 +28,21 @@ export function ExportPage({
 }: ExportPageProps) {
     const [confirming, setConfirming] = useState(false);
     const confirmBox = useRef<HTMLDivElement>(null);
+    const cancelButton = useRef<HTMLButtonElement>(null);
+    const exportButton = useRef<HTMLButtonElement>(null);
+    const wasConfirming = useRef(false);
 
     useEffect(() => {
-        if (confirming)
+        if (confirming) {
             confirmBox.current?.scrollIntoView({
-                behavior: "smooth",
+                behavior: prefersReducedMotion() ? "auto" : "smooth",
                 block: "center",
             });
+            cancelButton.current?.focus({ preventScroll: true });
+        } else if (wasConfirming.current) {
+            exportButton.current?.focus({ preventScroll: true });
+        }
+        wasConfirming.current = confirming;
     }, [confirming]);
     const { settings, running, lastRun, log } = datera;
     const hasConfig = settings.configPath !== null;
@@ -108,6 +117,7 @@ export function ExportPage({
                                 Ver prévia
                             </button>
                             <button
+                                ref={exportButton}
                                 type="button"
                                 className="button primary"
                                 disabled={running}
@@ -120,13 +130,23 @@ export function ExportPage({
                         </div>
                     </div>
                     {confirming && (
-                        <div className="confirm" ref={confirmBox}>
+                        <div
+                            className="confirm"
+                            ref={confirmBox}
+                            role="group"
+                            aria-label="Confirmar exportação"
+                            onKeyDown={(event) => {
+                                if (event.key === "Escape")
+                                    setConfirming(false);
+                            }}
+                        >
                             <Notice tone="warning" title="Tem certeza?">
                                 O destino vai ser limpo e escrito de novo com o
                                 resultado. As pendências também.
                             </Notice>
                             <div className="confirm-actions">
                                 <button
+                                    ref={cancelButton}
                                     type="button"
                                     className="button ghost"
                                     onClick={() => setConfirming(false)}
@@ -147,7 +167,7 @@ export function ExportPage({
             )}
 
             {(running || log.length > 0) && (
-                <Panel title={running ? "Rodando..." : "O que aconteceu"}>
+                <Panel title={running ? "Rodando…" : "O que aconteceu"}>
                     <RunLog entries={log} />
                 </Panel>
             )}
@@ -172,7 +192,8 @@ function RunResult({
     if (!record.ok || !record.report) {
         return (
             <Notice tone="error" title="Não foi possível concluir.">
-                {record.error ?? "Ocorreu um erro inesperado."}
+                {record.error ??
+                    "Ocorreu um erro inesperado. Tente de novo e, se continuar, veja o Histórico."}
             </Notice>
         );
     }

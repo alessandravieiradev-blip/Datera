@@ -190,6 +190,7 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
                     <button
                         key={template.label}
                         type="button"
+                        aria-pressed={template.pattern === pattern}
                         className={
                             template.pattern === pattern
                                 ? "chip-button selected"
@@ -208,10 +209,20 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
                     className="field mono"
                     value={pattern}
                     placeholder="^\d{5}-?\d{3}$"
+                    spellCheck={false}
+                    autoComplete="off"
+                    aria-invalid={
+                        (problem !== null && pattern !== "") || undefined
+                    }
+                    aria-describedby={
+                        problem && pattern ? "formato-erro" : undefined
+                    }
                     onChange={(event) => setPattern(event.target.value)}
                 />
                 {problem && pattern && (
-                    <span className="field-error">{problem}</span>
+                    <span className="field-error" id="formato-erro">
+                        {problem}
+                    </span>
                 )}
             </label>
             <label className="checkbox">
@@ -226,6 +237,7 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
             <button
                 type="button"
                 className="link"
+                aria-expanded={showSymbols}
                 onClick={() => setShowSymbols(!showSymbols)}
             >
                 {showSymbols ? "Esconder" : "O que são esses símbolos?"}
@@ -251,6 +263,7 @@ function FormatPath({ draft, onBack, onApply }: PathProps) {
                     <textarea
                         className="field mono"
                         rows={4}
+                        spellCheck={false}
                         value={examples}
                         onChange={(event) => setExamples(event.target.value)}
                     />
@@ -563,14 +576,14 @@ function HelpPath({
                     <strong>Tente primeiro o formato próprio.</strong>
                     <p className="muted">
                         Ele resolve a maioria dos casos (CEP, matrícula,
-                        horário...) e não precisa programar nada.
+                        horário…) e não precisa programar nada.
                     </p>
                     <button
                         type="button"
                         className="button secondary"
                         onClick={() => onChoose("format")}
                     >
-                        Ir pro formato próprio
+                        Ir para o formato próprio
                     </button>
                 </li>
                 <li>

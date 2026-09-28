@@ -39,6 +39,9 @@ const PAGE_OF: Partial<Record<ActionId, PageId>> = {
 
 const TOAST_TIME = 2600;
 
+const UNSAVED_RULES =
+    "As alterações nas regras ainda não foram salvas. Sair mesmo assim?";
+
 function prefersDark(): boolean {
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
@@ -48,6 +51,9 @@ export function App() {
     const [command, setCommand] = useState<Command | null>(null);
     const [toast, setToast] = useState<string | null>(null);
     const capturing = useRef(false);
+    const rulesDirty = useRef(false);
+    const pageRef = useRef(page);
+    pageRef.current = page;
     const seq = useRef(0);
     const datera = useDatera();
     const shortcuts = useMemo(
@@ -63,9 +69,31 @@ export function App() {
 
     const notify = useCallback((text: string) => setToast(text), []);
 
-    const navigate = useCallback((target: PageId) => {
-        setCommand(null);
-        setPage(target);
+    const canLeave = useCallback((target: PageId) => {
+        if (target === pageRef.current) return true;
+        if (pageRef.current !== "regras" || !rulesDirty.current) return true;
+        if (!window.confirm(UNSAVED_RULES)) return false;
+        rulesDirty.current = false;
+        return true;
+    }, []);
+
+    const navigate = useCallback(
+        (target: PageId) => {
+            if (!canLeave(target)) return;
+            setCommand(null);
+            setPage(target);
+        },
+        [canLeave],
+    );
+
+    useEffect(() => {
+        const onBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (pageRef.current !== "regras" || !rulesDirty.current) return;
+            event.preventDefault();
+            event.returnValue = "";
+        };
+        window.addEventListener("beforeunload", onBeforeUnload);
+        return () => window.removeEventListener("beforeunload", onBeforeUnload);
     }, []);
 
     const send = (id: ActionId) => {
@@ -81,6 +109,7 @@ export function App() {
         }
         const pageOfAction = PAGE_OF[id];
         if (pageOfAction) {
+            if (!canLeave(pageOfAction)) return;
             setPage(pageOfAction);
             send(id);
             return;
@@ -96,6 +125,12 @@ export function App() {
                 notify("Informações atualizadas.");
                 return;
             case "trocar-config":
+                if (
+                    pageRef.current === "regras" &&
+                    rulesDirty.current &&
+                    !window.confirm(UNSAVED_RULES)
+                )
+                    return;
                 await datera.chooseConfig();
                 return;
             case "abrir-pasta":
@@ -146,6 +181,11 @@ export function App() {
                 shortcuts={shortcuts}
             />
             <main className="content">
+                {datera.loading && page === "inicio" && (
+                    <p className="page loading" role="status">
+                        Carregando…
+                    </p>
+                )}
                 {!datera.loading && page === "inicio" && (
                     <HomePage datera={datera} onNavigate={navigate} />
                 )}
@@ -164,6 +204,9 @@ export function App() {
                         command={command}
                         shortcuts={shortcuts}
                         notify={notify}
+                        onDirtyChange={(dirty) => {
+                            rulesDirty.current = dirty;
+                        }}
                     />
                 )}
                 {page === "historico" && (

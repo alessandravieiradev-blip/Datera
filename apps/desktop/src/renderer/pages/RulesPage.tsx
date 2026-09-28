@@ -27,6 +27,15 @@ interface RulesPageProps {
     command: Command | null;
     shortcuts: Shortcuts;
     notify: (text: string) => void;
+    onDirtyChange: (dirty: boolean) => void;
+}
+
+function snapshotOf(drafts: RuleDraft[], mode: string, column: string): string {
+    return JSON.stringify({
+        rules: drafts.map((draft) => ({ ...draft, id: "" })),
+        mode,
+        column: mode === "dedupe" ? column.trim() : "",
+    });
 }
 
 function blankRule(): RuleDraft {
@@ -41,6 +50,7 @@ export function RulesPage({
     command,
     shortcuts,
     notify,
+    onDirtyChange,
 }: RulesPageProps) {
     const [config, setConfig] = useState<RawConfig | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -54,21 +64,32 @@ export function RulesPage({
     const [dialogFor, setDialogFor] = useState<string | null>(null);
     const actions = useRef<Partial<Record<ActionId, () => void>>>({});
     const pendingAdd = useRef(false);
+    const baseline = useRef("");
     const configPath = datera.settings.configPath;
 
     const loadFrom = (loaded: RawConfig) => {
+        const loadedDrafts = rulesFromConfig(loaded);
+        const loadedMode =
+            loaded.mode === "dedupe" || loaded.mode === "merge"
+                ? loaded.mode
+                : "raw";
+        const loadedColumn =
+            typeof loaded.dedupeColumn === "string" ? loaded.dedupeColumn : "";
+        baseline.current = snapshotOf(loadedDrafts, loadedMode, loadedColumn);
         setConfig(loaded);
-        setDrafts(rulesFromConfig(loaded));
-        const loadedMode = loaded.mode;
-        setMode(
-            loadedMode === "dedupe" || loadedMode === "merge"
-                ? loadedMode
-                : "raw",
-        );
-        setDedupeColumn(
-            typeof loaded.dedupeColumn === "string" ? loaded.dedupeColumn : "",
-        );
+        setDrafts(loadedDrafts);
+        setMode(loadedMode);
+        setDedupeColumn(loadedColumn);
     };
+
+    useEffect(() => {
+        onDirtyChange(
+            config !== null &&
+                snapshotOf(drafts, mode, dedupeColumn) !== baseline.current,
+        );
+    }, [config, drafts, mode, dedupeColumn]);
+
+    useEffect(() => () => onDirtyChange(false), []);
 
     useEffect(() => {
         if (configPath === null) return;
@@ -214,11 +235,11 @@ export function RulesPage({
             </datalist>
 
             <section className="rules">
-                <h3>O que vai para Pendências</h3>
+                <h2 className="section-heading">O que vai para Pendências</h2>
                 {drafts.length === 0 && (
                     <p className="muted">
-                        Nenhuma regra ainda. Sem regras, todas as linhas vão pro
-                        resultado.
+                        Nenhuma regra ainda. Sem regras, todas as linhas vão
+                        para o resultado.
                     </p>
                 )}
                 {drafts.map((draft, index) => (
@@ -260,25 +281,31 @@ export function RulesPage({
                         />
                         <span>Deixar como estão</span>
                     </label>
-                    <label className="choice">
+                    <div className="choice-row">
+                        <label className="choice">
+                            <input
+                                type="radio"
+                                name="modo"
+                                checked={mode === "dedupe"}
+                                onChange={() => setMode("dedupe")}
+                            />
+                            <span>Tirar os repetidos, olhando a coluna</span>
+                        </label>
                         <input
-                            type="radio"
-                            name="modo"
-                            checked={mode === "dedupe"}
-                            onChange={() => setMode("dedupe")}
-                        />
-                        <span>Tirar os repetidos, olhando a coluna</span>
-                        <input
-                            className="field small-field"
+                            className="field small-field dedupe-column"
                             list="colunas"
-                            placeholder="coluna"
+                            placeholder="Ex.: matricula…"
+                            aria-label="Coluna usada para tirar os repetidos"
+                            aria-invalid={dedupeProblem || undefined}
+                            spellCheck={false}
+                            autoComplete="off"
                             value={dedupeColumn}
                             onChange={(event) => {
                                 setDedupeColumn(event.target.value);
                                 setMode("dedupe");
                             }}
                         />
-                    </label>
+                    </div>
                     <label className={canMerge ? "choice" : "choice disabled"}>
                         <input
                             type="radio"
@@ -329,7 +356,7 @@ export function RulesPage({
                     onClick={save}
                     title={`Salvar regras${hint(shortcuts, "salvar-regras")}`}
                 >
-                    {saving ? "Salvando..." : "Salvar regras"}
+                    {saving ? "Salvando…" : "Salvar regras"}
                 </button>
             </footer>
         </div>
@@ -390,6 +417,8 @@ function RuleRow({
         : [draft.condition, ...EDITABLE_CONDITIONS];
     const custom =
         draft.condition === "pattern" || draft.condition === "normalizer";
+    const problemId = `problema-regra-${draft.id}`;
+    const invalid = problem !== null;
 
     return (
         <div className="panel rule-row">
@@ -400,14 +429,18 @@ function RuleRow({
                 list="colunas"
                 placeholder="Escolha a coluna"
                 value={draft.column}
-                aria-label="Coluna"
+                aria-label={`Coluna da regra ${number}`}
+                aria-invalid={invalid || undefined}
+                aria-describedby={invalid ? problemId : undefined}
+                spellCheck={false}
+                autoComplete="off"
                 onChange={(event) => onChange({ column: event.target.value })}
             />
             <span>estiver</span>
             <select
                 className="field"
                 value={draft.condition}
-                aria-label="Condição"
+                aria-label={`Condição da regra ${number}`}
                 onChange={(event) => {
                     if (event.target.value === OTHER) onCustom();
                     else
@@ -421,12 +454,13 @@ function RuleRow({
                         {CONDITION_LABELS[condition]}
                     </option>
                 ))}
-                <option value={OTHER}>Outra regra...</option>
+                <option value={OTHER}>Outra regra…</option>
             </select>
             {custom && (
                 <button
                     type="button"
                     className="chip-button"
+                    aria-label={`Editar a regra ${number}`}
                     onClick={onCustom}
                 >
                     <code>
@@ -434,7 +468,7 @@ function RuleRow({
                             ? draft.pattern
                             : draft.normalizer}
                     </code>
-                    editar
+                    Editar
                 </button>
             )}
             {draft.condition === "list" && (
@@ -442,7 +476,9 @@ function RuleRow({
                     className="field"
                     placeholder="mensal, trimestral, anual"
                     value={draft.values}
-                    aria-label="Valores aceitos"
+                    aria-label={`Valores aceitos na regra ${number}`}
+                    aria-invalid={invalid || undefined}
+                    aria-describedby={invalid ? problemId : undefined}
                     onChange={(event) =>
                         onChange({ values: event.target.value })
                     }
@@ -456,12 +492,16 @@ function RuleRow({
             <button
                 type="button"
                 className="icon-button"
-                aria-label="Apagar regra"
+                aria-label={`Apagar a regra ${number}`}
                 onClick={onRemove}
             >
                 <Icon name="trash" size={20} />
             </button>
-            {problem && <p className="rule-problem">{problem}</p>}
+            {problem && (
+                <p className="rule-problem" id={problemId}>
+                    {problem}
+                </p>
+            )}
         </div>
     );
 }

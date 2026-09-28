@@ -20,7 +20,7 @@ export function Panel({
             {(title || action) && (
                 <header className="panel-header">
                     <div>
-                        {title && <h3>{title}</h3>}
+                        {title && <h2 className="section-heading">{title}</h2>}
                         {subtitle && <p className="muted small">{subtitle}</p>}
                     </div>
                     {action}

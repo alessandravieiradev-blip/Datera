@@ -58,7 +58,9 @@ function Welcome({
                     <Icon name="sparkle" size={32} />
                 </span>
                 <div>
-                    <h3>Configurar em poucos passos</h3>
+                    <h2 className="section-heading">
+                        Configurar em poucos passos
+                    </h2>
                     <p className="muted">
                         Um passo a passo pergunta de onde vêm os dados e onde
                         salvar. Se você já tem um arquivo de configuração, é só

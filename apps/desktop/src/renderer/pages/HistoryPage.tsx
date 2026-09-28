@@ -21,7 +21,7 @@ export function HistoryPage({ history }: HistoryPageProps) {
                     <h1>Tudo o que já rodou</h1>
                     <p>
                         As últimas execuções feitas por aqui, das mais novas
-                        pras mais antigas.
+                        para as mais antigas.
                     </p>
                 </div>
             </header>
@@ -95,17 +95,21 @@ export function HistoryPage({ history }: HistoryPageProps) {
                                                     Concluída
                                                 </span>
                                             ) : (
-                                                <span
-                                                    className="status status-error"
-                                                    title={record.error}
-                                                >
-                                                    <Icon
-                                                        name="alert"
-                                                        size={14}
-                                                        strokeWidth={2.5}
-                                                    />
-                                                    Com erro
-                                                </span>
+                                                <>
+                                                    <span className="status status-error">
+                                                        <Icon
+                                                            name="alert"
+                                                            size={14}
+                                                            strokeWidth={2.5}
+                                                        />
+                                                        Com erro
+                                                    </span>
+                                                    {record.error && (
+                                                        <span className="status-detail">
+                                                            {record.error}
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                         </td>
                                     </tr>

@@ -1,5 +1,6 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useId, useRef } from "react";
 import { Icon } from "./Icon";
+import { focusableIn, useFocusTrap } from "../lib/focusTrap";
 
 interface ModalProps {
     title: string;
@@ -9,6 +10,14 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, footer, children }: ModalProps) {
+    const dialog = useRef<HTMLDivElement>(null);
+    const titleId = useId();
+
+    useFocusTrap(dialog, (root) => {
+        const body = root.querySelector<HTMLElement>(".modal-body");
+        return body ? focusableIn(body)[0] : null;
+    });
+
     useEffect(() => {
         const onKey = (event: KeyboardEvent) => {
             if (event.key === "Escape") onClose();
@@ -25,13 +34,15 @@ export function Modal({ title, onClose, footer, children }: ModalProps) {
             }
         >
             <div
+                ref={dialog}
                 className="modal"
                 role="dialog"
                 aria-modal="true"
-                aria-label={title}
+                aria-labelledby={titleId}
+                tabIndex={-1}
             >
                 <header className="modal-header">
-                    <h2>{title}</h2>
+                    <h2 id={titleId}>{title}</h2>
                     <button
                         type="button"
                         className="icon-button"

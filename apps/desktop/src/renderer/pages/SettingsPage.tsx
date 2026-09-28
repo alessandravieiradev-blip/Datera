@@ -1,3 +1,4 @@
+import { KeyboardEvent } from "react";
 import { Icon } from "../components/Icon";
 import { Panel } from "../components/Panel";
 import { PageId } from "../components/Sidebar";
@@ -25,6 +26,32 @@ interface SettingsPageProps {
 
 export function SettingsPage({ datera, onNavigate }: SettingsPageProps) {
     const { configPath } = datera.settings;
+    const current = Math.max(
+        THEMES.findIndex((theme) => theme.id === datera.settings.theme),
+        0,
+    );
+
+    const choose = async (theme: Theme) =>
+        datera.applySettings(await window.datera.setTheme(theme));
+
+    const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        const moves: Record<string, number> = {
+            ArrowRight: 1,
+            ArrowDown: 1,
+            ArrowLeft: -1,
+            ArrowUp: -1,
+        };
+        const move = moves[event.key];
+        if (move === undefined) return;
+        event.preventDefault();
+        const next = (current + move + THEMES.length) % THEMES.length;
+        const theme = THEMES[next];
+        if (!theme) return;
+        void choose(theme.id);
+        event.currentTarget
+            .querySelectorAll<HTMLElement>('[role="radio"]')
+            [next]?.focus();
+    };
 
     return (
         <div className="page">
@@ -74,23 +101,21 @@ export function SettingsPage({ datera, onNavigate }: SettingsPageProps) {
                     className="theme-options"
                     role="radiogroup"
                     aria-label="Tema"
+                    onKeyDown={onKeyDown}
                 >
-                    {THEMES.map((theme) => (
+                    {THEMES.map((theme, index) => (
                         <button
                             key={theme.id}
                             type="button"
                             role="radio"
+                            tabIndex={index === current ? 0 : -1}
                             aria-checked={datera.settings.theme === theme.id}
                             className={
                                 datera.settings.theme === theme.id
                                     ? "theme-option selected"
                                     : "theme-option"
                             }
-                            onClick={async () =>
-                                datera.applySettings(
-                                    await window.datera.setTheme(theme.id),
-                                )
-                            }
+                            onClick={() => void choose(theme.id)}
                         >
                             <span
                                 className={`theme-swatch swatch-${theme.id}`}
