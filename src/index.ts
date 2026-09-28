@@ -11,8 +11,16 @@ export {
     loadJsonConfig,
     parseConfig,
     etlConfigSchema,
+    checkConfigFile,
+    checkConfigText,
 } from "./config";
-export type { EtlConfig, SourceConfig, DestinationConfig } from "./config";
+export type {
+    EtlConfig,
+    SourceConfig,
+    DestinationConfig,
+    ConfigCheck,
+    ConfigProblem,
+} from "./config";
 export { consoleLogger, silentLogger, createMemoryLogger } from "./logger";
 export type { Logger, MemoryLogger } from "./logger";
 export type { Source, Sink, SinkWriteOptions } from "./io/types";

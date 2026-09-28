@@ -1,13 +1,23 @@
 import "dotenv/config";
 import path from "path";
 import { parseCli } from "./cli";
-import { loadConfig } from "./config";
+import { checkConfigFile, formatCheck, loadConfig } from "./config";
 import { consoleLogger } from "./logger";
 import { formatReport, parseMode, runEtl } from "./pipeline";
 
 async function main(): Promise<void> {
     const cli = parseCli();
     const logger = consoleLogger;
+
+    if (cli.command === "validate") {
+        const check = checkConfigFile(cli.config);
+        for (const line of formatCheck(cli.config, check)) {
+            if (check.ok) logger.info(line);
+            else logger.error(line);
+        }
+        if (!check.ok) process.exitCode = 1;
+        return;
+    }
 
     try {
         const configPath = path.resolve(cli.config);

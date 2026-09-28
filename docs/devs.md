@@ -63,6 +63,14 @@ npm start
 
 Ele lê da fonte, aplica o que está na config e escreve no destino.
 
+Pra só conferir a config, sem ler nem gravar nada:
+
+```bash
+npm run validate -- ./config.json
+```
+
+Ele avisa se o JSON tem erro, se falta algum campo ou tem valor que não existe, e se algum arquivo citado (a fonte, as credenciais, os normalizadores e os adapters) não está no lugar. Os caminhos contam a partir da pasta da config, igual na hora de rodar. Se tiver problema, ele termina com código 1, então dá pra usar num script antes de rodar de verdade. As variáveis do `.env` não entram nessa conferência.
+
 Pra trocar o modo sem mexer no `config.json`:
 
 ```bash
@@ -193,6 +201,7 @@ Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch
 | `npm run example:excel`   | O mesmo exemplo, mas gerando um arquivo do Excel                   |
 | `npm test`                | Testes unitários (Vitest), sem precisar de banco ou planilha reais |
 | `npm run test:config`     | Carrega e valida o `config.json`                                   |
+| `npm run validate`        | Confere a config e os arquivos citados, sem rodar nada             |
 | `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas               |
 | `npm run test:sheet`      | Escreve duas linhas de teste numa planilha real                    |
 

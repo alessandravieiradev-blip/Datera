@@ -1,12 +1,20 @@
 import { Command } from "commander";
 
-export interface CliOptions {
-    config: string;
-    mode?: string | undefined;
-    dryRun: boolean;
-}
+export type CliOptions =
+    | {
+          command: "run";
+          config: string;
+          mode?: string | undefined;
+          dryRun: boolean;
+      }
+    | { command: "validate"; config: string };
 
 export function parseCli(argv: string[] = process.argv): CliOptions {
+    const [, , first, second] = argv;
+    if (first === "validate") {
+        return { command: "validate", config: second ?? "./config.json" };
+    }
+
     const program = new Command();
 
     program
@@ -32,6 +40,7 @@ export function parseCli(argv: string[] = process.argv): CliOptions {
         dryRun?: boolean;
     }>();
     return {
+        command: "run",
         config: options.config,
         mode: options.mode,
         dryRun: options.dryRun ?? false,
