@@ -22,7 +22,9 @@ Esse é o guia do Datera com tela, o app para quem cuida dos dados e não quer m
 
 ## Instalando
 
-O instalador é um arquivo chamado `Datera-Setup-0.1.0.exe` (o número muda conforme a versão). Quem cuida do projeto gera esse arquivo e te manda. Depois é só abrir e seguir as telas, sem precisar instalar mais nada.
+1. Abra a [página da versão mais recente](https://github.com/alessandravieiradev-blip/datera/releases/latest).
+2. Lá embaixo, em **Assets**, clique no arquivo que começa com `Datera-Setup` (por exemplo `Datera-Setup-0.1.0.exe`). Cuidado para não pegar o `Datera-Dev-Setup`, que é o app para quem programa.
+3. Abra o arquivo baixado e siga as telas. Não precisa instalar mais nada.
 
 Como o instalador ainda não é assinado, o Windows pode mostrar a mensagem "O Windows protegeu o computador". Nesse caso, clique em **Mais informações** e depois em **Executar assim mesmo**.
 

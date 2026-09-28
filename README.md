@@ -84,18 +84,38 @@ Hoje ele consegue:
 <tr>
 <td width="50%" valign="top">
 
+### Para gestores
+
+Você quer usar o app com tela: instalar, escolher de onde vêm os dados, montar as regras em frases e exportar. Não precisa saber programar.
+
+<a href="https://github.com/alessandravieiradev-blip/datera/releases/latest"><img src="https://img.shields.io/badge/Baixar%20o%20Datera-2563EB?style=for-the-badge" alt="Baixar o Datera"></a>
+<a href="docs/gestores.md"><img src="https://img.shields.io/badge/Abrir%20o%20guia-475569?style=for-the-badge" alt="Abrir o guia para gestores"></a>
+
+</td>
+<td width="50%" valign="top">
+
+### Para devs
+
+Você quer rodar pelo terminal, usar o Datera Dev, escrever a config na mão, criar normalizadores ou chamar o Datera de dentro de outro código.
+
+<a href="docs/devs.md"><img src="https://img.shields.io/badge/Abrir%20o%20guia%20para%20devs-16181D?style=for-the-badge" alt="Abrir o guia para devs"></a>
+
+</td>
+</tr>
+</table>
+
 ## Todos os guias
 
-| Guia                                                       | O que tem                                                           |
-| ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| [Para gestores](docs/gestores.md)                          | instalar e usar o app com tela                                      |
-| [Para devs](docs/devs.md)                                  | teste em 1 minuto, terminal, Datera Dev, uso em código e testes     |
-| [Configuração](docs/configuracao.md)                       | todos os campos do`config.json`, os modos e as estratégias do merge |
-| [Fontes e destinos](docs/fontes-e-destinos.md)             | cada formato que ele lê e escreve, e como criar o seu               |
-| [Exemplos](docs/exemplos.md)                               | dez configs, do mais simples ao mais completo                       |
-| [Preparação e pendências](docs/preparacao-e-pendencias.md) | `fillEmpty`, `combineColumns`, `distribute` e `validation`          |
-| [Normalizadores](docs/normalizadores.md)                   | os prontos e como criar o seu                                       |
-| [Estrutura do projeto](docs/estrutura.md)                  | o que tem em cada pasta                                             |
+| Guia                                                       | O que tem                                                            |
+| ---------------------------------------------------------- | -------------------------------------------------------------------- |
+| [Para gestores](docs/gestores.md)                          | instalar e usar o app com tela                                       |
+| [Para devs](docs/devs.md)                                  | teste em 1 minuto, terminal, Datera Dev, uso em código e testes      |
+| [Configuração](docs/configuracao.md)                       | todos os campos do `config.json`, os modos e as estratégias do merge |
+| [Fontes e destinos](docs/fontes-e-destinos.md)             | cada formato que ele lê e escreve, e como criar o seu                |
+| [Exemplos](docs/exemplos.md)                               | dez configs, do mais simples ao mais completo                        |
+| [Preparação e pendências](docs/preparacao-e-pendencias.md) | `fillEmpty`, `combineColumns`, `distribute` e `validation`           |
+| [Normalizadores](docs/normalizadores.md)                   | os prontos e como criar o seu                                        |
+| [Estrutura do projeto](docs/estrutura.md)                  | o que tem em cada pasta                                              |
 
 ## Contribuir e licença
 

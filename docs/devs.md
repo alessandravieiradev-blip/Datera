@@ -159,7 +159,26 @@ npm run dist -w apps/desktop
 npm run dist -w apps/dev
 ```
 
-Eles saem em `apps/desktop/release/Datera-Setup-0.1.0.exe` e `apps/dev/release/Datera-Dev-Setup-0.1.0.exe`. É só mandar o arquivo pra pessoa e ela instala com dois cliques, sem precisar de Node nem de nada. Como o instalador não é assinado (assinatura custa caro), o Windows pode mostrar "O Windows protegeu o computador". Aí é clicar em "Mais informações" e depois em "Executar assim mesmo".
+Eles saem em `apps/desktop/release/Datera-Setup-0.1.0.exe` e `apps/dev/release/Datera-Dev-Setup-0.1.0.exe`. É bom pra testar o instalador antes de publicar. Como ele não é assinado (assinatura custa caro), o Windows pode mostrar "O Windows protegeu o computador". Aí é clicar em "Mais informações" e depois em "Executar assim mesmo".
+
+### Publicando uma versão
+
+Ninguém precisa gerar o instalador na mão pra publicar. Quando chega uma tag que começa com `v` no GitHub, a action `.github/workflows/release.yml` roda num Windows, confere a versão, roda os testes, gera os dois instaladores e cria a release na aba [Releases](https://github.com/alessandravieiradev-blip/datera/releases) com os dois `.exe` e a lista do que mudou.
+
+O passo a passo:
+
+1. Troca o `version` do `apps/desktop/package.json` e do `apps/dev/package.json` pro número novo (os dois iguais)
+2. Faz o commit e o push
+3. Cria a tag com o mesmo número e manda ela:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+Leva uns 10 minutos, e dá pra acompanhar na aba Actions. Se a versão da tag não bater com a dos dois `package.json`, ele para antes de gerar qualquer coisa e explica o que ajustar. Tag com hífen, tipo `v0.2.0-beta.1`, sai marcada como pré-lançamento.
+
+O texto que aparece no começo de toda release (qual arquivo baixar e o aviso do Windows) fica em `.github/release-notes.md`.
 
 ## Usando dentro de outro código
 
