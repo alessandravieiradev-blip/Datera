@@ -43,6 +43,7 @@ const SOURCE_NAMES: Record<string, string> = {
     csv: "csv",
     json: "json",
     xml: "xml",
+    parquet: "parquet",
     postgres: "postgres",
     sqlserver: "sqlserver",
     sqlite: "sqlite",

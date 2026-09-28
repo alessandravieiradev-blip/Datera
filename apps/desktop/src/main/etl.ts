@@ -35,6 +35,7 @@ const SOURCE_LABELS: Record<string, string> = {
     csv: "Arquivo CSV",
     json: "Arquivo JSON",
     xml: "Arquivo XML",
+    parquet: "Arquivo Parquet",
     excel: "Arquivo Excel",
     sheets: "Google Planilhas",
     custom: "Fonte própria",

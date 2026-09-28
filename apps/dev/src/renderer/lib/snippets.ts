@@ -26,6 +26,11 @@ export const SNIPPETS: Snippet[] = [
         text: '"source": { "type": "xml", "path": "./alunos.xml", "recordsPath": "escola.alunos.aluno" }',
     },
     {
+        id: "fonte-parquet",
+        label: "Fonte: Parquet",
+        text: '"source": { "type": "parquet", "path": "./alunos.parquet" }',
+    },
+    {
         id: "fonte-sheets",
         label: "Fonte: Google Planilhas",
         text: '"source": { "type": "sheets", "spreadsheetId": "ID_DA_PLANILHA", "sheet": "Aba" }',
@@ -69,6 +74,11 @@ export const SNIPPETS: Snippet[] = [
         id: "destino-xml",
         label: "Destino: XML",
         text: '"destination": { "type": "xml", "path": "./saida/resultado.xml", "root": "alunos", "record": "aluno" }',
+    },
+    {
+        id: "destino-parquet",
+        label: "Destino: Parquet",
+        text: '"destination": { "type": "parquet", "path": "./saida/resultado.parquet" }',
     },
     {
         id: "destino-sheets",
