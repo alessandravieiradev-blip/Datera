@@ -52,7 +52,7 @@ export function NormalizerTester({ names, onTest }: NormalizerTesterProps) {
     return (
         <section className="tester" aria-label="Testar normalizador">
             <header className="tester-head">
-                <span className="section-title">Testar</span>
+                <span className="section-title">Testar normalizador</span>
                 <input
                     className="field mono"
                     list="normalizer-names"
@@ -74,7 +74,7 @@ export function NormalizerTester({ names, onTest }: NormalizerTesterProps) {
                     onClick={() => void run()}
                     disabled={!name.trim()}
                 >
-                    Testar <kbd>Ctrl+T</kbd>
+                    Testar <span className="hint">Ctrl+T</span>
                 </button>
             </header>
             <div className="tester-body">

@@ -530,7 +530,7 @@ export function App() {
                         className="btn ghost"
                         onClick={() => setPalette(true)}
                     >
-                        Comandos <kbd>Ctrl+K</kbd>
+                        Comandos <span className="hint">Ctrl+K</span>
                     </button>
                     <button
                         type="button"
@@ -546,7 +546,8 @@ export function App() {
                         disabled={!configPath || running}
                         onClick={() => void runPipeline(true)}
                     >
-                        {running ? "Rodando…" : "Prévia"} <kbd>Ctrl+Enter</kbd>
+                        {running ? "Rodando…" : "Prévia"}{" "}
+                        <span className="hint">Ctrl+Enter</span>
                     </button>
                 </div>
             </header>
@@ -559,7 +560,7 @@ export function App() {
             ) : (
                 <main className="workspace">
                     <section className="pane">
-                        <nav className="tabs" aria-label="Arquivos">
+                        <nav className="tabs file-tabs" aria-label="Arquivos">
                             <button
                                 type="button"
                                 aria-current={
@@ -670,7 +671,7 @@ export function App() {
 
                     <section className="pane">
                         <div
-                            className="tabs"
+                            className="tabs output-tabs"
                             aria-label="Saída"
                             role="tablist"
                             onKeyDown={onTabsKey}
@@ -803,39 +804,54 @@ function Welcome({ onOpen, onNew }: { onOpen: () => void; onNew: () => void }) {
                         className="btn primary"
                         onClick={onOpen}
                     >
-                        Abrir configuração <kbd>Ctrl+O</kbd>
+                        Abrir configuração <span className="hint">Ctrl+O</span>
                     </button>
                     <button type="button" className="btn" onClick={onNew}>
-                        Nova configuração <kbd>Ctrl+Shift+N</kbd>
+                        Nova configuração{" "}
+                        <span className="hint">Ctrl+Shift+N</span>
                     </button>
                 </div>
-                <dl className="cheatsheet mono">
+                <dl className="cheatsheet">
                     <div>
-                        <dt>Ctrl+K</dt>
+                        <dt>
+                            <kbd>Ctrl+K</kbd>
+                        </dt>
                         <dd>paleta de comandos</dd>
                     </div>
                     <div>
-                        <dt>Ctrl+Enter</dt>
+                        <dt>
+                            <kbd>Ctrl+Enter</kbd>
+                        </dt>
                         <dd>rodar prévia</dd>
                     </div>
                     <div>
-                        <dt>Ctrl+Shift+Enter</dt>
+                        <dt>
+                            <kbd>Ctrl+Shift+Enter</kbd>
+                        </dt>
                         <dd>exportar</dd>
                     </div>
                     <div>
-                        <dt>Ctrl+S</dt>
+                        <dt>
+                            <kbd>Ctrl+S</kbd>
+                        </dt>
                         <dd>salvar</dd>
                     </div>
                     <div>
-                        <dt>Shift+Alt+F</dt>
+                        <dt>
+                            <kbd>Shift+Alt+F</kbd>
+                        </dt>
                         <dd>formatar JSON</dd>
                     </div>
                     <div>
-                        <dt>Ctrl+1 a 4</dt>
+                        <dt>
+                            <kbd>Ctrl+1</kbd> a <kbd>Ctrl+4</kbd>
+                        </dt>
                         <dd>abas da saída</dd>
                     </div>
                     <div>
-                        <dt>Esc, Tab</dt>
+                        <dt>
+                            <kbd>Esc</kbd> e depois <kbd>Tab</kbd>
+                        </dt>
                         <dd>sair do editor</dd>
                     </div>
                 </dl>
@@ -861,7 +877,7 @@ function ResultView({ record }: { record: RunRecord | null }) {
         );
     return (
         <>
-            <p className="caption mono">
+            <p className="caption">
                 mostrando {num(record.report.preview.length)} de{" "}
                 {num(record.report.rowsOut)} linhas
             </p>
@@ -894,7 +910,7 @@ function PendingView({ record }: { record: RunRecord | null }) {
             </table>
             {report.pendingPreview.length > 0 && (
                 <>
-                    <p className="caption mono">
+                    <p className="caption">
                         mostrando {num(report.pendingPreview.length)} de{" "}
                         {num(report.pendingRows)} pendências
                     </p>
@@ -1031,7 +1047,7 @@ function ConfirmExport({
                         className="btn ghost"
                         onClick={onCancel}
                     >
-                        Cancelar <kbd>Esc</kbd>
+                        Cancelar <span className="hint">Esc</span>
                     </button>
                     <button
                         type="button"
@@ -1040,7 +1056,7 @@ function ConfirmExport({
                         onClick={onConfirm}
                     >
                         {dirty ? "Salvar e exportar" : "Exportar"}{" "}
-                        <kbd>Enter</kbd>
+                        <span className="hint">Enter</span>
                     </button>
                 </div>
             </div>
