@@ -54,6 +54,10 @@ export const sourceSchema = z.discriminatedUnion("type", [
         recordsPath: z.string().min(1).optional(),
     }),
     z.object({
+        type: z.literal("parquet"),
+        path: z.string(),
+    }),
+    z.object({
         type: z.literal("excel"),
         path: z.string(),
         sheet: z.string().min(1).optional(),
@@ -93,6 +97,10 @@ export const destinationSchema = z.discriminatedUnion("type", [
         path: z.string(),
         root: xmlName.optional(),
         record: xmlName.optional(),
+    }),
+    z.object({
+        type: z.literal("parquet"),
+        path: z.string(),
     }),
     z.object({
         type: z.literal("excel"),

@@ -1,7 +1,7 @@
 {
     "name": "datera",
     "version": "1.0.0",
-    "description": "Limpa, unifica e organiza dados bagunçados de bancos de dados, planilhas, CSV, JSON e XML, e exporta pro Google Sheets, CSV, JSON ou XML.",
+    "description": "Limpa, unifica e organiza dados bagunçados de bancos de dados, planilhas, CSV, JSON, XML e Parquet, e exporta pro Google Sheets, Excel, CSV, JSON, XML ou Parquet.",
     "main": "index.js",
     "workspaces": [
         "apps/*"
@@ -42,6 +42,9 @@
         "commander": "^15.0.0",
         "dotenv": "^17.4.2",
         "exceljs": "^4.4.0",
+        "hyparquet": "^1.31.2",
+        "hyparquet-compressors": "^1.1.2",
+        "hyparquet-writer": "^0.16.10",
         "mssql": "^12.7.2",
         "mysql2": "^3.24.4",
         "pg": "^8.23.0",

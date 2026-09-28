@@ -12,6 +12,8 @@ import { PostgresSource } from "./postgres/postgresSource";
 import { SqlServerSource } from "./sqlserver/sqlServerSource";
 import { SqliteSource } from "./sqlite/sqliteSource";
 import { XmlSink } from "./xml/xmlSink";
+import { ParquetSource } from "./parquet/parquetSource";
+import { ParquetSink } from "./parquet/parquetSink";
 import { ExcelSource } from "./excel/excelSource";
 import { ExcelSink } from "./excel/excelSink";
 import { SheetsSource } from "./sheets/sheetsSource";
@@ -97,6 +99,8 @@ export function createSource(
             return new JsonSource(source);
         case "xml":
             return new XmlSource(source);
+        case "parquet":
+            return new ParquetSource(source);
         case "excel":
             return new ExcelSource(source);
         case "sheets": {
@@ -149,6 +153,8 @@ export function createSink(
             return new JsonSink(destination, logger);
         case "xml":
             return new XmlSink(destination, logger);
+        case "parquet":
+            return new ParquetSink(destination, logger);
         case "excel":
             return new ExcelSink(destination, logger);
         case "custom":

@@ -22,7 +22,9 @@ export function toCell(value: unknown): Cell {
     if (value instanceof Uint8Array) {
         return Buffer.from(value).toString("base64");
     }
-    return JSON.stringify(value);
+    return JSON.stringify(value, (_key, inner: unknown) =>
+        typeof inner === "bigint" ? inner.toString() : inner,
+    );
 }
 
 export function toRow(record: Record<string, unknown>): TableRow {

@@ -9,6 +9,8 @@ import { CsvSink } from "../../io/csv/csvSink";
 import { JsonSink } from "../../io/json/jsonSink";
 import { XmlSource } from "../../io/xml/xmlSource";
 import { XmlSink } from "../../io/xml/xmlSink";
+import { ParquetSource } from "../../io/parquet/parquetSource";
+import { ParquetSink } from "../../io/parquet/parquetSink";
 import { PostgresSource } from "../../io/postgres/postgresSource";
 import { SqlServerSource } from "../../io/sqlserver/sqlServerSource";
 import { SqliteSource } from "../../io/sqlite/sqliteSource";
@@ -124,6 +126,17 @@ describe("createSource e createSink", () => {
                 }),
             ),
         ).toThrow("Faltou configurar o usuário do SQL Server.");
+    });
+
+    it("escolhe o parquet pra ler e escrever", () => {
+        const parquet = config({
+            mode: "raw",
+            source: { type: "parquet", path: "a.parquet" },
+            destination: { type: "parquet", path: "b.parquet" },
+        });
+
+        expect(createSource(parquet)).toBeInstanceOf(ParquetSource);
+        expect(createSink(parquet)).toBeInstanceOf(ParquetSink);
     });
 
     it("escolhe o xml pra ler e escrever", () => {
@@ -286,7 +299,7 @@ describe("etlConfigSchema com source e destination", () => {
     it("rejeita type desconhecido e encoding que não existe", () => {
         const tipo = etlConfigSchema.safeParse({
             mode: "raw",
-            source: { type: "parquet", path: "a" },
+            source: { type: "avro", path: "a" },
             destination: { type: "csv", path: "b" },
         });
         const encoding = etlConfigSchema.safeParse({
