@@ -79,7 +79,13 @@ export function movePasswordToEnv(
     config: RawConfig,
 ): RawConfig {
     const source = config.source;
-    if (!isObject(source) || source.type !== "mysql") return config;
+    if (
+        !isObject(source) ||
+        (source.type !== "mysql" &&
+            source.type !== "postgres" &&
+            source.type !== "sqlserver")
+    )
+        return config;
     const password = source.password;
     if (typeof password !== "string" || password === "") return config;
     const line = envLine("DB_PASSWORD", password);

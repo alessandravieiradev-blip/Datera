@@ -1,18 +1,32 @@
 import type { RawConfig } from "../../shared/api";
 
-export type SourceKind = "excel" | "csv" | "xml" | "sheets" | "mysql";
+export type SourceKind =
+    "excel" | "csv" | "xml" | "sqlite" | "sheets" | "database";
+export type DatabaseKind = "mysql" | "postgres" | "sqlserver";
+
+export const DEFAULT_PORTS: Record<DatabaseKind, string> = {
+    mysql: "3306",
+    postgres: "5432",
+    sqlserver: "1433",
+};
 export type DestinationKind = "excel" | "csv" | "xml" | "sheets";
 
-export type FileSideKind = "excel" | "csv" | "xml";
+export type FileSideKind = "excel" | "csv" | "xml" | "sqlite";
 
 export function usesFile(
     kind: SourceKind | DestinationKind | null,
 ): kind is FileSideKind {
-    return kind === "excel" || kind === "csv" || kind === "xml";
+    return (
+        kind === "excel" ||
+        kind === "csv" ||
+        kind === "xml" ||
+        kind === "sqlite"
+    );
 }
 
 export interface WizardDraft {
     source: SourceKind | null;
+    databaseKind: DatabaseKind;
     destination: DestinationKind | null;
     sourcePath: string;
     sourceSheet: string;
@@ -32,6 +46,7 @@ export interface WizardDraft {
 
 export const EMPTY_DRAFT: WizardDraft = {
     source: null,
+    databaseKind: "mysql",
     destination: null,
     sourcePath: "",
     sourceSheet: "",
@@ -64,11 +79,13 @@ export function detailsProblem(draft: WizardDraft): string | null {
     }
     if (draft.source === "sheets" && !draft.sourceLink.trim())
         return "Cole o link da planilha de onde ler.";
-    if (draft.source === "mysql") {
+    if (draft.source === "database") {
         if (!draft.host || !draft.user || !draft.database || !draft.table) {
             return "Preencha servidor, usuário, banco e tabela.";
         }
     }
+    if (draft.source === "sqlite" && !draft.table.trim())
+        return "Escreva o nome da tabela.";
     if (usesFile(draft.destination) && !draft.destinationPath) {
         return "Escolha onde salvar o resultado.";
     }
@@ -116,6 +133,12 @@ function sourceOf(draft: WizardDraft): RawConfig {
                 path: draft.sourcePath,
                 ...optional("recordsPath", draft.sourceRecords),
             };
+        case "sqlite":
+            return {
+                type: "sqlite",
+                path: draft.sourcePath,
+                table: draft.table.trim(),
+            };
         case "sheets":
             return {
                 type: "sheets",
@@ -124,9 +147,11 @@ function sourceOf(draft: WizardDraft): RawConfig {
             };
         default:
             return {
-                type: "mysql",
+                type: draft.databaseKind,
                 host: draft.host.trim(),
-                port: Number(draft.port) || 3306,
+                port:
+                    Number(draft.port) ||
+                    Number(DEFAULT_PORTS[draft.databaseKind]),
                 user: draft.user.trim(),
                 ...optional("password", draft.password),
                 database: draft.database.trim(),

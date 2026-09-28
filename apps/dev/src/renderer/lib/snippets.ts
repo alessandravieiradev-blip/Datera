@@ -36,6 +36,21 @@ export const SNIPPETS: Snippet[] = [
         text: '"source": { "type": "mysql", "host": "localhost", "port": 3306, "user": "usuario", "database": "banco", "table": "tabela" }',
     },
     {
+        id: "fonte-postgres",
+        label: "Fonte: PostgreSQL",
+        text: '"source": { "type": "postgres", "host": "localhost", "port": 5432, "user": "usuario", "database": "banco", "table": "public.alunos" }',
+    },
+    {
+        id: "fonte-sqlserver",
+        label: "Fonte: SQL Server",
+        text: '"source": { "type": "sqlserver", "host": "localhost", "port": 1433, "user": "usuario", "database": "banco", "table": "dbo.alunos" }',
+    },
+    {
+        id: "fonte-sqlite",
+        label: "Fonte: SQLite",
+        text: '"source": { "type": "sqlite", "path": "./escola.db", "table": "alunos" }',
+    },
+    {
         id: "destino-excel",
         label: "Destino: Excel",
         text: '"destination": { "type": "excel", "path": "./saida/resultado.xlsx" }',

@@ -14,6 +14,8 @@ import { fileName } from "../lib/format";
 import { DateraState } from "../lib/useDatera";
 import {
     configFromDraft,
+    DatabaseKind,
+    DEFAULT_PORTS,
     DestinationKind,
     detailsProblem,
     EMPTY_DRAFT,
@@ -54,9 +56,14 @@ const SOURCES: Option<SourceKind>[] = [
         text: "Uma planilha do Google. Ela só é lida, nunca alterada.",
     },
     {
-        id: "mysql",
+        id: "database",
         title: "Banco de dados",
-        text: "Uma tabela de um banco MySQL.",
+        text: "Uma tabela de um banco MySQL, PostgreSQL ou SQL Server.",
+    },
+    {
+        id: "sqlite",
+        title: "Arquivo SQLite",
+        text: "Um arquivo de banco de dados (.db ou .sqlite) no seu computador.",
     },
 ];
 
@@ -88,7 +95,8 @@ const LABELS: Record<string, string> = {
     csv: "um arquivo CSV",
     xml: "um arquivo XML",
     sheets: "uma planilha do Google",
-    mysql: "um banco de dados",
+    database: "um banco de dados",
+    sqlite: "um arquivo SQLite",
 };
 
 interface SetupWizardProps {
@@ -478,8 +486,52 @@ function DetailsStep({
                             </Field>
                         </>
                     )}
-                    {draft.source === "mysql" && (
+                    {draft.source === "sqlite" && (
+                        <Field
+                            label="Tabela"
+                            hint="Se não souber o nome, deixe qualquer um: na hora de rodar, o Datera mostra as tabelas que existem no arquivo."
+                        >
+                            <input
+                                className="field"
+                                spellCheck={false}
+                                autoComplete="off"
+                                value={draft.table}
+                                onChange={(event) =>
+                                    set({ table: event.target.value })
+                                }
+                            />
+                        </Field>
+                    )}
+                    {draft.source === "database" && (
                         <div className="form-grid">
+                            <Field label="Tipo de banco">
+                                <select
+                                    className="field"
+                                    value={draft.databaseKind}
+                                    onChange={(event) => {
+                                        const databaseKind = event.target
+                                            .value as DatabaseKind;
+                                        set({
+                                            databaseKind,
+                                            port:
+                                                draft.port ===
+                                                DEFAULT_PORTS[
+                                                    draft.databaseKind
+                                                ]
+                                                    ? DEFAULT_PORTS[
+                                                          databaseKind
+                                                      ]
+                                                    : draft.port,
+                                        });
+                                    }}
+                                >
+                                    <option value="mysql">MySQL</option>
+                                    <option value="postgres">PostgreSQL</option>
+                                    <option value="sqlserver">
+                                        SQL Server
+                                    </option>
+                                </select>
+                            </Field>
                             <Field label="Servidor">
                                 <input
                                     className="field"
@@ -643,7 +695,8 @@ function SummaryStep({ draft }: { draft: WizardDraft }) {
                         {draft.sourcePath && (
                             <strong> ({fileName(draft.sourcePath)})</strong>
                         )}
-                        {draft.source === "mysql" && (
+                        {(draft.source === "database" ||
+                            draft.source === "sqlite") && (
                             <strong> (tabela {draft.table})</strong>
                         )}
                         . Ele só lê, nunca altera.

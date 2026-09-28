@@ -28,7 +28,10 @@ const PREVIEW_SIZE = 20;
 const MAX_PREVIEW_SIZE = 500;
 
 const SOURCE_LABELS: Record<string, string> = {
-    mysql: "Banco de dados",
+    mysql: "Banco MySQL",
+    postgres: "Banco PostgreSQL",
+    sqlserver: "Banco SQL Server",
+    sqlite: "Arquivo SQLite",
     csv: "Arquivo CSV",
     json: "Arquivo JSON",
     xml: "Arquivo XML",

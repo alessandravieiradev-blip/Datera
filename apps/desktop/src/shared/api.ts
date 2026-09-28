@@ -91,7 +91,8 @@ export type TemplateResult = { ok: true; path: string } | Failure;
 
 export type HelpSection = "inicio" | "normalizador" | "regras" | "dev";
 
-export type FileKind = "csv" | "excel" | "json" | "xml" | "credentials";
+export type FileKind =
+    "csv" | "excel" | "json" | "xml" | "sqlite" | "credentials";
 
 export interface DateraApi {
     getSettings(): Promise<Settings>;

@@ -61,6 +61,7 @@ const FILE_FILTERS: Record<FileKind, { name: string; extensions: string[] }> = {
     excel: { name: "Arquivo Excel", extensions: ["xlsx"] },
     json: { name: "Arquivo JSON", extensions: ["json"] },
     xml: { name: "Arquivo XML", extensions: ["xml"] },
+    sqlite: { name: "Arquivo SQLite", extensions: ["db", "sqlite", "sqlite3"] },
     credentials: { name: "Credenciais do Google", extensions: ["json"] },
 };
 
