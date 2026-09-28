@@ -81,61 +81,15 @@ Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBU
 
 ## Próximos passos
 
-O que eu quero fazer, mais ou menos na ordem:
+O que eu quero fazer, nessa ordem:
 
-**Formatos**
+1. Visual do Datera Dev
+2. Formatos e bancos de dados (XML, PostgreSQL, SQL Server, SQLite e Parquet)
+3. Qualidade (testes das telas no CI)
+4. Para quem cuida dos dados (pendências editáveis e resumo salvo em arquivo)
+5. Versões numeradas e CHANGELOG
+6. Instalar com um clique (instaladores na aba Releases)
+7. Usar o Datera como biblioteca (npm, API e docs)
+8. Terminal e automação
 
-- ler e escrever XML
-- ler e escrever Parquet e bancos além do MySQL (PostgreSQL e SQLite)
-
-**Instalar com um clique**
-
-- publicar os instaladores dos dois apps na aba Releases do GitHub, gerados sozinhos por uma action a cada tag de versão
-- na primeira vez que abre, mostrar uma janelinha de boas-vindas com um botão que leva pro guia certo (`gestores.md` no Datera, `devs.md` no Datera Dev)
-- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
-- avisar dentro do app quando sair versão nova, com o link da release
-- assinar o instalador pra o Windows parar de avisar
-- versão pra Mac e Linux
-- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
-
-- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
-
-- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
-
-- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
-
-- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
-
-- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
-
-**Usar o Datera como biblioteca**
-
-- publicar no npm, pra dar `npm install datera` e importar em qualquer projeto
-- rodar direto em dados que já estão na memória, tipo `clean(linhas, regras)` devolvendo `{ resultado, pendencias }`, sem precisar de fonte nem destino
-- expor as etapas separadas (`fillEmpty`, `validate`, `dedupe`, `merge`...) pra montar o próprio pipeline
-- montar a config por código com tipos, tipo `defineConfig({ ... })`, com autocompletar no editor
-- eventos de progresso (`onStep`, `onRow`) pra mostrar barra de carregamento em outros apps
-- ler e escrever em stream, pra arquivo grande não precisar caber inteiro na memória
-- um servidor HTTP opcional (`POST /run` com a config e os dados) pra usar de outras linguagens
-- documentar tudo isso num `docs/api.md`, com exemplos
-
-**Terminal e automação**
-
-- build de produção do terminal (os apps já têm, mas o `npm start` ainda roda pelo `tsx`)
-- um comando `datera` instalado no sistema, tipo `datera run config.json`
-- agendar execução (todo dia às 8h, por exemplo) direto pelo app
-- transformar o `npm run validate` num `datera validate config.json`, junto com o comando instalado
-
-**Para quem cuida dos dados**
-
-- corrigir as pendências na própria aba de Pendências e fazer a próxima execução ler essas linhas corrigidas junto
-- salvar o resumo da execução (números, etapas e motivos) num arquivo, pra mandar pra alguém ou guardar
-
-**Qualidade**
-
-- testes das telas dos dois apps rodando no CI
-- trocar o `tableName: "clientes"` dos testes de config por `"alunos"`
-
-**Mais tarde**
-
-- versão pro celular do app de gestores
+Cada etapa tem as tarefas detalhadas nas [issues](https://github.com/alessandravieiradev-blip/datera/issues), e o andamento de cada uma aparece nos [milestones](https://github.com/alessandravieiradev-blip/datera/milestones). Se quiser ajudar com alguma, dá uma olhada no [CONTRIBUTING.md](CONTRIBUTING.md).
