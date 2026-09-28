@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { TextResult, WriteResult } from "../shared/api";
 import { problemsOf } from "./configFile";
+import { isInsideFolder } from "./safe";
+import { trustFile } from "./trust";
 
 const MODULE_EXTENSIONS = [".cjs", ".js", ".mjs", ".ts"];
 
@@ -75,8 +77,7 @@ export function allowedModulePath(
     if (configPath === null) return null;
     const folder = path.dirname(configPath);
     const resolved = path.resolve(folder, filePath);
-    const relative = path.relative(folder, resolved);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) return null;
+    if (!isInsideFolder(folder, resolved)) return null;
     if (!MODULE_EXTENSIONS.includes(path.extname(resolved))) return null;
     return resolved;
 }
@@ -118,6 +119,7 @@ export function saveModuleFile(
         };
     try {
         fs.writeFileSync(resolved, text);
+        trustFile(resolved);
         return { ok: true };
     } catch (error) {
         return { ok: false, error: `Não consegui salvar: ${messageOf(error)}` };

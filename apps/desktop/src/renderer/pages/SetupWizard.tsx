@@ -445,7 +445,7 @@ function DetailsStep({
                             </Field>
                             <Field
                                 label="Senha"
-                                hint="Fica salva no arquivo de configuração."
+                                hint="Fica salva num arquivo .env ao lado da configuração, e não dentro dela."
                             >
                                 <input
                                     className="field"

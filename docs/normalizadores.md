@@ -174,6 +174,9 @@ A regra vale até pras linhas que ficaram sozinhas no grupo, pra todo mundo do m
 - na dúvida, devolve `null`. É melhor um valor esquisito ir pro fim da planilha com rótulo do que juntar com a pessoa errada
 - dois normalizadores com o mesmo nome dão erro, e isso vale pros nomes dos prontos também
 - se o `normalizerModules` apontar pra um arquivo que não existe, ou que não exporta `normalizers`, o erro diz qual é o arquivo
+- normalizador e adapter são código, e código roda com as mesmas permissões que você. Então só usa arquivo que você escreveu ou que veio de alguém de confiança, principalmente quando alguém te manda uma config pronta
+- no app, os arquivos do `normalizerModules` e do `adapterModules` precisam ficar na pasta da config (ou numa subpasta). Na primeira vez que um arquivo vai rodar, e sempre que ele muda, o app pergunta se você confia nele. O que você cria ou salva pelo próprio app já conta como confiável
+- no app, o `.env` do lado da config só é lido pras variáveis do Datera (`DB_*`, `GOOGLE_SPREADSHEET_ID` e `GOOGLE_SERVICE_ACCOUNT_KEY_PATH`). Qualquer outra é ignorada e aparece um aviso no log
 
 ---
 

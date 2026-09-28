@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { etlConfigSchema } from "../../../../src";
 import { ConfigResult, RawConfig } from "../shared/api";
+import { envLine, setEnvLine } from "./safe";
 
 const PATH_KEYS = ["path", "credentialsPath"];
 
@@ -71,4 +72,27 @@ export function prepareNewConfig(
     config: RawConfig,
 ): RawConfig {
     return withRelativePaths(path.dirname(configPath), config);
+}
+
+export function movePasswordToEnv(
+    configPath: string,
+    config: RawConfig,
+): RawConfig {
+    const source = config.source;
+    if (!isObject(source) || source.type !== "mysql") return config;
+    const password = source.password;
+    if (typeof password !== "string" || password === "") return config;
+    const line = envLine("DB_PASSWORD", password);
+    if (line === null) return config;
+
+    const envPath = path.join(path.dirname(configPath), ".env");
+    const current = fs.existsSync(envPath)
+        ? fs.readFileSync(envPath, "utf-8")
+        : "";
+    fs.writeFileSync(envPath, setEnvLine(current, "DB_PASSWORD", line));
+
+    const rest = Object.fromEntries(
+        Object.entries(source).filter(([key]) => key !== "password"),
+    );
+    return { ...config, source: rest };
 }

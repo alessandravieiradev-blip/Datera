@@ -125,12 +125,13 @@ Os principais (todos podem ser trocados na tela Atalhos):
 
 - **O destino é apagado e escrito de novo toda vez.** Use um arquivo ou uma aba só para o Datera e não deixe anotações suas ali.
 - **A origem nunca é alterada.** O app não deixa escolher o mesmo arquivo (ou a mesma aba) para ler e para gravar.
-- **A senha do banco fica salva no arquivo de configuração.** Não mande esse arquivo para qualquer pessoa.
+- **A senha do banco fica num arquivo `.env`, ao lado da configuração.** Assim a configuração pode ser enviada para outra pessoa sem a senha. Nunca mande o `.env`.
+- **Configurações podem trazer arquivos de código.** Quando isso acontece, o Datera mostra quais são e pergunta se você confia neles antes de executar. Só confirme se você sabe de onde eles vieram.
 - **Rode a prévia antes da primeira exportação** de uma configuração nova.
 
 ## Quando precisar de ajuda
 
-Se aparecer um erro, a mensagem fica na tela de Exportar e no Histórico. Vale copiar o texto e mandar para quem cuida do projeto junto com o arquivo de configuração (sem a senha).
+Se aparecer um erro, a mensagem fica na tela de Exportar e no Histórico. Vale copiar o texto e mandar para quem cuida do projeto junto com o arquivo de configuração (o `.env` fica de fora).
 
 Para quem vai montar configurações mais avançadas ou gerar o instalador, o caminho é o [guia para devs](devs.md).
 

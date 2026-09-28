@@ -17,11 +17,13 @@ import {
     SaveResult,
 } from "../shared/api";
 import {
+    movePasswordToEnv,
     prepareNewConfig,
     problemsOf,
     readConfigFile,
     writeConfigFile,
 } from "./configFile";
+import { hasKey, isInsideFolder, isSamePage } from "./safe";
 import {
     cleanShortcuts,
     isTheme,
@@ -47,7 +49,7 @@ import {
 const HELP_URL =
     "https://github.com/alessandravieiradev-blip/datera/blob/main/docs/";
 
-const HELP_ANCHORS: Record<string, string> = {
+const HELP_ANCHORS = {
     inicio: "gestores.md",
     normalizador: "normalizadores.md#criando-o-seu-próprio-normalizador",
     regras: "gestores.md#regras",
@@ -91,6 +93,27 @@ async function saveDialog(
     return result.canceled || !result.filePath ? null : result.filePath;
 }
 
+type Handler = (event: IpcMainInvokeEvent, ...args: any[]) => unknown;
+
+let appPage: string | null = null;
+
+function fromAppPage(event: IpcMainInvokeEvent): boolean {
+    const frame = event.senderFrame;
+    if (appPage === null || !frame || frame.parent !== null) return false;
+    return isSamePage(frame.url, appPage);
+}
+
+function handle(channel: string, handler: Handler): void {
+    ipcMain.handle(channel, (event, ...args: unknown[]) => {
+        if (!fromAppPage(event)) {
+            throw new Error(
+                "Chamada recusada: ela não veio da tela do Datera.",
+            );
+        }
+        return handler(event, ...args);
+    });
+}
+
 function saveConfig(configPath: string, config: RawConfig): SaveResult {
     const problems = problemsOf(config);
     if (problems)
@@ -110,10 +133,12 @@ function saveConfig(configPath: string, config: RawConfig): SaveResult {
     };
 }
 
-export function registerIpc(): void {
-    ipcMain.handle(IPC.getSettings, () => readSettings());
+export function registerIpc(pagePath: string): void {
+    appPage = pagePath;
 
-    ipcMain.handle(IPC.chooseConfig, async (event) => {
+    handle(IPC.getSettings, () => readSettings());
+
+    handle(IPC.chooseConfig, async (event) => {
         const window = BrowserWindow.fromWebContents(event.sender);
         const options: OpenDialogOptions = {
             title: "Escolha o arquivo de configuração",
@@ -128,40 +153,38 @@ export function registerIpc(): void {
         return saveSettings({ ...readSettings(), configPath: chosen });
     });
 
-    ipcMain.handle(IPC.listHistory, () => readHistory());
+    handle(IPC.listHistory, () => readHistory());
 
-    ipcMain.handle(IPC.readConfigText, () =>
-        readConfigText(readSettings().configPath),
-    );
+    handle(IPC.readConfigText, () => readConfigText(readSettings().configPath));
 
-    ipcMain.handle(IPC.saveConfigText, (_event, text: unknown) =>
+    handle(IPC.saveConfigText, (_event, text: unknown) =>
         typeof text === "string"
             ? saveConfigText(readSettings().configPath, text)
             : { ok: false, error: "Texto inválido." },
     );
 
-    ipcMain.handle(IPC.readModuleFile, (_event, filePath: unknown) =>
+    handle(IPC.readModuleFile, (_event, filePath: unknown) =>
         typeof filePath === "string"
             ? readModuleFile(readSettings().configPath, filePath)
             : { ok: false, error: "Caminho inválido." },
     );
 
-    ipcMain.handle(
-        IPC.saveModuleFile,
-        (_event, filePath: unknown, text: unknown) =>
-            typeof filePath === "string" && typeof text === "string"
-                ? saveModuleFile(readSettings().configPath, filePath, text)
-                : { ok: false, error: "Dados inválidos." },
+    handle(IPC.saveModuleFile, (_event, filePath: unknown, text: unknown) =>
+        typeof filePath === "string" && typeof text === "string"
+            ? saveModuleFile(readSettings().configPath, filePath, text)
+            : { ok: false, error: "Dados inválidos." },
     );
 
-    ipcMain.handle(
+    handle(
         IPC.testNormalizer,
         (_event, filePath: unknown, name: unknown, values: unknown) => {
             const resolved =
                 typeof filePath === "string"
                     ? allowedModulePath(readSettings().configPath, filePath)
                     : null;
+            const { configPath } = readSettings();
             if (
+                configPath === null ||
                 resolved === null ||
                 typeof name !== "string" ||
                 !Array.isArray(values)
@@ -169,6 +192,7 @@ export function registerIpc(): void {
                 return { ok: false, error: "Dados inválidos." };
             }
             return testNormalizer(
+                configPath,
                 resolved,
                 name,
                 values
@@ -180,21 +204,21 @@ export function registerIpc(): void {
         },
     );
 
-    ipcMain.handle(IPC.setShortcuts, (_event, shortcuts: unknown) =>
+    handle(IPC.setShortcuts, (_event, shortcuts: unknown) =>
         saveSettings({
             ...readSettings(),
             shortcuts: cleanShortcuts(shortcuts),
         }),
     );
 
-    ipcMain.handle(IPC.setTheme, (_event, theme: unknown) => {
+    handle(IPC.setTheme, (_event, theme: unknown) => {
         const current = readSettings();
         if (!isTheme(theme)) return current;
         applyTheme(theme);
         return saveSettings({ ...current, theme });
     });
 
-    ipcMain.handle(IPC.readConfig, () => {
+    handle(IPC.readConfig, () => {
         const { configPath } = readSettings();
         if (configPath === null) {
             return {
@@ -205,7 +229,7 @@ export function registerIpc(): void {
         return readConfigFile(configPath);
     });
 
-    ipcMain.handle(IPC.saveConfig, (_event, config: unknown) => {
+    handle(IPC.saveConfig, (_event, config: unknown) => {
         const { configPath } = readSettings();
         if (configPath === null) {
             return {
@@ -218,7 +242,7 @@ export function registerIpc(): void {
         return saveConfig(configPath, config);
     });
 
-    ipcMain.handle(IPC.createConfig, async (event, config: unknown) => {
+    handle(IPC.createConfig, async (event, config: unknown) => {
         if (!isRawConfig(config))
             return { ok: false, error: "Configuração inválida." };
         const target = await saveDialog(event, {
@@ -227,14 +251,30 @@ export function registerIpc(): void {
             filters: [{ name: "Configuração do Datera", extensions: ["json"] }],
         });
         if (target === null) return null;
-        return saveConfig(target, prepareNewConfig(target, config));
+        const prepared = prepareNewConfig(target, config);
+        const problems = problemsOf(prepared);
+        if (problems)
+            return {
+                ok: false,
+                error: `A configuração tem problemas: ${problems}`,
+            };
+        let safeConfig: RawConfig;
+        try {
+            safeConfig = movePasswordToEnv(target, prepared);
+        } catch (error) {
+            const reason =
+                error instanceof Error ? error.message : String(error);
+            return {
+                ok: false,
+                error: `Não consegui salvar a senha no .env: ${reason}`,
+            };
+        }
+        return saveConfig(target, safeConfig);
     });
 
-    ipcMain.handle(IPC.readColumns, () =>
-        readColumns(readSettings().configPath),
-    );
+    handle(IPC.readColumns, () => readColumns(readSettings().configPath));
 
-    ipcMain.handle(IPC.pickFile, (event, kind: unknown) => {
+    handle(IPC.pickFile, (event, kind: unknown) => {
         if (!isFileKind(kind)) return null;
         return openDialog(event, {
             title: "Escolha o arquivo",
@@ -243,7 +283,7 @@ export function registerIpc(): void {
         });
     });
 
-    ipcMain.handle(IPC.pickSaveFile, (event, kind: unknown) => {
+    handle(IPC.pickSaveFile, (event, kind: unknown) => {
         if (!isFileKind(kind)) return null;
         const filter = FILE_FILTERS[kind];
         return saveDialog(event, {
@@ -253,31 +293,31 @@ export function registerIpc(): void {
         });
     });
 
-    ipcMain.handle(IPC.openHelp, (_event, section: unknown) => {
-        const anchor =
-            typeof section === "string" ? HELP_ANCHORS[section] : undefined;
-        return shell.openExternal(
-            `${HELP_URL}${anchor ?? HELP_ANCHORS.inicio}`,
-        );
+    handle(IPC.openHelp, (_event, section: unknown) => {
+        const anchor = hasKey(HELP_ANCHORS, section)
+            ? HELP_ANCHORS[section]
+            : HELP_ANCHORS.inicio;
+        return shell.openExternal(`${HELP_URL}${anchor}`);
     });
 
-    ipcMain.handle(IPC.listNormalizers, () =>
+    handle(IPC.listNormalizers, () =>
         listNormalizers(readSettings().configPath),
     );
 
-    ipcMain.handle(IPC.createNormalizerFile, () =>
+    handle(IPC.createNormalizerFile, () =>
         createNormalizerTemplate(readSettings().configPath),
     );
 
-    ipcMain.handle(IPC.showInFolder, (_event, filePath: unknown) => {
+    handle(IPC.showInFolder, (_event, filePath: unknown) => {
         const { configPath } = readSettings();
         if (typeof filePath !== "string" || configPath === null) return;
         const folder = path.dirname(configPath);
-        if (!path.resolve(filePath).startsWith(folder)) return;
-        shell.showItemInFolder(filePath);
+        const resolved = path.resolve(folder, filePath);
+        if (!isInsideFolder(folder, resolved)) return;
+        shell.showItemInFolder(resolved);
     });
 
-    ipcMain.handle(IPC.run, async (event, request: RunRequest) => {
+    handle(IPC.run, async (event, request?: Partial<RunRequest>) => {
         const send = (entry: LogEntry) => {
             if (!event.sender.isDestroyed()) event.sender.send(IPC.log, entry);
         };

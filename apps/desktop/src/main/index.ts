@@ -4,9 +4,11 @@ import { app, BrowserWindow, Menu } from "electron";
 import { registerIpc } from "./ipc";
 import { readSettings } from "./settings";
 import { applyTheme, backgroundColor } from "./theme";
+import { lockDown } from "./window";
 
 const isDev = process.env.DATERA_DEV === "1";
 const rendererDir = path.join(__dirname, "..", "renderer");
+const pagePath = path.join(rendererDir, "index.html");
 const iconPath = path.join(
     __dirname,
     "..",
@@ -47,8 +49,8 @@ function createWindow(): void {
     });
 
     window.once("ready-to-show", () => window.show());
-    window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-    window.loadFile(path.join(rendererDir, "index.html"));
+    lockDown(window, pagePath);
+    window.loadFile(pagePath);
 
     if (isDev) reloadOnRendererChange(window);
 }
@@ -59,7 +61,7 @@ if (app.isPackaged)
 app.whenReady().then(() => {
     if (!isDev) Menu.setApplicationMenu(null);
     applyTheme(readSettings().theme);
-    registerIpc();
+    registerIpc(pagePath);
     createWindow();
     app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();

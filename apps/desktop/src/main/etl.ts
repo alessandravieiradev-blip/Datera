@@ -14,6 +14,8 @@ import { clearCustomAdapters } from "../../../../src/io/custom/registry";
 import { createSource } from "../../../../src/io/factory";
 import { loadAdapterModules } from "../../../../src/io/custom/loader";
 import { buildHeader } from "../../../../src/io/header";
+import { previewSizeOf, splitEnv } from "./safe";
+import { codeFilesOf, confirmCodeFiles } from "./trust";
 import {
     ColumnsResult,
     LogEntry,
@@ -65,13 +67,18 @@ function createIpcLogger(send: (entry: LogEntry) => void): Logger {
     return { info: emit("info"), warn: emit("warn"), error: emit("error") };
 }
 
-function useEnvFile(folder: string): () => void {
+function useEnvFile(folder: string, logger: Logger): () => void {
     const envPath = path.join(folder, ".env");
     if (!fs.existsSync(envPath)) return () => {};
 
-    const values = parse(fs.readFileSync(envPath));
+    const { allowed, ignored } = splitEnv(parse(fs.readFileSync(envPath)));
+    if (ignored.length > 0) {
+        logger.warn(
+            `O .env tem variáveis que o Datera não usa, então elas foram ignoradas: ${ignored.join(", ")}`,
+        );
+    }
     const previous = new Map<string, string | undefined>();
-    for (const [key, value] of Object.entries(values)) {
+    for (const [key, value] of Object.entries(allowed)) {
         previous.set(key, process.env[key]);
         process.env[key] = value;
     }
@@ -131,6 +138,7 @@ function readConfigFrom(
 async function insideConfigFolder<T>(
     configPath: string,
     task: () => Promise<T>,
+    logger: Logger = silentLogger,
 ): Promise<T> {
     if (running) {
         throw new Error(
@@ -141,7 +149,7 @@ async function insideConfigFolder<T>(
     enableTypeScriptModules();
     const previousDir = process.cwd();
     const configDir = path.dirname(configPath);
-    const restoreEnv = useEnvFile(configDir);
+    const restoreEnv = useEnvFile(configDir, logger);
     try {
         process.chdir(configDir);
         return await task();
@@ -178,26 +186,32 @@ export async function runWithConfig(
 
     const logger = createIpcLogger(send);
     try {
-        return await insideConfigFolder(configPath, async () => {
-            const config = readConfigFrom(configPath, request.configText);
-            reloadModules(config);
-            const labels = describe(config);
-            const report = await runEtl(config, {
-                dryRun: request.dryRun,
-                logger,
-                previewSize: Math.min(
-                    request.previewSize ?? PREVIEW_SIZE,
-                    MAX_PREVIEW_SIZE,
-                ),
-            });
-            return {
-                ...record,
-                ok: true,
-                sourceLabel: labels.source,
-                destinationLabel: labels.destination,
-                report,
-            };
-        });
+        return await insideConfigFolder(
+            configPath,
+            async () => {
+                const config = readConfigFrom(configPath, request.configText);
+                await confirmCodeFiles(configPath, codeFilesOf(config));
+                reloadModules(config);
+                const labels = describe(config);
+                const report = await runEtl(config, {
+                    dryRun: request.dryRun,
+                    logger,
+                    previewSize: previewSizeOf(
+                        request.previewSize,
+                        PREVIEW_SIZE,
+                        MAX_PREVIEW_SIZE,
+                    ),
+                });
+                return {
+                    ...record,
+                    ok: true,
+                    sourceLabel: labels.source,
+                    destinationLabel: labels.destination,
+                    report,
+                };
+            },
+            logger,
+        );
     } catch (error) {
         logger.error("Deu erro:", error);
         return { ...record, error: messageOf(error) };
@@ -216,6 +230,7 @@ export async function readColumns(
     try {
         return await insideConfigFolder(configPath, async () => {
             const config = loadConfig(configPath);
+            await confirmCodeFiles(configPath, codeFilesOf(config));
             reloadModules(config);
             loadAdapterModules(config.adapterModules ?? []);
             const source = createSource(config, silentLogger);

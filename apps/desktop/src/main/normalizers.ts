@@ -10,6 +10,7 @@ import {
 } from "../shared/api";
 import { readConfigFile, writeConfigFile } from "./configFile";
 import { enableTypeScriptModules, forgetModule } from "./etl";
+import { confirmCodeFiles, trustFile } from "./trust";
 
 const TEMPLATE_NAME = "normalizadores.cjs";
 
@@ -77,13 +78,15 @@ function describeResult(result: unknown): { text: string; valid: boolean } {
     };
 }
 
-export function testNormalizer(
+export async function testNormalizer(
+    configPath: string,
     filePath: string,
     name: string,
     values: string[],
-): NormalizerTestResult {
+): Promise<NormalizerTestResult> {
     enableTypeScriptModules();
     try {
+        await confirmCodeFiles(configPath, [filePath]);
         const normalizer = normalizersIn(filePath)[name];
         if (typeof normalizer !== "function") {
             return {
@@ -111,7 +114,9 @@ export function testNormalizer(
     }
 }
 
-export function listNormalizers(configPath: string | null): NormalizersResult {
+export async function listNormalizers(
+    configPath: string | null,
+): Promise<NormalizersResult> {
     registerBuiltinKeyNormalizers();
     const builtin = listKeyNormalizers();
     if (configPath === null)
@@ -127,6 +132,7 @@ export function listNormalizers(configPath: string | null): NormalizersResult {
     );
     const custom: string[] = [];
     try {
+        await confirmCodeFiles(configPath, modulesOf(read.config));
         for (const file of files) custom.push(...namesIn(file));
     } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
@@ -152,7 +158,10 @@ export function createNormalizerTemplate(
     const relative = `./${TEMPLATE_NAME}`;
 
     try {
-        if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, TEMPLATE);
+        if (!fs.existsSync(filePath)) {
+            fs.writeFileSync(filePath, TEMPLATE);
+            trustFile(filePath);
+        }
         const modules = modulesOf(read.config);
         const alreadyListed = modules.some(
             (item) => path.resolve(folder, item) === filePath,
