@@ -7,15 +7,35 @@ const xmlName = z
         "Nome de elemento XML inválido: use letras, números, _ . ou -, começando com letra.",
     );
 
+const serverFields = {
+    host: z.string().optional(),
+    port: z.number().optional(),
+    user: z.string().optional(),
+    password: z.string().optional(),
+    database: z.string().optional(),
+    table: z.string().optional(),
+};
+
 export const sourceSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("mysql"),
-        host: z.string().optional(),
-        port: z.number().optional(),
-        user: z.string().optional(),
-        password: z.string().optional(),
-        database: z.string().optional(),
-        table: z.string().optional(),
+        ...serverFields,
+    }),
+    z.object({
+        type: z.literal("postgres"),
+        ...serverFields,
+        ssl: z.boolean().optional(),
+    }),
+    z.object({
+        type: z.literal("sqlserver"),
+        ...serverFields,
+        encrypt: z.boolean().optional(),
+        trustServerCertificate: z.boolean().optional(),
+    }),
+    z.object({
+        type: z.literal("sqlite"),
+        path: z.string(),
+        table: z.string().min(1),
     }),
     z.object({
         type: z.literal("csv"),

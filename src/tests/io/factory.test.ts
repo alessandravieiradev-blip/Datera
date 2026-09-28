@@ -9,6 +9,9 @@ import { CsvSink } from "../../io/csv/csvSink";
 import { JsonSink } from "../../io/json/jsonSink";
 import { XmlSource } from "../../io/xml/xmlSource";
 import { XmlSink } from "../../io/xml/xmlSink";
+import { PostgresSource } from "../../io/postgres/postgresSource";
+import { SqlServerSource } from "../../io/sqlserver/sqlServerSource";
+import { SqliteSource } from "../../io/sqlite/sqliteSource";
 import { ExcelSource } from "../../io/excel/excelSource";
 import { ExcelSink } from "../../io/excel/excelSink";
 import { SheetsSource } from "../../io/sheets/sheetsSource";
@@ -51,6 +54,76 @@ describe("createSource e createSink", () => {
         expect(createSink(csv)).toBeInstanceOf(JsonSink);
         expect(createSource(json)).toBeInstanceOf(JsonSource);
         expect(createSink(json)).toBeInstanceOf(CsvSink);
+    });
+
+    it("escolhe postgres, sql server e sqlite pra ler", () => {
+        const destination = { type: "csv", path: "b.csv" };
+        const server = {
+            host: "localhost",
+            user: "escola",
+            database: "musica",
+            table: "alunos",
+        };
+
+        expect(
+            createSource(
+                config({
+                    mode: "raw",
+                    source: { type: "postgres", ...server },
+                    destination,
+                }),
+            ),
+        ).toBeInstanceOf(PostgresSource);
+        expect(
+            createSource(
+                config({
+                    mode: "raw",
+                    source: { type: "sqlserver", ...server },
+                    destination,
+                }),
+            ),
+        ).toBeInstanceOf(SqlServerSource);
+        expect(
+            createSource(
+                config({
+                    mode: "raw",
+                    source: { type: "sqlite", path: "a.db", table: "alunos" },
+                    destination,
+                }),
+            ),
+        ).toBeInstanceOf(SqliteSource);
+    });
+
+    it("avisa o que falta no postgres e no sql server", () => {
+        const destination = { type: "csv", path: "b.csv" };
+
+        expect(() =>
+            createSource(
+                config({
+                    mode: "raw",
+                    source: {
+                        type: "postgres",
+                        host: "localhost",
+                        user: "escola",
+                        database: "musica",
+                    },
+                    destination,
+                }),
+            ),
+        ).toThrow("Faltou configurar a tabela do PostgreSQL.");
+        expect(() =>
+            createSource(
+                config({
+                    mode: "raw",
+                    source: {
+                        type: "sqlserver",
+                        host: "localhost",
+                        table: "alunos",
+                    },
+                    destination,
+                }),
+            ),
+        ).toThrow("Faltou configurar o usuário do SQL Server.");
     });
 
     it("escolhe o xml pra ler e escrever", () => {

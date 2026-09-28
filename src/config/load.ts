@@ -9,10 +9,15 @@ export function loadJsonConfig(filePath: string): EtlConfig {
     return etlConfigSchema.parse(parsedData);
 }
 
-function withMysqlEnv(
+function withDatabaseEnv(
     source: SourceConfig | undefined,
 ): SourceConfig | undefined {
-    if (source?.type !== "mysql") return source;
+    if (
+        source?.type !== "mysql" &&
+        source?.type !== "postgres" &&
+        source?.type !== "sqlserver"
+    )
+        return source;
     const port = getOptionalEnv("DB_PORT");
     return {
         ...source,
@@ -45,7 +50,7 @@ export function withEnv(jsonConfig: EtlConfig): EtlConfig {
 
     const finalConfig = {
         ...jsonConfig,
-        source: withMysqlEnv(jsonConfig.source),
+        source: withDatabaseEnv(jsonConfig.source),
         destination: withSheetsEnv(jsonConfig.destination),
         tableName: getOptionalEnv("DB_TABLE") ?? jsonConfig.tableName,
         spreadsheetId:

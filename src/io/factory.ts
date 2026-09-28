@@ -8,6 +8,9 @@ import { SheetsSink } from "./sheets/sheetsSink";
 import { CsvSink } from "./csv/csvSink";
 import { JsonSink } from "./json/jsonSink";
 import { XmlSource } from "./xml/xmlSource";
+import { PostgresSource } from "./postgres/postgresSource";
+import { SqlServerSource } from "./sqlserver/sqlServerSource";
+import { SqliteSource } from "./sqlite/sqliteSource";
 import { XmlSink } from "./xml/xmlSink";
 import { ExcelSource } from "./excel/excelSource";
 import { ExcelSink } from "./excel/excelSink";
@@ -17,6 +20,8 @@ import { consoleLogger, Logger } from "../logger";
 import { assertSourceIsSafe } from "./safety";
 
 const DEFAULT_MYSQL_PORT = 3306;
+const DEFAULT_POSTGRES_PORT = 5432;
+const DEFAULT_SQLSERVER_PORT = 1433;
 
 function required<T>(value: T | undefined, what: string): T {
     if (value === undefined || value === "") {
@@ -53,6 +58,39 @@ export function createSource(
                 required(source.table ?? config.tableName, "a tabela do MySQL"),
                 logger,
             );
+        case "postgres":
+            return new PostgresSource(
+                {
+                    host: required(source.host, "o host do PostgreSQL"),
+                    port: source.port ?? DEFAULT_POSTGRES_PORT,
+                    user: required(source.user, "o usuário do PostgreSQL"),
+                    password: source.password,
+                    database: required(
+                        source.database,
+                        "o banco do PostgreSQL",
+                    ),
+                    ssl: source.ssl,
+                },
+                required(source.table, "a tabela do PostgreSQL"),
+            );
+        case "sqlserver":
+            return new SqlServerSource(
+                {
+                    host: required(source.host, "o servidor do SQL Server"),
+                    port: source.port ?? DEFAULT_SQLSERVER_PORT,
+                    user: required(source.user, "o usuário do SQL Server"),
+                    password: source.password,
+                    database: required(
+                        source.database,
+                        "o banco do SQL Server",
+                    ),
+                    encrypt: source.encrypt,
+                    trustServerCertificate: source.trustServerCertificate,
+                },
+                required(source.table, "a tabela do SQL Server"),
+            );
+        case "sqlite":
+            return new SqliteSource(source);
         case "csv":
             return new CsvSource(source);
         case "json":
