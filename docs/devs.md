@@ -195,16 +195,17 @@ Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch
 
 ## Testes
 
-| Comando                   | O que faz                                                          |
-| ------------------------- | ------------------------------------------------------------------ |
-| `npm run example`         | Roda o exemplo com CSV, sem precisar de banco nem Google           |
-| `npm run example:excel`   | O mesmo exemplo, mas gerando um arquivo do Excel                   |
-| `npm run example:xml`     | O mesmo exemplo, lendo e gerando XML                               |
-| `npm test`                | Testes unitários (Vitest), sem precisar de banco ou planilha reais |
-| `npm run test:config`     | Carrega e valida o `config.json`                                   |
-| `npm run validate`        | Confere a config e os arquivos citados, sem rodar nada             |
-| `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas               |
-| `npm run test:sheet`      | Escreve duas linhas de teste numa planilha real                    |
+| Comando                   | O que faz                                                            |
+| ------------------------- | -------------------------------------------------------------------- |
+| `npm run example`         | Roda o exemplo com CSV, sem precisar de banco nem Google             |
+| `npm run example:excel`   | O mesmo exemplo, mas gerando um arquivo do Excel                     |
+| `npm run example:xml`     | O mesmo exemplo, lendo e gerando XML                                 |
+| `npm test`                | Testes unitários (Vitest), sem precisar de banco ou planilha reais   |
+| `npm run test:watch`      | Os mesmos testes, rodando de novo a cada arquivo salvo (Q para sair) |
+| `npm run test:config`     | Carrega e valida o `config.json`                                     |
+| `npm run validate`        | Confere a config e os arquivos citados, sem rodar nada               |
+| `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas                 |
+| `npm run test:sheet`      | Escreve duas linhas de teste numa planilha real                      |
 
 ## Referência
 

@@ -23,7 +23,7 @@ Rode tudo que o CI roda:
 npm run typecheck
 npm run typecheck -w apps/desktop
 npm run typecheck -w apps/dev
-npx vitest run
+npm test
 ```
 
 E se mexeu num app, abre ele e confere a tela que mudou (`npm run desktop` ou `npm run desktop:dev`), nos temas claro e escuro.
