@@ -62,37 +62,18 @@ Hoje ele consegue:
 <tr>
 <td width="50%" valign="top">
 
-### Para gestores
-
-Você quer usar o app com tela: instalar, escolher de onde vêm os dados, montar as regras em frases e exportar. Não precisa saber programar.
-
-<a href="docs/gestores.md"><img src="https://img.shields.io/badge/Abrir%20o%20guia%20para%20gestores-2563EB?style=for-the-badge" alt="Abrir o guia para gestores"></a>
-
-</td>
-<td width="50%" valign="top">
-
-### Para devs
-
-Você quer rodar pelo terminal, usar o Datera Dev, escrever a config na mão, criar normalizadores ou chamar o Datera de dentro de outro código.
-
-<a href="docs/devs.md"><img src="https://img.shields.io/badge/Abrir%20o%20guia%20para%20devs-16181D?style=for-the-badge" alt="Abrir o guia para devs"></a>
-
-</td>
-</tr>
-</table>
-
 ## Todos os guias
 
-| Guia                                                       | O que tem                                                            |
-| ---------------------------------------------------------- | -------------------------------------------------------------------- |
-| [Para gestores](docs/gestores.md)                          | instalar e usar o app com tela                                       |
-| [Para devs](docs/devs.md)                                  | teste em 1 minuto, terminal, Datera Dev, uso em código e testes      |
-| [Configuração](docs/configuracao.md)                       | todos os campos do `config.json`, os modos e as estratégias do merge |
-| [Fontes e destinos](docs/fontes-e-destinos.md)             | cada formato que ele lê e escreve, e como criar o seu                |
-| [Exemplos](docs/exemplos.md)                               | dez configs, do mais simples ao mais completo                        |
-| [Preparação e pendências](docs/preparacao-e-pendencias.md) | `fillEmpty`, `combineColumns`, `distribute` e `validation`           |
-| [Normalizadores](docs/normalizadores.md)                   | os prontos e como criar o seu                                        |
-| [Estrutura do projeto](docs/estrutura.md)                  | o que tem em cada pasta                                              |
+| Guia                                                       | O que tem                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------- |
+| [Para gestores](docs/gestores.md)                          | instalar e usar o app com tela                                      |
+| [Para devs](docs/devs.md)                                  | teste em 1 minuto, terminal, Datera Dev, uso em código e testes     |
+| [Configuração](docs/configuracao.md)                       | todos os campos do`config.json`, os modos e as estratégias do merge |
+| [Fontes e destinos](docs/fontes-e-destinos.md)             | cada formato que ele lê e escreve, e como criar o seu               |
+| [Exemplos](docs/exemplos.md)                               | dez configs, do mais simples ao mais completo                       |
+| [Preparação e pendências](docs/preparacao-e-pendencias.md) | `fillEmpty`, `combineColumns`, `distribute` e `validation`          |
+| [Normalizadores](docs/normalizadores.md)                   | os prontos e como criar o seu                                       |
+| [Estrutura do projeto](docs/estrutura.md)                  | o que tem em cada pasta                                             |
 
 ## Contribuir e licença
 
@@ -111,9 +92,21 @@ O que eu quero fazer, mais ou menos na ordem:
 
 - publicar os instaladores dos dois apps na aba Releases do GitHub, gerados sozinhos por uma action a cada tag de versão
 - na primeira vez que abre, mostrar uma janelinha de boas-vindas com um botão que leva pro guia certo (`gestores.md` no Datera, `devs.md` no Datera Dev)
+- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
 - avisar dentro do app quando sair versão nova, com o link da release
 - assinar o instalador pra o Windows parar de avisar
 - versão pra Mac e Linux
+- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
+
+- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
+
+- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
+
+- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
+
+- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
+
+- adotar versões numeradas (1.0.0, 1.1.0...) e um CHANGELOG, pra saber o que mudou em cada release
 
 **Usar o Datera como biblioteca**
 
@@ -132,6 +125,16 @@ O que eu quero fazer, mais ou menos na ordem:
 - um comando `datera` instalado no sistema, tipo `datera run config.json`
 - agendar execução (todo dia às 8h, por exemplo) direto pelo app
 - transformar o `npm run validate` num `datera validate config.json`, junto com o comando instalado
+
+**Para quem cuida dos dados**
+
+- corrigir as pendências na própria aba de Pendências e fazer a próxima execução ler essas linhas corrigidas junto
+- salvar o resumo da execução (números, etapas e motivos) num arquivo, pra mandar pra alguém ou guardar
+
+**Qualidade**
+
+- testes das telas dos dois apps rodando no CI
+- trocar o `tableName: "clientes"` dos testes de config por `"alunos"`
 
 **Mais tarde**
 
