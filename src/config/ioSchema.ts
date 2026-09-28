@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const xmlName = z
+    .string()
+    .regex(
+        /^[\p{L}_][\p{L}\p{N}_.-]*$/u,
+        "Nome de elemento XML inválido: use letras, números, _ . ou -, começando com letra.",
+    );
+
 export const sourceSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("mysql"),
@@ -20,6 +27,11 @@ export const sourceSchema = z.discriminatedUnion("type", [
         type: z.literal("json"),
         path: z.string(),
         recordsPath: z.string().optional(),
+    }),
+    z.object({
+        type: z.literal("xml"),
+        path: z.string(),
+        recordsPath: z.string().min(1).optional(),
     }),
     z.object({
         type: z.literal("excel"),
@@ -55,6 +67,12 @@ export const destinationSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("json"),
         path: z.string(),
+    }),
+    z.object({
+        type: z.literal("xml"),
+        path: z.string(),
+        root: xmlName.optional(),
+        record: xmlName.optional(),
     }),
     z.object({
         type: z.literal("excel"),

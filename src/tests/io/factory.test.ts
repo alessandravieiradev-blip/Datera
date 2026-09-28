@@ -7,6 +7,8 @@ import { JsonSource } from "../../io/json/jsonSource";
 import { SheetsSink } from "../../io/sheets/sheetsSink";
 import { CsvSink } from "../../io/csv/csvSink";
 import { JsonSink } from "../../io/json/jsonSink";
+import { XmlSource } from "../../io/xml/xmlSource";
+import { XmlSink } from "../../io/xml/xmlSink";
 import { ExcelSource } from "../../io/excel/excelSource";
 import { ExcelSink } from "../../io/excel/excelSink";
 import { SheetsSource } from "../../io/sheets/sheetsSource";
@@ -49,6 +51,26 @@ describe("createSource e createSink", () => {
         expect(createSink(csv)).toBeInstanceOf(JsonSink);
         expect(createSource(json)).toBeInstanceOf(JsonSource);
         expect(createSink(json)).toBeInstanceOf(CsvSink);
+    });
+
+    it("escolhe o xml pra ler e escrever", () => {
+        const xml = config({
+            mode: "raw",
+            source: {
+                type: "xml",
+                path: "a.xml",
+                recordsPath: "escola.alunos.aluno",
+            },
+            destination: {
+                type: "xml",
+                path: "b.xml",
+                root: "alunos",
+                record: "aluno",
+            },
+        });
+
+        expect(createSource(xml)).toBeInstanceOf(XmlSource);
+        expect(createSink(xml)).toBeInstanceOf(XmlSink);
     });
 
     it("escolhe o excel pra ler e escrever", () => {
@@ -191,7 +213,7 @@ describe("etlConfigSchema com source e destination", () => {
     it("rejeita type desconhecido e encoding que não existe", () => {
         const tipo = etlConfigSchema.safeParse({
             mode: "raw",
-            source: { type: "xml", path: "a" },
+            source: { type: "parquet", path: "a" },
             destination: { type: "csv", path: "b" },
         });
         const encoding = etlConfigSchema.safeParse({

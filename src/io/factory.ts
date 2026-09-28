@@ -7,6 +7,8 @@ import { JsonSource } from "./json/jsonSource";
 import { SheetsSink } from "./sheets/sheetsSink";
 import { CsvSink } from "./csv/csvSink";
 import { JsonSink } from "./json/jsonSink";
+import { XmlSource } from "./xml/xmlSource";
+import { XmlSink } from "./xml/xmlSink";
 import { ExcelSource } from "./excel/excelSource";
 import { ExcelSink } from "./excel/excelSink";
 import { SheetsSource } from "./sheets/sheetsSource";
@@ -55,6 +57,8 @@ export function createSource(
             return new CsvSource(source);
         case "json":
             return new JsonSource(source);
+        case "xml":
+            return new XmlSource(source);
         case "excel":
             return new ExcelSource(source);
         case "sheets": {
@@ -105,6 +109,8 @@ export function createSink(
             return new CsvSink(destination, logger);
         case "json":
             return new JsonSink(destination, logger);
+        case "xml":
+            return new XmlSink(destination, logger);
         case "excel":
             return new ExcelSink(destination, logger);
         case "custom":
