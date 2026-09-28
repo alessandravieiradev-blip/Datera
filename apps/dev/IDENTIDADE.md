@@ -23,6 +23,7 @@ Tudo parte da identidade do Datera (o ícone, as cores e a Inter). O que muda:
 | Painel           | `#13161C` |
 | Painel 2         | `#181C24` |
 | Borda            | `#252A35` |
+| Borda de campo   | `#5F687A` |
 | Texto            | `#D5DAE3` |
 | Texto secundário | `#8690A3` |
 | Destaque         | `#5B9DFF` |
@@ -31,7 +32,7 @@ Tudo parte da identidade do Datera (o ícone, as cores e a Inter). O que muda:
 | Aviso            | `#E0B341` |
 | Erro             | `#F2665F` |
 
-O texto principal sobre o fundo dá contraste de 13,6:1, e o secundário dá 5,9:1, os dois passam no WCAG AA. O tema claro existe (Ctrl+Shift+L) e usa as mesmas regras com as cores do Datera.
+O texto principal sobre o fundo dá contraste de 13,6:1, e o secundário dá 5,9:1, os dois passam no WCAG AA. A borda de campo dá 3,4:1, que é o mínimo pra quem precisa enxergar onde digitar. O tema claro existe (Ctrl+Shift+L) e usa as mesmas regras com as cores do Datera.
 
 ## Cores do código
 
@@ -41,7 +42,7 @@ O texto principal sobre o fundo dá contraste de 13,6:1, e o secundário dá 5,9
 | Texto                                    | `#9FD89A` |
 | Número                                   | `#F0B36B` |
 | `true`, `false`, `null` e palavras do JS | `#D49BF0` |
-| Comentário                               | `#6B7385` |
+| Comentário                               | `#7D8597` |
 
 ## Regras
 
@@ -49,3 +50,5 @@ O texto principal sobre o fundo dá contraste de 13,6:1, e o secundário dá 5,9
 - tudo que é dado aparece em fonte monoespaçada
 - todo comando tem atalho, e todos aparecem na paleta (Ctrl+K)
 - o texto é curto e direto, sem "clique aqui"
+- tudo funciona só com teclado. No editor o Tab faz recuo, então pra sair dele é Esc e depois Tab, igual no VS Code
+- janela aberta (paleta, confirmação) segura o foco até fechar

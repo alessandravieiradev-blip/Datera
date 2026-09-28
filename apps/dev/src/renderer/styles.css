@@ -18,8 +18,9 @@
     --t-number: #f0b36b;
     --t-literal: #d49bf0;
     --t-keyword: #d49bf0;
-    --t-comment: #6b7385;
+    --t-comment: #7d8597;
     --t-punct: #8690a3;
+    --field-border: #5f687a;
     --mono: "JetBrains Mono", Consolas, monospace;
     --sans: "Inter", "Segoe UI", sans-serif;
     color-scheme: dark;
@@ -46,8 +47,9 @@
         --t-number: #b35c00;
         --t-literal: #8a3fb8;
         --t-keyword: #8a3fb8;
-        --t-comment: #8a93a3;
+        --t-comment: #6e7788;
         --t-punct: #6b7385;
+        --field-border: #858e9e;
         color-scheme: light;
     }
 }
@@ -409,7 +411,7 @@ kbd {
 .field {
     height: 28px;
     padding: 0 8px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: 5px;
     background: var(--bg);
 }
@@ -760,4 +762,43 @@ kbd {
     background: var(--panel-2);
     font-size: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.editor:focus-within {
+    outline: 1px solid var(--accent);
+    outline-offset: -1px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.toast-region {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+}
+
+[tabindex="-1"]:focus,
+.output:focus:not(:focus-visible) {
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
