@@ -94,6 +94,10 @@ Você quer rodar pelo terminal, usar o Datera Dev, escrever a config na mão, cr
 | [Normalizadores](docs/normalizadores.md)                   | os prontos e como criar o seu                                        |
 | [Estrutura do projeto](docs/estrutura.md)                  | o que tem em cada pasta                                              |
 
+## Contribuir e licença
+
+Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBUTING.md](CONTRIBUTING.md). O código é aberto, sob a [licença MIT](LICENSE).
+
 ## Próximos passos
 
 O que eu quero fazer, mais ou menos na ordem:
@@ -127,7 +131,7 @@ O que eu quero fazer, mais ou menos na ordem:
 - build de produção do terminal (os apps já têm, mas o `npm start` ainda roda pelo `tsx`)
 - um comando `datera` instalado no sistema, tipo `datera run config.json`
 - agendar execução (todo dia às 8h, por exemplo) direto pelo app
-- `datera validate config.json` pra conferir a config sem rodar nada
+- transformar o `npm run validate` num `datera validate config.json`, junto com o comando instalado
 
 **Mais tarde**
 

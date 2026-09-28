@@ -8,6 +8,7 @@
     ],
     "scripts": {
         "start": "tsx src/main.ts",
+        "validate": "tsx src/main.ts validate",
         "example": "tsx src/main.ts --config examples/config.csv.json",
         "example:excel": "tsx src/main.ts --config examples/config.excel.json",
         "desktop": "npm run dev -w apps/desktop",
@@ -21,7 +22,7 @@
     },
     "keywords": [],
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "type": "commonjs",
     "devDependencies": {
         "@commitlint/cli": "^21.2.3",
