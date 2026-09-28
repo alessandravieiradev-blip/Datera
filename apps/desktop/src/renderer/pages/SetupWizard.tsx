@@ -6,8 +6,9 @@ import {
     useRef,
     useState,
 } from "react";
-import { Icon, IconName } from "../components/Icon";
+import { Icon } from "../components/Icon";
 import { Notice } from "../components/Notice";
+import { PageHeader } from "../components/PageHeader";
 import { PageId } from "../components/Sidebar";
 import { fileName } from "../lib/format";
 import { DateraState } from "../lib/useDatera";
@@ -28,7 +29,6 @@ interface Option<T> {
     id: T;
     title: string;
     text: string;
-    icon: IconName;
 }
 
 const SOURCES: Option<SourceKind>[] = [
@@ -36,25 +36,21 @@ const SOURCES: Option<SourceKind>[] = [
         id: "excel",
         title: "Arquivo Excel",
         text: "Uma planilha do Excel (.xlsx) no seu computador.",
-        icon: "file",
     },
     {
         id: "csv",
         title: "Arquivo CSV",
         text: "Um arquivo de texto separado por vírgula ou ponto e vírgula.",
-        icon: "file",
     },
     {
         id: "sheets",
         title: "Google Planilhas",
         text: "Uma planilha do Google. Ela só é lida, nunca alterada.",
-        icon: "rules",
     },
     {
         id: "mysql",
         title: "Banco de dados",
         text: "Uma tabela de um banco MySQL.",
-        icon: "database",
     },
 ];
 
@@ -63,19 +59,16 @@ const DESTINATIONS: Option<DestinationKind>[] = [
         id: "excel",
         title: "Arquivo Excel",
         text: "Gera um .xlsx com o resultado e uma aba de pendências.",
-        icon: "file",
     },
     {
         id: "csv",
         title: "Arquivo CSV",
         text: "Gera um .csv com o resultado e outro com as pendências.",
-        icon: "file",
     },
     {
         id: "sheets",
         title: "Google Planilhas",
         text: "Grava numa planilha do Google, com uma aba de pendências.",
-        icon: "rules",
     },
 ];
 
@@ -140,22 +133,10 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
 
     return (
         <div className="page" ref={pageRef}>
-            <header className="page-header">
-                <div>
-                    <span className="eyebrow">Configuração inicial</span>
-                    <h1>Vamos começar!</h1>
-                    <p>
-                        Siga alguns passos simples para configurar o Datera e
-                        deixar seus dados organizados.
-                    </p>
-                </div>
-                <aside className="tip">
-                    <Icon name="sparkle" />
-                    <p className="small">
-                        Em poucos minutos, tudo estará pronto para usar.
-                    </p>
-                </aside>
-            </header>
+            <PageHeader
+                title="Nova configuração"
+                meta="De onde ler, onde salvar e os detalhes de acesso. Tudo pode ser mudado depois."
+            />
 
             <ol className="stepper">
                 {STEPS.map((label, index) => (
@@ -208,10 +189,10 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
             {step === 3 && <SummaryStep draft={draft} />}
 
             {step === 0 && (
-                <Notice tone="info" title="Não tem certeza de qual escolher?">
+                <p className="muted small">
                     Se você baixou uma planilha, normalmente ela é um arquivo
-                    Excel. Tudo isso pode ser alterado depois.
-                </Notice>
+                    Excel.
+                </p>
             )}
             {error && (
                 <Notice tone="error" title="Não foi possível salvar.">
@@ -227,7 +208,6 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
                         step === 0 ? onNavigate("inicio") : setStep(step - 1)
                     }
                 >
-                    <Icon name="arrowLeft" size={18} />
                     Voltar
                 </button>
                 <div className="footer-right">
@@ -242,7 +222,6 @@ export function SetupWizard({ datera, onNavigate }: SetupWizardProps) {
                             onClick={() => setStep(step + 1)}
                         >
                             Próximo
-                            <Icon name="arrowRight" size={18} />
                         </button>
                     ) : (
                         <button
@@ -307,7 +286,7 @@ function ChoiceStep<T extends string>({
             </h2>
             <p className="muted">{subtitle}</p>
             <div
-                className="option-grid"
+                className="option-list"
                 role="radiogroup"
                 aria-labelledby={titleId}
                 onKeyDown={onKeyDown}
@@ -321,17 +300,16 @@ function ChoiceStep<T extends string>({
                         aria-checked={selected === option.id}
                         className={
                             selected === option.id
-                                ? "option-card selected"
-                                : "option-card"
+                                ? "option-row selected"
+                                : "option-row"
                         }
                         onClick={() => onSelect(option.id)}
                     >
-                        <span className="option-icon">
-                            <Icon name={option.icon} size={32} />
+                        <span className="radio-dot" aria-hidden="true" />
+                        <span className="option-text">
+                            <strong>{option.title}</strong>
+                            <span className="muted small">{option.text}</span>
                         </span>
-                        <strong>{option.title}</strong>
-                        <span className="muted small">{option.text}</span>
-                        <span className="radio-dot" />
                     </button>
                 ))}
             </div>
@@ -629,11 +607,9 @@ function DetailsStep({
 function SummaryStep({ draft }: { draft: WizardDraft }) {
     return (
         <section className="step-body">
-            <h2 tabIndex={-1}>Tudo pronto!</h2>
-            <p className="muted">Confere se ficou do jeito que você queria:</p>
-            <div className="panel summary">
+            <h2 tabIndex={-1}>Confira antes de salvar</h2>
+            <div className="summary">
                 <p>
-                    <Icon name="database" />
                     <span>
                         O Datera vai ler {LABELS[draft.source ?? ""]}
                         {draft.sourcePath && (
@@ -646,7 +622,6 @@ function SummaryStep({ draft }: { draft: WizardDraft }) {
                     </span>
                 </p>
                 <p>
-                    <Icon name="upload" />
                     <span>
                         E vai salvar o resultado em{" "}
                         {LABELS[draft.destination ?? ""]}
@@ -660,9 +635,8 @@ function SummaryStep({ draft }: { draft: WizardDraft }) {
                     </span>
                 </p>
                 <p>
-                    <Icon name="rules" />
                     <span>
-                        Depois de salvar, você vai para tela de Regras para
+                        Depois de salvar, você vai para a tela de Regras para
                         dizer o que deve ir para Pendências.
                     </span>
                 </p>
