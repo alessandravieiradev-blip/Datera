@@ -81,11 +81,11 @@ Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBU
 
 ## Próximos passos
 
-O que eu quero fazer, nessa ordem. Cada item é uma issue, e o andamento de cada etapa aparece nos [milestones](https://github.com/alessandravieiradev-blip/datera/milestones). Se quiser ajudar com alguma, dá uma olhada no [CONTRIBUTING.md](CONTRIBUTING.md).
+O que eu quero fazer, nessa ordem. Cada item é uma issue, os riscados já foram feitos, e o andamento de cada etapa aparece nos [milestones](https://github.com/alessandravieiradev-blip/datera/milestones). Se quiser ajudar com alguma, dá uma olhada no [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **1. Visual do Datera Dev**
 
-- [#1](https://github.com/alessandravieiradev-blip/datera/issues/1) refinar o visual do Datera Dev
+- [#1](https://github.com/alessandravieiradev-blip/datera/issues/1) ~~refinar o visual do Datera Dev~~ (feito)
 
 **2. Formatos e bancos de dados**
 
