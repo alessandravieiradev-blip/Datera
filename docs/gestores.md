@@ -32,7 +32,7 @@ Depois de instalado, o Datera aparece no menu Iniciar e ganha um atalho na área
 
 Na primeira vez o app monta a configuração com você, em quatro passos:
 
-1. **Fonte dos dados:** arquivo Excel, arquivo CSV, arquivo XML, Google Planilhas ou um banco de dados MySQL. A origem só é lida, nunca alterada.
+1. **Fonte dos dados:** arquivo Excel, arquivo CSV, arquivo XML, Google Planilhas, arquivo SQLite ou um banco de dados (MySQL, PostgreSQL ou SQL Server). A origem só é lida, nunca alterada.
 2. **Destino:** arquivo Excel, arquivo CSV, arquivo XML ou Google Planilhas. As pendências ficam do lado: numa aba separada ou num segundo arquivo.
 3. **Detalhes:** o arquivo, o link da planilha ou os dados do banco, e onde salvar o resultado.
 4. **Pronto:** um resumo das escolhas. Ao clicar em **Salvar configuração**, você escolhe onde guardar o arquivo com essas escolhas. Guarde numa pasta sua, porque é ele que o app abre das próximas vezes.

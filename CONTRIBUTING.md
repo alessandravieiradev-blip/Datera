@@ -4,7 +4,7 @@ Que bom que você quer ajudar. Aqui fica o básico pra rodar o projeto, testar e
 
 ## Preparando
 
-Precisa do Node 22 ou mais novo.
+Precisa do Node 22.13 ou mais novo.
 
 ```bash
 git clone https://github.com/alessandravieiradev-blip/datera.git

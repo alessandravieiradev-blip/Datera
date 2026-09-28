@@ -8,7 +8,7 @@
 
 # Fontes e destinos
 
-O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, Google Sheets, Excel, CSV, JSON e XML e escrever no Google Sheets, no Excel, em CSV, em JSON e em XML, misturando do jeito que quiser.
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON e XML e escrever no Google Sheets, no Excel, em CSV, em JSON e em XML, misturando do jeito que quiser.
 
 ```json
 {
@@ -25,15 +25,18 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 
 ## Fontes (`source`)
 
-| `type`   | Campos                                                  | Observações                                                                                                                                  |
-| -------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mysql`  | `host`, `port`, `user`, `password`, `database`, `table` | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                                   |
-| `csv`    | `path`, `delimiter?`, `encoding?`                       | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                                  |
-| `json`   | `path`, `recordsPath?`                                  | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"`                   |
-| `xml`    | `path`, `recordsPath?`                                  | Cada registro vira uma linha. O `recordsPath` começa pelo elemento principal, tipo `"escola.alunos.aluno"`. Veja [XML](#xml)                 |
-| `excel`  | `path`, `sheet?`                                        | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                                                |
-| `sheets` | `spreadsheetId`, `sheet?`, `credentialsPath?`           | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Sem `credentialsPath`, usa o mesmo das outras configs                                |
-| `custom` | `adapter`, `options?`                                   | Um adapter seu, carregado pelo `adapterModules`. Veja [E se o meu formato não tá aqui?](fontes-e-destinos.md#e-se-o-meu-formato-não-tá-aqui) |
+| `type`      | Campos                                                                                         | Observações                                                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mysql`     | `host`, `port`, `user`, `password`, `database`, `table`                                        | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                                   |
+| `postgres`  | `host`, `port`, `user`, `password`, `database`, `table`, `ssl?`                                | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `5432`. Veja [Bancos de dados](#bancos-de-dados)                          |
+| `sqlserver` | `host`, `port`, `user`, `password`, `database`, `table`, `encrypt?`, `trustServerCertificate?` | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `1433`. Veja [Bancos de dados](#bancos-de-dados)                          |
+| `sqlite`    | `path`, `table`                                                                                | Um arquivo `.db` ou `.sqlite`. Ele só lê, o arquivo nunca é alterado                                                                         |
+| `csv`       | `path`, `delimiter?`, `encoding?`                                                              | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                                  |
+| `json`      | `path`, `recordsPath?`                                                                         | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"`                   |
+| `xml`       | `path`, `recordsPath?`                                                                         | Cada registro vira uma linha. O `recordsPath` começa pelo elemento principal, tipo `"escola.alunos.aluno"`. Veja [XML](#xml)                 |
+| `excel`     | `path`, `sheet?`                                                                               | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                                                |
+| `sheets`    | `spreadsheetId`, `sheet?`, `credentialsPath?`                                                  | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Sem `credentialsPath`, usa o mesmo das outras configs                                |
+| `custom`    | `adapter`, `options?`                                                                          | Um adapter seu, carregado pelo `adapterModules`. Veja [E se o meu formato não tá aqui?](fontes-e-destinos.md#e-se-o-meu-formato-não-tá-aqui) |
 
 Umas coisas que eu aprendi apanhando:
 
@@ -105,6 +108,40 @@ Sobre o Excel, umas coisas que acontecem por baixo:
 - linha totalmente vazia é pulada
 - na saída o arquivo é recriado toda vez que roda, então não guarda coisa sua dentro dele. O cabeçalho sai em negrito e fixo, e a largura das colunas se ajusta sozinha
 - o Excel não aceita alguns caracteres em nome de aba (tipo `/` e `:`) nem nome com mais de 31 letras, então ele arruma isso sozinho
+
+## Bancos de dados
+
+Além do MySQL, ele lê de PostgreSQL, SQL Server e SQLite. Os três funcionam do mesmo jeito: pegam a tabela inteira (ou uma view) e cada linha do banco vira uma linha do Datera.
+
+```json
+"source": {
+    "type": "postgres",
+    "host": "localhost",
+    "user": "escola",
+    "database": "musica",
+    "table": "public.alunos"
+}
+```
+
+Umas coisas que valem pros três:
+
+- a senha pode ficar no `.env` como `DB_PASSWORD`, igual no MySQL. As outras `DB_*` também valem. O app de gestores já faz isso sozinho
+- a tabela pode vir com o schema na frente, tipo `public.alunos` no PostgreSQL ou `dbo.alunos` no SQL Server
+- o nome da tabela vai protegido na consulta, então não dá pra alguém colocar um comando SQL escondido nele
+- data vira texto no formato `2024-03-10` (ou com a hora junto), verdadeiro/falso vira `true`/`false` e número muito grande vira texto pra não perder dígito
+- ele só faz `SELECT`, nunca altera o banco. Mesmo assim, o mais seguro é usar um usuário que só tem permissão de leitura
+
+Do PostgreSQL e do SQL Server, o Datera usa os pacotes `pg` e `mssql`, que já vêm no `npm install`.
+
+No PostgreSQL, se o servidor pedir conexão segura (os da nuvem normalmente pedem), coloca `"ssl": true`.
+
+No SQL Server a conexão já é criptografada por padrão. Se for um SQL Server na sua máquina ou na rede da empresa, é comum ele usar um certificado que ele mesmo gerou, e aí aparece um erro de certificado. Nesse caso, e só se você confia naquele servidor, coloca `"trustServerCertificate": true`.
+
+O SQLite é um banco que mora num arquivo só, e o Node já sabe ler ele sem instalar nada (precisa do Node 22.13 ou mais novo). O arquivo é aberto só pra leitura. Se a tabela não existir, ele avisa quais existem:
+
+```json
+"source": { "type": "sqlite", "path": "./escola.db", "table": "alunos" }
+```
 
 ## XML
 

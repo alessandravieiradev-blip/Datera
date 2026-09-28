@@ -20,8 +20,8 @@ O `.env`:
 
 | Variável                          | O que colocar                                                        |
 | --------------------------------- | -------------------------------------------------------------------- |
-| `DB_HOST`                         | Endereço do servidor MySQL                                           |
-| `DB_PORT`                         | Porta do MySQL (padrão `3306`)                                       |
+| `DB_HOST`                         | Endereço do servidor do banco (MySQL, PostgreSQL ou SQL Server)      |
+| `DB_PORT`                         | Porta do banco (padrão `3306`, `5432` ou `1433`)                     |
 | `DB_USER`                         | Usuário de acesso ao banco                                           |
 | `DB_PASSWORD`                     | Senha do usuário (se tiver caractere especial, coloque entre aspas)  |
 | `DB_NAME`                         | Nome do banco                                                        |
@@ -35,15 +35,15 @@ Aqui vai a chave JSON de uma service account do Google Cloud. Depois de criar a 
 
 E o `config.json`:
 
-| Campo                                                | O que colocar                                                                             |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `source`                                             | De onde ler: MySQL, CSV ou JSON. Veja [Fontes e destinos](fontes-e-destinos.md)           |
-| `destination`                                        | Onde escrever: Google Sheets, CSV ou JSON. Veja [Fontes e destinos](fontes-e-destinos.md) |
-| `tableName`, `spreadsheetId`, `credentialsPath`      | Mesmos valores do `.env` (servem de reserva caso o `.env` não defina)                     |
-| `mode`                                               | `"raw"`, `"dedupe"` ou `"merge"`                                                          |
-| `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env`                                                                    |
-| `dedupeColumn`                                       | Só se `mode` for `"dedupe"`. Coluna usada pra identificar duplicatas                      |
-| `dedupeStrategy`                                     | Opcional, só no modo `dedupe`. `"keep-first"` ou `"keep-last"` (padrão: `"keep-first"`)   |
+| Campo                                                | O que colocar                                                                                     |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `source`                                             | De onde ler: um banco, uma planilha ou um arquivo. Veja [Fontes e destinos](fontes-e-destinos.md) |
+| `destination`                                        | Onde escrever: Google Sheets, CSV ou JSON. Veja [Fontes e destinos](fontes-e-destinos.md)         |
+| `tableName`, `spreadsheetId`, `credentialsPath`      | Mesmos valores do `.env` (servem de reserva caso o `.env` não defina)                             |
+| `mode`                                               | `"raw"`, `"dedupe"` ou `"merge"`                                                                  |
+| `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env`                                                                            |
+| `dedupeColumn`                                       | Só se `mode` for `"dedupe"`. Coluna usada pra identificar duplicatas                              |
+| `dedupeStrategy`                                     | Opcional, só no modo `dedupe`. `"keep-first"` ou `"keep-last"` (padrão: `"keep-first"`)           |
 
 Os campos do modo `merge` (só o `mergeKeyColumn` e o `mergeColumns` são obrigatórios):
 
@@ -72,7 +72,7 @@ Se o mesmo valor estiver no `.env` e no `config.json`, vale o do `.env`.
 ## Como os dados passam pelo ETL
 
 ```text
-fonte: MySQL, CSV ou JSON
+fonte: banco, planilha ou arquivo
    │
    ├─ fillEmpty        preenche células vazias          (opcional)
    ├─ combineColumns   junta colunas da mesma linha      (opcional)

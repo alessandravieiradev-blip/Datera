@@ -15,7 +15,7 @@
 
 ## O que é
 
-O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um MySQL, do Google Sheets, de uma planilha do Excel, de um CSV, de um JSON ou de um XML, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV, num JSON ou num XML.
+O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um banco (MySQL, PostgreSQL, SQL Server ou SQLite), do Google Sheets, de uma planilha do Excel, de um CSV, de um JSON ou de um XML, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV, num JSON ou num XML.
 
 Ele começou bem simples, era só pra copiar uma tabela do MySQL pra uma planilha. Só que aí eu fui vendo que dado de verdade vem uma bagunça: a mesma pessoa cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, informação espalhada em várias colunas. Então fui colocando coisa nova até conseguir resolver quase tudo mexendo só no `config.json`.
 
@@ -41,7 +41,7 @@ fonte ──► prepara ──► separa o que tem problema ──► tira ou ju
                                └──► pendências (com o motivo de cada uma)
 ```
 
-1. **Fonte:** lê de onde os dados estão (MySQL, Google Sheets, Excel, CSV, JSON ou XML).
+1. **Fonte:** lê de onde os dados estão (MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON ou XML).
 2. **Prepara:** preenche célula vazia e junta colunas, se você pedir.
 3. **Pendências:** as linhas que quebram alguma regra (e-mail inválido, campo vazio, valor fora da lista...) vão pra uma aba ou arquivo à parte.
 4. **Repetidos:** deixa como está, tira as linhas repetidas ou junta as linhas da mesma pessoa sem perder nada.
@@ -80,6 +80,8 @@ Hoje ele consegue:
 Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBUTING.md](CONTRIBUTING.md). O código é aberto, sob a [licença MIT](LICENSE).
 
 ## Próximos passos
+
+A ideia é chegar num instalador de um clique pra quem não programa e numa biblioteca no npm pra quem programa.
 
 O que eu quero fazer fica nas [issues](https://github.com/alessandravieiradev-blip/datera/issues), agrupadas em etapas nos [milestones](https://github.com/alessandravieiradev-blip/datera/milestones). Lá dá pra ver o que já foi feito e o que falta, e tudo se atualiza sozinho conforme eu vou fazendo.
 

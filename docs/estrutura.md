@@ -36,6 +36,10 @@ src/
     header.ts             # monta o cabeçalho das saídas
     files.ts              # ler e escrever arquivo, nome do arquivo de pendências
     mysql/                # client.ts (conexão e leitura paginada) e mysqlSource.ts
+    postgres/             # postgresSource.ts
+    sqlserver/            # sqlServerSource.ts
+    sqlite/               # sqliteSource.ts (usa o SQLite que já vem no Node)
+    sql/                  # o que os bancos dividem: converter os valores, proteger o nome da tabela e carregar o driver
     sheets/               # client.ts (leitura e escrita em abas), sheetsSource.ts e sheetsSink.ts
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
     json/                 # jsonSource.ts e jsonSink.ts
