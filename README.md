@@ -81,59 +81,6 @@ Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBU
 
 ## Próximos passos
 
-O que eu quero fazer, nessa ordem. Cada item é uma issue, os riscados já foram feitos, e o andamento de cada etapa aparece nos [milestones](https://github.com/alessandravieiradev-blip/datera/milestones). Se quiser ajudar com alguma, dá uma olhada no [CONTRIBUTING.md](CONTRIBUTING.md).
+O que eu quero fazer fica nas [issues](https://github.com/alessandravieiradev-blip/datera/issues), agrupadas em etapas nos [milestones](https://github.com/alessandravieiradev-blip/datera/milestones). Lá dá pra ver o que já foi feito e o que falta, e tudo se atualiza sozinho conforme eu vou fazendo.
 
-**1. Visual do Datera Dev**
-
-- [#1](https://github.com/alessandravieiradev-blip/datera/issues/1) ~~refinar o visual do Datera Dev~~ (feito)
-
-**2. Formatos e bancos de dados**
-
-- [#2](https://github.com/alessandravieiradev-blip/datera/issues/2) ~~ler e escrever XML~~ (feito)
-- [#3](https://github.com/alessandravieiradev-blip/datera/issues/3) ler de PostgreSQL
-- [#4](https://github.com/alessandravieiradev-blip/datera/issues/4) ler de SQL Server
-- [#5](https://github.com/alessandravieiradev-blip/datera/issues/5) ler de SQLite
-- [#6](https://github.com/alessandravieiradev-blip/datera/issues/6) ler e escrever Parquet
-
-**3. Qualidade**
-
-- [#7](https://github.com/alessandravieiradev-blip/datera/issues/7) testes das telas dos dois apps no CI
-- [#8](https://github.com/alessandravieiradev-blip/datera/issues/8) trocar `clientes` por `alunos` nos testes de config
-
-**4. Para quem cuida dos dados**
-
-- [#9](https://github.com/alessandravieiradev-blip/datera/issues/9) pendências editáveis
-- [#10](https://github.com/alessandravieiradev-blip/datera/issues/10) salvar o resumo da execução
-
-**5. Versões**
-
-- [#11](https://github.com/alessandravieiradev-blip/datera/issues/11) versões numeradas e CHANGELOG
-
-**6. Instalar com um clique**
-
-- [#12](https://github.com/alessandravieiradev-blip/datera/issues/12) publicar os instaladores na aba Releases
-- [#13](https://github.com/alessandravieiradev-blip/datera/issues/13) janela de boas-vindas na primeira abertura
-- [#14](https://github.com/alessandravieiradev-blip/datera/issues/14) avisar quando sair versão nova
-- [#15](https://github.com/alessandravieiradev-blip/datera/issues/15) assinar o instalador
-- [#16](https://github.com/alessandravieiradev-blip/datera/issues/16) versão para Mac e Linux
-
-**7. Usar o Datera como biblioteca**
-
-- [#17](https://github.com/alessandravieiradev-blip/datera/issues/17) publicar no npm
-- [#18](https://github.com/alessandravieiradev-blip/datera/issues/18) limpar dados que já estão na memória
-- [#19](https://github.com/alessandravieiradev-blip/datera/issues/19) expor as etapas separadas
-- [#20](https://github.com/alessandravieiradev-blip/datera/issues/20) config por código com `defineConfig`
-- [#21](https://github.com/alessandravieiradev-blip/datera/issues/21) eventos de progresso
-- [#22](https://github.com/alessandravieiradev-blip/datera/issues/22) ler e escrever em stream
-- [#23](https://github.com/alessandravieiradev-blip/datera/issues/23) servidor HTTP opcional
-- [#24](https://github.com/alessandravieiradev-blip/datera/issues/24) documentar a API em `docs/api.md`
-
-**8. Terminal e automação**
-
-- [#25](https://github.com/alessandravieiradev-blip/datera/issues/25) build de produção do terminal
-- [#26](https://github.com/alessandravieiradev-blip/datera/issues/26) comando `datera` instalado
-- [#27](https://github.com/alessandravieiradev-blip/datera/issues/27) agendar execução pelo app
-
-**Mais tarde**
-
-- [#28](https://github.com/alessandravieiradev-blip/datera/issues/28) versão para celular do app de gestores
+Se quiser saber no que eu tô trabalhando agora, me chama no Instagram ou aqui no GitHub. Os dois estão no [meu perfil](https://github.com/alessandravieiradev-blip).
