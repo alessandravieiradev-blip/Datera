@@ -1,4 +1,5 @@
 import { Icon } from "../components/Icon";
+import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
 import {
     formatDuration,
@@ -15,16 +16,14 @@ interface HistoryPageProps {
 export function HistoryPage({ history }: HistoryPageProps) {
     return (
         <div className="page">
-            <header className="page-header">
-                <div>
-                    <span className="eyebrow">Histórico</span>
-                    <h1>Tudo o que já rodou</h1>
-                    <p>
-                        As últimas execuções feitas por aqui, das mais novas
-                        para as mais antigas.
-                    </p>
-                </div>
-            </header>
+            <PageHeader
+                title="Histórico"
+                meta={
+                    history.length > 0
+                        ? `As ${history.length} execuções mais recentes, das mais novas para as mais antigas.`
+                        : undefined
+                }
+            />
             <Panel>
                 {history.length === 0 ? (
                     <p className="muted">Ainda não tem nada aqui.</p>
@@ -47,8 +46,8 @@ export function HistoryPage({ history }: HistoryPageProps) {
                                 {history.map((record) => (
                                     <tr key={record.id}>
                                         <td>
-                                            {formatFullDate(record.startedAt)} •{" "}
-                                            {formatTime(record.startedAt)}
+                                            {formatFullDate(record.startedAt)}{" "}
+                                            às {formatTime(record.startedAt)}
                                         </td>
                                         <td>
                                             {record.dryRun

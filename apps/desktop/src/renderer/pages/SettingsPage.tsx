@@ -1,5 +1,5 @@
 import { KeyboardEvent } from "react";
-import { Icon } from "../components/Icon";
+import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
 import { PageId } from "../components/Sidebar";
 import { DateraState } from "../lib/useDatera";
@@ -55,20 +55,11 @@ export function SettingsPage({ datera, onNavigate }: SettingsPageProps) {
 
     return (
         <div className="page">
-            <header className="page-header">
-                <div>
-                    <span className="eyebrow">Configurações</span>
-                    <h1>Configurações</h1>
-                    <p>Onde o Datera encontra as informações para trabalhar.</p>
-                </div>
-            </header>
+            <PageHeader title="Configurações" />
             <Panel title="Arquivo de configuração">
                 <div className="setting-row">
-                    <span className="stat-icon tone-blue">
-                        <Icon name="folder" />
-                    </span>
                     <div className="setting-text">
-                        <strong>
+                        <strong className="path">
                             {configPath ?? "Nenhum arquivo escolhido"}
                         </strong>
                         <p className="muted small">

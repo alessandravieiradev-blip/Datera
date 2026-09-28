@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Icon } from "../components/Icon";
+import { PageHeader } from "../components/PageHeader";
 import { Keys } from "../components/Keys";
 import { Notice } from "../components/Notice";
 import { Panel } from "../components/Panel";
@@ -115,28 +116,23 @@ export function ShortcutsPage({
 
     return (
         <div className="page">
-            <header className="page-header">
-                <div>
-                    <span className="eyebrow">Atalhos</span>
-                    <h1>Atalhos do teclado</h1>
-                    <p>
-                        Use o teclado para ir mais rápido. Para trocar um
-                        atalho, clique em Alterar e pressione a nova combinação.
-                    </p>
-                </div>
-                <button
-                    type="button"
-                    className="button secondary"
-                    disabled={!customized}
-                    onClick={async () => {
-                        await save(DEFAULTS);
-                        notify("Atalhos padrão restaurados.");
-                    }}
-                >
-                    <Icon name="reset" size={18} />
-                    Restaurar padrões
-                </button>
-            </header>
+            <PageHeader
+                title="Atalhos do teclado"
+                meta="Para trocar um atalho, clique em Alterar e pressione a nova combinação."
+                actions={
+                    <button
+                        type="button"
+                        className="button secondary"
+                        disabled={!customized}
+                        onClick={async () => {
+                            await save(DEFAULTS);
+                            notify("Atalhos padrão restaurados.");
+                        }}
+                    >
+                        Restaurar padrões
+                    </button>
+                }
+            />
 
             {problem && (
                 <Notice
