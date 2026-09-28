@@ -31,6 +31,7 @@ const SOURCE_LABELS: Record<string, string> = {
     mysql: "Banco de dados",
     csv: "Arquivo CSV",
     json: "Arquivo JSON",
+    xml: "Arquivo XML",
     excel: "Arquivo Excel",
     sheets: "Google Planilhas",
     custom: "Fonte própria",

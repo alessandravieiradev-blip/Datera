@@ -1,13 +1,22 @@
 import type { RawConfig } from "../../shared/api";
 
-export type SourceKind = "excel" | "csv" | "sheets" | "mysql";
-export type DestinationKind = "excel" | "csv" | "sheets";
+export type SourceKind = "excel" | "csv" | "xml" | "sheets" | "mysql";
+export type DestinationKind = "excel" | "csv" | "xml" | "sheets";
+
+export type FileSideKind = "excel" | "csv" | "xml";
+
+export function usesFile(
+    kind: SourceKind | DestinationKind | null,
+): kind is FileSideKind {
+    return kind === "excel" || kind === "csv" || kind === "xml";
+}
 
 export interface WizardDraft {
     source: SourceKind | null;
     destination: DestinationKind | null;
     sourcePath: string;
     sourceSheet: string;
+    sourceRecords: string;
     sourceLink: string;
     destinationPath: string;
     destinationLink: string;
@@ -26,6 +35,7 @@ export const EMPTY_DRAFT: WizardDraft = {
     destination: null,
     sourcePath: "",
     sourceSheet: "",
+    sourceRecords: "",
     sourceLink: "",
     destinationPath: "",
     destinationLink: "",
@@ -49,7 +59,7 @@ export function usesGoogle(draft: WizardDraft): boolean {
 }
 
 export function detailsProblem(draft: WizardDraft): string | null {
-    if (draft.source === "excel" || draft.source === "csv") {
+    if (usesFile(draft.source)) {
         if (!draft.sourcePath) return "Escolha o arquivo de onde ler.";
     }
     if (draft.source === "sheets" && !draft.sourceLink.trim())
@@ -59,10 +69,7 @@ export function detailsProblem(draft: WizardDraft): string | null {
             return "Preencha servidor, usuário, banco e tabela.";
         }
     }
-    if (
-        (draft.destination === "excel" || draft.destination === "csv") &&
-        !draft.destinationPath
-    ) {
+    if (usesFile(draft.destination) && !draft.destinationPath) {
         return "Escolha onde salvar o resultado.";
     }
     if (draft.destination === "sheets" && !draft.destinationLink.trim()) {
@@ -103,6 +110,12 @@ function sourceOf(draft: WizardDraft): RawConfig {
             };
         case "csv":
             return { type: "csv", path: draft.sourcePath };
+        case "xml":
+            return {
+                type: "xml",
+                path: draft.sourcePath,
+                ...optional("recordsPath", draft.sourceRecords),
+            };
         case "sheets":
             return {
                 type: "sheets",
@@ -128,6 +141,8 @@ function destinationOf(draft: WizardDraft): RawConfig {
             return { type: "excel", path: draft.destinationPath };
         case "csv":
             return { type: "csv", path: draft.destinationPath, delimiter: ";" };
+        case "xml":
+            return { type: "xml", path: draft.destinationPath };
         default:
             return {
                 type: "sheets",

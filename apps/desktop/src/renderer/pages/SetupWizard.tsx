@@ -18,6 +18,7 @@ import {
     detailsProblem,
     EMPTY_DRAFT,
     SourceKind,
+    usesFile,
     usesGoogle,
     WizardDraft,
 } from "../lib/wizard";
@@ -43,6 +44,11 @@ const SOURCES: Option<SourceKind>[] = [
         text: "Um arquivo de texto separado por vírgula ou ponto e vírgula.",
     },
     {
+        id: "xml",
+        title: "Arquivo XML",
+        text: "Um arquivo .xml, como os exportados por muitos sistemas.",
+    },
+    {
         id: "sheets",
         title: "Google Planilhas",
         text: "Uma planilha do Google. Ela só é lida, nunca alterada.",
@@ -66,6 +72,11 @@ const DESTINATIONS: Option<DestinationKind>[] = [
         text: "Gera um .csv com o resultado e outro com as pendências.",
     },
     {
+        id: "xml",
+        title: "Arquivo XML",
+        text: "Gera um .xml com o resultado e outro com as pendências.",
+    },
+    {
         id: "sheets",
         title: "Google Planilhas",
         text: "Grava numa planilha do Google, com uma aba de pendências.",
@@ -75,6 +86,7 @@ const DESTINATIONS: Option<DestinationKind>[] = [
 const LABELS: Record<string, string> = {
     excel: "um arquivo Excel",
     csv: "um arquivo CSV",
+    xml: "um arquivo XML",
     sheets: "uma planilha do Google",
     mysql: "um banco de dados",
 };
@@ -390,12 +402,29 @@ function DetailsStep({
             <div className="grid-two">
                 <div className="panel form">
                     <h3>De onde ler</h3>
-                    {(draft.source === "excel" || draft.source === "csv") && (
+                    {usesFile(draft.source) && (
                         <Field label="Arquivo" group>
                             <FilePicker
                                 value={draft.sourcePath}
                                 kind={draft.source}
                                 onPick={(sourcePath) => set({ sourcePath })}
+                            />
+                        </Field>
+                    )}
+                    {draft.source === "xml" && (
+                        <Field
+                            label="Caminho dos registros (opcional)"
+                            hint="Se deixar vazio, cada elemento logo abaixo do principal vira uma linha. Se os registros estão mais para dentro, escreva o caminho, como escola.alunos.aluno."
+                        >
+                            <input
+                                className="field"
+                                spellCheck={false}
+                                autoComplete="off"
+                                placeholder="escola.alunos.aluno"
+                                value={draft.sourceRecords}
+                                onChange={(event) =>
+                                    set({ sourceRecords: event.target.value })
+                                }
                             />
                         </Field>
                     )}
@@ -527,8 +556,7 @@ function DetailsStep({
                 </div>
                 <div className="panel form">
                     <h3>Onde salvar</h3>
-                    {(draft.destination === "excel" ||
-                        draft.destination === "csv") && (
+                    {usesFile(draft.destination) && (
                         <Field
                             label="Arquivo do resultado"
                             hint="As pendências ficam do lado, no mesmo lugar."

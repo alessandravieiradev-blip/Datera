@@ -42,6 +42,7 @@ const SOURCE_NAMES: Record<string, string> = {
     mysql: "mysql",
     csv: "csv",
     json: "json",
+    xml: "xml",
     excel: "excel",
     sheets: "sheets",
     custom: "custom",

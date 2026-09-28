@@ -21,6 +21,11 @@ export const SNIPPETS: Snippet[] = [
         text: '"source": { "type": "json", "path": "./dados.json" }',
     },
     {
+        id: "fonte-xml",
+        label: "Fonte: XML",
+        text: '"source": { "type": "xml", "path": "./alunos.xml", "recordsPath": "escola.alunos.aluno" }',
+    },
+    {
         id: "fonte-sheets",
         label: "Fonte: Google Planilhas",
         text: '"source": { "type": "sheets", "spreadsheetId": "ID_DA_PLANILHA", "sheet": "Aba" }',
@@ -44,6 +49,11 @@ export const SNIPPETS: Snippet[] = [
         id: "destino-json",
         label: "Destino: JSON",
         text: '"destination": { "type": "json", "path": "./saida/resultado.json" }',
+    },
+    {
+        id: "destino-xml",
+        label: "Destino: XML",
+        text: '"destination": { "type": "xml", "path": "./saida/resultado.xml", "root": "alunos", "record": "aluno" }',
     },
     {
         id: "destino-sheets",

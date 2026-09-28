@@ -60,6 +60,7 @@ const FILE_FILTERS: Record<FileKind, { name: string; extensions: string[] }> = {
     csv: { name: "Arquivo CSV", extensions: ["csv"] },
     excel: { name: "Arquivo Excel", extensions: ["xlsx"] },
     json: { name: "Arquivo JSON", extensions: ["json"] },
+    xml: { name: "Arquivo XML", extensions: ["xml"] },
     credentials: { name: "Credenciais do Google", extensions: ["json"] },
 };
 
