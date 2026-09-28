@@ -31,13 +31,6 @@ export function LineChart({ points }: LineChartProps) {
         y: TOP + plotHeight - (point.value / max) * plotHeight,
     }));
     const line = coords.map((c) => `${c.x},${c.y}`).join(" ");
-    const first = coords[0];
-    const last = coords[coords.length - 1];
-    const area =
-        first && last
-            ? `M${first.x},${TOP + plotHeight} L${line.replace(/ /g, " L")} L${last.x},${TOP + plotHeight} Z`
-            : "";
-
     return (
         <svg
             className="chart"
@@ -47,12 +40,6 @@ export function LineChart({ points }: LineChartProps) {
                 .map((point) => `${point.label}, ${formatNumber(point.value)}`)
                 .join("; ")}`}
         >
-            <defs>
-                <linearGradient id="area-fill" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.16" />
-                    <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
-                </linearGradient>
-            </defs>
             {ticks.map((tick) => {
                 const y = TOP + plotHeight - (tick / max) * plotHeight;
                 return (
@@ -75,19 +62,18 @@ export function LineChart({ points }: LineChartProps) {
                     </g>
                 );
             })}
-            <path d={area} fill="url(#area-fill)" />
             <polyline
                 points={line}
                 fill="none"
                 stroke="var(--blue)"
-                strokeWidth={2.5}
+                strokeWidth={2}
             />
             {coords.map((c, index) => (
                 <g key={`${c.label}-${index}`}>
                     <circle
                         cx={c.x}
                         cy={c.y}
-                        r={5}
+                        r={3.5}
                         fill="var(--blue)"
                         stroke="var(--surface)"
                         strokeWidth={2}

@@ -5,18 +5,11 @@ export type IconName =
     | "clock"
     | "settings"
     | "help"
-    | "database"
     | "check"
     | "alert"
-    | "merge"
     | "file"
-    | "eye"
     | "arrowRight"
-    | "trendDown"
-    | "trendUp"
-    | "sparkle"
     | "info"
-    | "calendar"
     | "folder"
     | "trash"
     | "arrowLeft"
@@ -44,35 +37,14 @@ const PATHS: Record<IconName, string[]> = {
         "M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.3",
         "M12 17h.01",
     ],
-    database: [
-        "M12 8c4.4 0 8-1.3 8-3s-3.6-3-8-3-8 1.3-8 3 3.6 3 8 3z",
-        "M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5",
-        "M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3",
-    ],
     check: ["M5 12.5 10 17l9-10"],
     alert: ["M12 3 2 20h20L12 3z", "M12 10v4", "M12 17h.01"],
-    merge: [
-        "M8 4h10a2 2 0 0 1 2 2v10",
-        "M4 8h10a2 2 0 0 1 2 2v10H6a2 2 0 0 1-2-2V8z",
-        "M8 14h4",
-    ],
     file: [
         "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z",
         "M14 3v6h6",
     ],
-    eye: [
-        "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z",
-        "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
-    ],
     arrowRight: ["M5 12h14", "M13 6l6 6-6 6"],
-    trendDown: ["M3 7l6 6 4-4 8 8", "M21 11v6h-6"],
-    trendUp: ["M3 17l6-6 4 4 8-8", "M21 13V7h-6"],
-    sparkle: [
-        "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z",
-        "M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7L19 16z",
-    ],
     info: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M12 11v5", "M12 8h.01"],
-    calendar: ["M4 6h16v14H4z", "M4 10h16", "M8 3v4", "M16 3v4"],
     trash: [
         "M4 7h16",
         "M10 11v6",

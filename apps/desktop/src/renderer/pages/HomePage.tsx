@@ -1,11 +1,10 @@
-import { BarChart } from "../components/BarChart";
-import { DonutChart } from "../components/DonutChart";
-import { Icon } from "../components/Icon";
 import { LineChart } from "../components/LineChart";
+import { Metrics } from "../components/Metrics";
 import { Notice } from "../components/Notice";
+import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
+import { ReasonList } from "../components/ReasonList";
 import { PageId } from "../components/Sidebar";
-import { StatCard } from "../components/StatCard";
 import {
     fileName,
     formatDate,
@@ -14,7 +13,6 @@ import {
     formatPercent,
     formatShortDate,
     formatTime,
-    greeting,
 } from "../lib/format";
 import {
     exportsForChart,
@@ -25,9 +23,8 @@ import {
 import { DateraState } from "../lib/useDatera";
 import type { RunRecord } from "../../shared/api";
 
-const MAX_BARS = 6;
 const CHART_RUNS = 8;
-const RECENT_RUNS = 4;
+const RECENT_RUNS = 5;
 
 interface HomePageProps {
     datera: DateraState;
@@ -43,66 +40,32 @@ function Welcome({
 }) {
     return (
         <div className="page">
-            <header className="page-header">
-                <div>
-                    <span className="eyebrow">Primeiros passos</span>
-                    <h1>Vamos começar!</h1>
-                    <p>
-                        Primeiro o Datera precisa saber de onde ler os seus
-                        dados e onde salvar o resultado.
-                    </p>
-                </div>
-            </header>
-            <Panel className="welcome">
-                <span className="welcome-icon">
-                    <Icon name="sparkle" size={32} />
-                </span>
-                <div>
-                    <h2 className="section-heading">
-                        Configurar em poucos passos
-                    </h2>
-                    <p className="muted">
-                        Um passo a passo pergunta de onde vêm os dados e onde
-                        salvar. Se você já tem um arquivo de configuração, é só
-                        escolher ele.
-                    </p>
-                </div>
+            <PageHeader title="Início" meta="Nenhuma configuração escolhida." />
+            <section className="welcome">
+                <h2 className="section-heading">Primeiro passo</h2>
+                <p>
+                    O Datera precisa saber de onde ler os dados e onde salvar o
+                    resultado. Isso fica guardado num arquivo de configuração.
+                </p>
                 <div className="welcome-actions">
                     <button
                         type="button"
                         className="button primary"
                         onClick={() => onNavigate("assistente")}
                     >
-                        Começar
+                        Criar configuração
                     </button>
                     <button
                         type="button"
                         className="button secondary"
                         onClick={() => void datera.chooseConfig()}
                     >
-                        Já tenho um arquivo
+                        Escolher um arquivo existente
                     </button>
                 </div>
-            </Panel>
+            </section>
         </div>
     );
-}
-
-function pendingBars(reasons: { reason: string; count: number }[]) {
-    if (reasons.length <= MAX_BARS) {
-        return reasons.map(({ reason, count }) => ({
-            label: reason,
-            value: count,
-        }));
-    }
-    const shown = reasons.slice(0, MAX_BARS - 1);
-    const others = reasons
-        .slice(MAX_BARS - 1)
-        .reduce((sum, item) => sum + item.count, 0);
-    return [
-        ...shown.map(({ reason, count }) => ({ label: reason, value: count })),
-        { label: "Outros", value: others },
-    ];
 }
 
 export function HomePage({ datera, onNavigate }: HomePageProps) {
@@ -115,62 +78,43 @@ export function HomePage({ datera, onNavigate }: HomePageProps) {
     const recent = datera.history
         .filter((record) => record.ok)
         .slice(0, RECENT_RUNS);
+    const config = fileName(datera.settings.configPath);
+    const meta = lastExport
+        ? `${config} · última exportação em ${formatDate(lastExport.startedAt)} às ${formatTime(lastExport.startedAt)}`
+        : `${config} · nenhuma exportação ainda`;
 
     return (
         <div className="page">
-            <header className="page-header">
-                <div>
-                    <h1>{greeting()}</h1>
-                    <p>
-                        {current
-                            ? "Seus dados estão organizados e prontos para o que você precisa."
-                            : `Tudo pronto com ${fileName(datera.settings.configPath)}. Que tal ver uma prévia?`}
-                    </p>
-                </div>
-                <div className="header-actions">
-                    {lastExport && (
-                        <div className="last-export">
-                            <Icon name="calendar" />
-                            <div>
-                                <span className="muted small">
-                                    Última exportação
-                                </span>
-                                <strong>
-                                    {formatDate(lastExport.startedAt)} •{" "}
-                                    {formatTime(lastExport.startedAt)}
-                                </strong>
-                            </div>
-                        </div>
-                    )}
+            <PageHeader
+                title="Início"
+                meta={meta}
+                actions={
                     <button
                         type="button"
-                        className="button primary large"
+                        className="button primary"
                         onClick={() => onNavigate("exportar")}
                     >
-                        <Icon name="upload" />
-                        Exportar agora
-                        <Icon name="arrowRight" size={18} />
+                        Ir para Exportar
                     </button>
-                </div>
-            </header>
+                }
+            />
 
             {!current?.report ? (
                 <Notice
                     tone="info"
-                    title="Você ainda não rodou o Datera por aqui."
+                    title="Ainda não tem nenhuma execução."
                     action={
                         <button
                             type="button"
                             className="button secondary"
                             onClick={() => onNavigate("exportar")}
                         >
-                            <Icon name="eye" size={18} />
                             Ver uma prévia
                         </button>
                     }
                 >
-                    A prévia executa tudo sem gravar nada, então você pode
-                    testar à vontade.
+                    A prévia executa tudo sem gravar nada, então dá para testar
+                    à vontade.
                 </Notice>
             ) : (
                 <Dashboard
@@ -191,193 +135,145 @@ interface DashboardProps {
     onNavigate: (page: PageId) => void;
 }
 
+function trendText(runs: RunRecord[]): string | null {
+    const first = runs[0];
+    const last = runs[runs.length - 1];
+    if (!first?.report || !last?.report || runs.length < 2) return null;
+    const from = first.report.pendingRows;
+    const to = last.report.pendingRows;
+    const change =
+        from > 0
+            ? ` (${to > from ? "+" : ""}${formatPercent(to - from, from)})`
+            : "";
+    return `De ${formatNumber(from)} para ${formatNumber(to)} desde ${formatShortDate(first.startedAt)}${change}.`;
+}
+
 function Dashboard({ record, chartRuns, recent, onNavigate }: DashboardProps) {
     if (!record.report) return null;
     const stats = statsOf(record.report);
-    const bars = pendingBars(record.report.pendingByReason);
-    const firstChartRun = chartRuns[0]?.report;
-    const lastChartRun = chartRuns[chartRuns.length - 1]?.report;
-    const trend =
-        chartRuns.length >= 2 &&
-        firstChartRun &&
-        lastChartRun &&
-        firstChartRun.pendingRows > 0
-            ? (lastChartRun.pendingRows - firstChartRun.pendingRows) /
-              firstChartRun.pendingRows
-            : undefined;
+    const trend = trendText(chartRuns);
 
     return (
         <>
             {record.dryRun && (
                 <Notice tone="warning" title="Esses números são de uma prévia.">
-                    Nada foi gravado ainda. Quando estiver tudo certo, é só
-                    exportar.
+                    Nada foi gravado ainda. Quando estiver tudo certo, exporte
+                    pela tela Exportar.
                 </Notice>
             )}
 
-            <div className="grid-stats">
-                <StatCard
-                    icon="database"
-                    tone="blue"
-                    label="Registros lidos"
-                    value={stats.read}
-                    hint={
-                        record.sourceLabel
-                            ? `Fonte: ${record.sourceLabel}`
-                            : "da sua fonte"
-                    }
-                />
-                <StatCard
-                    icon="check"
-                    tone="green"
-                    label="Registros válidos"
-                    value={stats.valid}
-                    hint={`${formatPercent(stats.valid, stats.read)} do total`}
-                />
-                <StatCard
-                    icon="alert"
-                    tone="orange"
-                    label="Pendências"
-                    value={stats.pending}
-                    hint={`${formatPercent(stats.pending, stats.read)} do total`}
-                />
-                <StatCard
-                    icon="merge"
-                    tone="purple"
-                    label="Duplicados unificados"
-                    value={stats.unified}
-                    hint={`${formatPercent(stats.unified, stats.read)} do total`}
-                />
-            </div>
+            <Metrics
+                label="Resumo da última execução"
+                items={[
+                    {
+                        label: "Lidos",
+                        value: stats.read,
+                        hint: record.sourceLabel ?? "da fonte",
+                    },
+                    {
+                        label: "No resultado",
+                        value: stats.result,
+                        hint: `${formatPercent(stats.result, stats.read)} dos lidos`,
+                    },
+                    {
+                        label: "Pendências",
+                        value: stats.pending,
+                        hint: `${formatPercent(stats.pending, stats.read)} dos lidos`,
+                        tone: stats.pending > 0 ? "warning" : undefined,
+                    },
+                    {
+                        label: "Repetidos unidos",
+                        value: stats.unified,
+                        hint: `${formatPercent(stats.unified, stats.read)} dos lidos`,
+                    },
+                ]}
+            />
 
-            <div className="grid-charts">
-                <Panel title="Registros válidos x pendências">
-                    <DonutChart
-                        centerLabel="registros"
-                        slices={[
-                            {
-                                label: "Válidos",
-                                value: stats.valid,
-                                color: "#2563EB",
-                            },
-                            {
-                                label: "Pendências",
-                                value: stats.pending,
-                                color: "#F59E0B",
-                            },
-                        ]}
-                    />
-                </Panel>
+            <div className="grid-two">
                 <Panel title="Pendências por motivo">
-                    {bars.length > 0 ? (
-                        <BarChart bars={bars} />
+                    {record.report.pendingByReason.length > 0 ? (
+                        <ReasonList reasons={record.report.pendingByReason} />
                     ) : (
-                        <div className="empty-chart">
-                            <Icon name="check" size={28} />
-                            <p>Nenhuma pendência nessa execução.</p>
-                        </div>
+                        <p className="muted">
+                            Nenhuma pendência nessa execução.
+                        </p>
                     )}
                 </Panel>
-            </div>
-
-            <Panel
-                title="Evolução das pendências nas últimas exportações"
-                className="evolution"
-            >
-                {chartRuns.length >= 2 ? (
-                    <div className="evolution-body">
+                <Panel
+                    title="Pendências nas últimas exportações"
+                    subtitle={trend ?? undefined}
+                >
+                    {chartRuns.length >= 2 ? (
                         <LineChart
                             points={chartRuns.map((run) => ({
                                 label: formatShortDate(run.startedAt),
                                 value: run.report?.pendingRows ?? 0,
                             }))}
                         />
-                        {trend !== undefined && (
-                            <TrendBox trend={trend} runs={chartRuns.length} />
-                        )}
-                    </div>
-                ) : (
-                    <div className="empty-chart">
-                        <Icon name="trendDown" size={28} />
-                        <p>
-                            Depois de duas exportações o gráfico aparece aqui.
+                    ) : (
+                        <p className="muted">
+                            O gráfico aparece depois de duas exportações.
                         </p>
-                    </div>
-                )}
-            </Panel>
+                    )}
+                </Panel>
+            </div>
 
             <Panel
                 title="Últimas execuções"
-                subtitle="O resumo das vezes que você rodou por aqui."
                 action={
                     <button
                         type="button"
                         className="link"
                         onClick={() => onNavigate("historico")}
                     >
-                        Ver histórico
-                        <Icon name="arrowRight" size={16} />
+                        Ver histórico completo
                     </button>
                 }
             >
-                <ul className="recent-runs">
-                    {recent.map((run) => (
-                        <li key={run.id}>
-                            <span className="recent-check">
-                                <Icon
-                                    name="check"
-                                    size={16}
-                                    strokeWidth={2.5}
-                                />
-                            </span>
-                            <div>
-                                <strong>
-                                    {formatFullDate(run.startedAt)} •{" "}
-                                    {formatTime(run.startedAt)}
-                                    {run.dryRun && (
-                                        <span className="tag">prévia</span>
-                                    )}
-                                </strong>
-                                <span className="muted small">
-                                    {run.report
-                                        ? `${formatNumber(statsOf(run.report).valid)} válidos • ${formatNumber(run.report.pendingRows)} pendências`
-                                        : ""}
-                                </span>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                <div className="table-wrap">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Tipo</th>
+                                <th className="number">Lidos</th>
+                                <th className="number">No resultado</th>
+                                <th className="number">Pendências</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {recent.map((run) => (
+                                <tr key={run.id}>
+                                    <td>
+                                        {formatFullDate(run.startedAt)} às{" "}
+                                        {formatTime(run.startedAt)}
+                                    </td>
+                                    <td>
+                                        {run.dryRun ? "Prévia" : "Exportação"}
+                                    </td>
+                                    <td className="number">
+                                        {run.report
+                                            ? formatNumber(run.report.rowsRead)
+                                            : "-"}
+                                    </td>
+                                    <td className="number">
+                                        {run.report
+                                            ? formatNumber(run.report.rowsOut)
+                                            : "-"}
+                                    </td>
+                                    <td className="number">
+                                        {run.report
+                                            ? formatNumber(
+                                                  run.report.pendingRows,
+                                              )
+                                            : "-"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </Panel>
         </>
-    );
-}
-
-function TrendBox({ trend, runs }: { trend: number; runs: number }) {
-    const down = trend <= 0;
-    const percent = `${trend > 0 ? "+" : ""}${formatPercent(trend * 100, 100)}`;
-    return (
-        <aside className={down ? "trend trend-good" : "trend trend-bad"}>
-            <div className="trend-head">
-                <span className="trend-icon">
-                    <Icon name={down ? "check" : "alert"} strokeWidth={2.5} />
-                </span>
-                <div>
-                    <strong>
-                        {down ? "Tendência de queda" : "As pendências subiram"}
-                    </strong>
-                    <p className="muted small">
-                        Comparando a primeira e a última das {runs} exportações
-                        do gráfico.
-                    </p>
-                </div>
-            </div>
-            <div className="trend-number">
-                <Icon name={down ? "trendDown" : "trendUp"} />
-                <div>
-                    <strong>{percent}</strong>
-                    <span className="small">em relação à primeira</span>
-                </div>
-            </div>
-        </aside>
     );
 }
