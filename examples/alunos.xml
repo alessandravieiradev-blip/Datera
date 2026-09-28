@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<escola>
+  <alunos>
+    <aluno matricula="2024-0042">
+      <nome>Lia Martins</nome>
+      <email>lia@email.com</email>
+      <plano>mensal</plano>
+      <instrumentos>
+        <instrumento>violão</instrumento>
+        <instrumento>ukulele</instrumento>
+      </instrumentos>
+      <endereco><cidade>Pelotas</cidade></endereco>
+    </aluno>
+    <aluno matricula="20240042">
+      <nome>Lia M.</nome>
+      <email> LIA@email.com</email>
+      <plano>Mensal</plano>
+      <instrumentos>
+        <instrumento>piano</instrumento>
+      </instrumentos>
+      <endereco><cidade>Pelotas</cidade></endereco>
+    </aluno>
+    <aluno matricula="2024-0051">
+      <nome>Theo Souza</nome>
+      <email>theo@email.com</email>
+      <plano>anual</plano>
+      <instrumentos>
+        <instrumento>bateria</instrumento>
+      </instrumentos>
+      <endereco><cidade>Rio Grande</cidade></endereco>
+    </aluno>
+    <aluno matricula="2024-0060">
+      <nome>Nina Rocha</nome>
+      <email>nina.email.com</email>
+      <plano>trimestral</plano>
+      <instrumentos>
+        <instrumento>piano</instrumento>
+      </instrumentos>
+      <endereco><cidade>Pelotas</cidade></endereco>
+    </aluno>
+    <aluno matricula="">
+      <nome>Caio Lima</nome>
+      <email>caio@email.com</email>
+      <plano>mensal</plano>
+      <instrumentos>
+        <instrumento>voz</instrumento>
+      </instrumentos>
+      <endereco><cidade>Canguçu</cidade></endereco>
+    </aluno>
+    <aluno matricula="2024-0077">
+      <nome>Duda Alves</nome>
+      <email>duda@email.com</email>
+      <plano>semanal</plano>
+      <instrumentos>
+        <instrumento>flauta</instrumento>
+        <instrumento>voz</instrumento>
+      </instrumentos>
+      <endereco><cidade>Pelotas</cidade></endereco>
+    </aluno>
+    <aluno matricula="2024-0077">
+      <nome>Duda Alves</nome>
+      <email>duda@email.com</email>
+      <plano>mensal</plano>
+      <instrumentos>
+        <instrumento>voz</instrumento>
+        <instrumento>violino</instrumento>
+      </instrumentos>
+      <endereco><cidade/></endereco>
+    </aluno>
+  </alunos>
+</escola>

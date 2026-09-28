@@ -8,7 +8,7 @@
 
 # Fontes e destinos
 
-O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, Google Sheets, Excel, CSV e JSON e escrever no Google Sheets, no Excel, em CSV e em JSON, misturando do jeito que quiser.
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, Google Sheets, Excel, CSV, JSON e XML e escrever no Google Sheets, no Excel, em CSV, em JSON e em XML, misturando do jeito que quiser.
 
 ```json
 {
@@ -30,6 +30,7 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 | `mysql`  | `host`, `port`, `user`, `password`, `database`, `table` | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                                   |
 | `csv`    | `path`, `delimiter?`, `encoding?`                       | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                                  |
 | `json`   | `path`, `recordsPath?`                                  | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"`                   |
+| `xml`    | `path`, `recordsPath?`                                  | Cada registro vira uma linha. O `recordsPath` começa pelo elemento principal, tipo `"escola.alunos.aluno"`. Veja [XML](#xml)                 |
 | `excel`  | `path`, `sheet?`                                        | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                                                |
 | `sheets` | `spreadsheetId`, `sheet?`, `credentialsPath?`           | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Sem `credentialsPath`, usa o mesmo das outras configs                                |
 | `custom` | `adapter`, `options?`                                   | Um adapter seu, carregado pelo `adapterModules`. Veja [E se o meu formato não tá aqui?](fontes-e-destinos.md#e-se-o-meu-formato-não-tá-aqui) |
@@ -84,6 +85,7 @@ fica assim:
 | `sheets` | `spreadsheetId`, `credentialsPath`, `sheet?` | outra aba na mesma planilha (a principal é a primeira aba, ou a que você colocar em `sheet`)     |
 | `csv`    | `path`, `delimiter?`, `bom?`                 | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
 | `json`   | `path`                                       | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
+| `xml`    | `path`, `root?`, `record?`                   | outro arquivo do lado: `resultado.xml` → `resultado.pendencias.xml`                              |
 | `excel`  | `path`, `sheet?`                             | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
 | `custom` | `adapter`, `options?`                        | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                |
 
@@ -103,6 +105,73 @@ Sobre o Excel, umas coisas que acontecem por baixo:
 - linha totalmente vazia é pulada
 - na saída o arquivo é recriado toda vez que roda, então não guarda coisa sua dentro dele. O cabeçalho sai em negrito e fixo, e a largura das colunas se ajusta sozinha
 - o Excel não aceita alguns caracteres em nome de aba (tipo `/` e `:`) nem nome com mais de 31 letras, então ele arruma isso sozinho
+
+## XML
+
+Muito sistema antigo (e nota fiscal, e exportação de ERP) só sabe falar XML, então ele lê e escreve XML também. As regras são as mesmas do JSON, pra ficar fácil de adivinhar o resultado.
+
+Esse arquivo, com `"recordsPath": "escola.alunos.aluno"`:
+
+```xml
+<escola>
+  <alunos>
+    <aluno matricula="2024-0042">
+      <nome>Lia Martins</nome>
+      <email>lia@email.com</email>
+      <plano>Mensal</plano>
+      <instrumentos>
+        <instrumento>violão</instrumento>
+        <instrumento>ukulele</instrumento>
+      </instrumentos>
+      <endereco><cidade>Pelotas</cidade></endereco>
+    </aluno>
+  </alunos>
+</escola>
+```
+
+fica assim:
+
+| matricula | nome        | email         | plano  | instrumentos.instrumento | endereco.cidade |
+| --------- | ----------- | ------------- | ------ | ------------------------ | --------------- |
+| 2024-0042 | Lia Martins | lia@email.com | Mensal | violão, ukulele          | Pelotas         |
+
+O que acontece por baixo:
+
+- cada `<aluno>` vira uma linha
+- atributo vira coluna com o próprio nome (`matricula`)
+- elemento dentro de elemento vira coluna com ponto (`endereco.cidade`), igual no JSON
+- elemento repetido vira um valor só, separado por vírgula. Se quiser espalhar em colunas, o `distribute` do merge resolve
+- elemento vazio (`<cidade/>`) vira vazio de verdade, então o `required` e o `fillEmpty` funcionam
+- `&amp;`, `&lt;` e blocos `<![CDATA[...]]>` viram o texto normal
+- sem `recordsPath`, ele usa os elementos que estão logo abaixo do principal (tipo `<alunos><aluno/><aluno/></alunos>`)
+
+Se o XML estiver quebrado (uma tag que não fecha, um `&` solto), ele avisa com o número da linha.
+
+Arquivo com `<!DOCTYPE>` ele não lê. É por ali que entram os golpes mais comuns com XML, que fazem o programa abrir outros arquivos do computador ou endereços da internet. Os arquivos de dados normais não usam isso, então se aparecer, dá pra apagar essa parte.
+
+Na saída, `root` é o elemento de fora e `record` o de cada linha. Sem eles, fica `<registros>` e `<registro>`:
+
+```json
+"destination": {
+    "type": "xml",
+    "path": "./saida/resultado.xml",
+    "root": "alunos",
+    "record": "aluno"
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<alunos>
+  <aluno>
+    <matricula>2024-0042</matricula>
+    <nome>Lia Martins</nome>
+    <endereco.cidade>Pelotas</endereco.cidade>
+  </aluno>
+</alunos>
+```
+
+Cada coluna vira um elemento, e coluna vazia vira elemento vazio. Nome de coluna com espaço ou que começa com número não vale em XML, então ele troca o que não pode por `_`: `instrumento 1` vira `<instrumento_1>` e `1a aula` vira `<_1a_aula>`. Quando isso acontece, aparece um aviso no log. O arquivo sai em UTF-8, e o que ele escreve ele consegue ler de volta igualzinho.
 
 ## E a config antiga?
 

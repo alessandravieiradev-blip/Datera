@@ -15,7 +15,7 @@
 
 ## O que é
 
-O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um MySQL, do Google Sheets, de uma planilha do Excel, de um CSV ou de um JSON, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV ou num JSON.
+O Datera é um ETL que eu fiz em TypeScript. Ele lê dados de um MySQL, do Google Sheets, de uma planilha do Excel, de um CSV, de um JSON ou de um XML, arruma o que dá e escreve tudo no Google Sheets, no Excel, num CSV, num JSON ou num XML.
 
 Ele começou bem simples, era só pra copiar uma tabela do MySQL pra uma planilha. Só que aí eu fui vendo que dado de verdade vem uma bagunça: a mesma pessoa cadastrada duas vezes, e-mail com maiúscula num lugar e minúscula no outro, campo vazio, informação espalhada em várias colunas. Então fui colocando coisa nova até conseguir resolver quase tudo mexendo só no `config.json`.
 
@@ -41,11 +41,11 @@ fonte ──► prepara ──► separa o que tem problema ──► tira ou ju
                                └──► pendências (com o motivo de cada uma)
 ```
 
-1. **Fonte:** lê de onde os dados estão (MySQL, Google Sheets, Excel, CSV ou JSON).
+1. **Fonte:** lê de onde os dados estão (MySQL, Google Sheets, Excel, CSV, JSON ou XML).
 2. **Prepara:** preenche célula vazia e junta colunas, se você pedir.
 3. **Pendências:** as linhas que quebram alguma regra (e-mail inválido, campo vazio, valor fora da lista...) vão pra uma aba ou arquivo à parte.
 4. **Repetidos:** deixa como está, tira as linhas repetidas ou junta as linhas da mesma pessoa sem perder nada.
-5. **Destino:** escreve o resultado (Google Sheets, Excel, CSV ou JSON).
+5. **Destino:** escreve o resultado (Google Sheets, Excel, CSV, JSON ou XML).
 
 Hoje ele consegue:
 
@@ -89,7 +89,7 @@ O que eu quero fazer, nessa ordem. Cada item é uma issue, os riscados já foram
 
 **2. Formatos e bancos de dados**
 
-- [#2](https://github.com/alessandravieiradev-blip/datera/issues/2) ler e escrever XML
+- [#2](https://github.com/alessandravieiradev-blip/datera/issues/2) ~~ler e escrever XML~~ (feito)
 - [#3](https://github.com/alessandravieiradev-blip/datera/issues/3) ler de PostgreSQL
 - [#4](https://github.com/alessandravieiradev-blip/datera/issues/4) ler de SQL Server
 - [#5](https://github.com/alessandravieiradev-blip/datera/issues/5) ler de SQLite

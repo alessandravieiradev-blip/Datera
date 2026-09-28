@@ -39,6 +39,7 @@ src/
     sheets/               # client.ts (leitura e escrita em abas), sheetsSource.ts e sheetsSink.ts
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
     json/                 # jsonSource.ts e jsonSink.ts
+    xml/                  # xmlParse.ts (leitor de XML), xmlSource.ts e xmlSink.ts
     excel/                # excelSource.ts, excelSink.ts, excelCell.ts (converte o valor da célula) e workbook.ts
     custom/               # registry.ts e loader.ts dos adapters que vêm de arquivo seu
   filters/
@@ -66,7 +67,7 @@ apps/dev/                 # o Datera Dev, que reaproveita o núcleo do apps/desk
   src/renderer/           # editor, paleta de comandos e saída
   IDENTIDADE.md           # a identidade visual da versão dev
 docs/                     # os guias (gestores, devs e referência) e as imagens do README
-examples/                 # CSV e config de exemplo (npm run example)
+examples/                 # CSV, XML e as configs de exemplo (npm run example)
 local/                    # (ignorada pelo git) seus normalizadores e testes pessoais
 scripts/                  # scripts pra testar na mão (banco, config, sheets)
 .github/workflows/        # CI (type-check e testes a cada push)

@@ -1,7 +1,7 @@
 {
     "name": "datera",
     "version": "1.0.0",
-    "description": "Limpa, unifica e organiza dados bagunçados de MySQL, CSV e JSON, e exporta pro Google Sheets, CSV ou JSON.",
+    "description": "Limpa, unifica e organiza dados bagunçados de MySQL, CSV, JSON e XML, e exporta pro Google Sheets, CSV, JSON ou XML.",
     "main": "index.js",
     "workspaces": [
         "apps/*"
@@ -11,6 +11,7 @@
         "validate": "tsx src/main.ts validate",
         "example": "tsx src/main.ts --config examples/config.csv.json",
         "example:excel": "tsx src/main.ts --config examples/config.excel.json",
+        "example:xml": "tsx src/main.ts --config examples/config.xml.json",
         "desktop": "npm run dev -w apps/desktop",
         "desktop:dev": "npm run dev -w apps/dev",
         "test": "vitest",

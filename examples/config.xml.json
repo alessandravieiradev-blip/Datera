@@ -1,0 +1,52 @@
+{
+    "source": {
+        "type": "xml",
+        "path": "./alunos.xml",
+        "recordsPath": "escola.alunos.aluno"
+    },
+    "destination": {
+        "type": "xml",
+        "path": "./saida/resultado.xml",
+        "root": "alunos",
+        "record": "aluno"
+    },
+    "mode": "merge",
+    "fillEmpty": [{ "column": "endereco.cidade", "default": "não informada" }],
+    "validation": {
+        "rules": [
+            {
+                "column": "matricula",
+                "rule": "required",
+                "message": "sem matrícula"
+            },
+            {
+                "column": "email",
+                "rule": "pattern",
+                "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+                "message": "e-mail fora do formato"
+            },
+            {
+                "column": "plano",
+                "rule": "oneOf",
+                "values": ["mensal", "trimestral", "anual"],
+                "ignoreCase": true
+            }
+        ]
+    },
+    "mergeKeyColumn": "matricula",
+    "mergeKeyNormalizer": "digitsOnly",
+    "mergeColumns": [
+        { "column": "nome", "strategy": "extra-column" },
+        {
+            "column": "instrumentos.instrumento",
+            "strategy": "concat",
+            "separator": ", "
+        },
+        { "column": "plano", "strategy": "overwrite" },
+        {
+            "column": "endereco.cidade",
+            "strategy": "concat",
+            "separator": " | "
+        }
+    ]
+}

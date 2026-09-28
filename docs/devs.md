@@ -45,7 +45,7 @@ E o `resultado.pendencias.csv` fica com o que precisa de alguém dar uma olhada:
 
 Quem faz tudo isso é a `examples/config.csv.json`. Vale abrir ela do lado dos arquivos. Dá pra ver que `2024-0042` e `20240042` viraram a mesma aluna por causa do normalizador `digitsOnly`, que os instrumentos foram espalhados em colunas pelo `distribute` e que a cidade vazia virou `não informada` por causa do `fillEmpty`.
 
-Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coisa mas gera um `examples/saida/resultado.xlsx`, com os alunos numa aba e as pendências em outra.
+Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coisa mas gera um `examples/saida/resultado.xlsx`, com os alunos numa aba e as pendências em outra. E pra ver com XML, roda `npm run example:xml`, que lê o `examples/alunos.xml` (os mesmos alunos, só que em XML) e gera um `examples/saida/resultado.xml`.
 
 ## Instalação
 
@@ -199,6 +199,7 @@ Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch
 | ------------------------- | ------------------------------------------------------------------ |
 | `npm run example`         | Roda o exemplo com CSV, sem precisar de banco nem Google           |
 | `npm run example:excel`   | O mesmo exemplo, mas gerando um arquivo do Excel                   |
+| `npm run example:xml`     | O mesmo exemplo, lendo e gerando XML                               |
 | `npm test`                | Testes unitários (Vitest), sem precisar de banco ou planilha reais |
 | `npm run test:config`     | Carrega e valida o `config.json`                                   |
 | `npm run validate`        | Confere a config e os arquivos citados, sem rodar nada             |
