@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      TAG: ${{ github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Confere a versão
+        run: npx tsx scripts/releaseVersion.ts "$TAG"
+
+      - name: Testes
+        run: npm test
+
+      - name: Instalador do Datera
+        run: npm run dist -w apps/desktop
+
+      - name: Instalador do Datera Dev
+        run: npm run dist -w apps/dev
+
+      - name: Publica na aba Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          extra=()
+          if [[ "$TAG" == *-* ]]; then extra+=(--prerelease); fi
+          gh release create "$TAG" \
+            apps/desktop/release/*.exe \
+            apps/dev/release/*.exe \
+            --title "Datera $TAG" \
+            --notes-file .github/release-notes.md \
+            --generate-notes \
+            "${extra[@]}"

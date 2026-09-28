@@ -25,12 +25,28 @@ function appInfo(): AppInfo {
     return packageJson.datera;
 }
 
-function configFor(info: AppInfo): Configuration {
+function outputDir(): string {
+    const main = "release";
+    try {
+        fs.rmSync(path.join(appDir, main), { recursive: true, force: true });
+        return main;
+    } catch (error) {
+        const code = (error as { code?: unknown }).code;
+        if (code !== "EBUSY" && code !== "EPERM") throw error;
+        const fallback = `release-${Date.now()}`;
+        console.warn(
+            `A pasta "${main}" está travada por outro programa, então o instalador vai sair em "${fallback}". Quando ela destravar, dá pra apagar as duas.`,
+        );
+        return fallback;
+    }
+}
+
+function configFor(info: AppInfo, output: string): Configuration {
     return {
         appId: info.appId,
         productName: info.productName,
         electronVersion,
-        directories: { output: "release", buildResources: "resources" },
+        directories: { output, buildResources: "resources" },
         files: ["out/**/*", "!out/**/*.map", "package.json"],
         asar: true,
         npmRebuild: false,
@@ -62,7 +78,8 @@ async function main(): Promise<void> {
     await build({
         projectDir: appDir,
         targets: Platform.WINDOWS.createTarget("nsis", Arch.x64),
-        config: configFor(appInfo()),
+        config: configFor(appInfo(), outputDir()),
+        publish: "never",
     });
 }
 
