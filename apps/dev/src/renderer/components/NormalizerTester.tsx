@@ -57,6 +57,9 @@ export function NormalizerTester({ names, onTest }: NormalizerTesterProps) {
                     className="field mono"
                     list="normalizer-names"
                     placeholder="nome do normalizador"
+                    aria-label="Nome do normalizador"
+                    spellCheck={false}
+                    autoComplete="off"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                 />

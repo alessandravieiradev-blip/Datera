@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useMemo, useRef } from "react";
+import { KeyboardEvent, useEffect, useId, useMemo, useRef } from "react";
 import { Language, tokensByLine } from "../lib/highlight";
 
 export interface EditorApi {
@@ -29,6 +29,8 @@ export function CodeEditor({
     const area = useRef<HTMLTextAreaElement>(null);
     const layer = useRef<HTMLPreElement>(null);
     const gutter = useRef<HTMLDivElement>(null);
+    const tabLeaves = useRef(false);
+    const hintId = useId();
     const lines = useMemo(
         () => tokensByLine(value, language),
         [value, language],
@@ -86,6 +88,15 @@ export function CodeEditor({
 
     const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
         const element = event.currentTarget;
+        if (event.key === "Escape") {
+            tabLeaves.current = true;
+            return;
+        }
+        if (event.key === "Tab" && tabLeaves.current) {
+            tabLeaves.current = false;
+            return;
+        }
+        tabLeaves.current = false;
         if (event.key === "Tab" && !event.ctrlKey) {
             event.preventDefault();
             if (event.shiftKey) {
@@ -173,10 +184,18 @@ export function CodeEditor({
                     autoComplete="off"
                     wrap="off"
                     aria-label={label}
+                    aria-describedby={hintId}
                     onChange={(event) => onChange(event.target.value)}
                     onScroll={syncScroll}
                     onKeyDown={onKeyDown}
+                    onBlur={() => {
+                        tabLeaves.current = false;
+                    }}
                 />
+                <span id={hintId} className="sr-only">
+                    Tab insere recuo. Para sair do editor, aperte Esc e depois
+                    Tab.
+                </span>
             </div>
         </div>
     );

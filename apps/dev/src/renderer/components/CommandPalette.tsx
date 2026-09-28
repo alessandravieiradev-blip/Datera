@@ -1,5 +1,6 @@
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { matches, score } from "../lib/fuzzy";
+import { useFocusTrap } from "../../../../desktop/src/renderer/lib/focusTrap";
 
 export interface PaletteCommand {
     id: string;
@@ -20,6 +21,9 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
     const [active, setActive] = useState(0);
     const input = useRef<HTMLInputElement>(null);
     const list = useRef<HTMLUListElement>(null);
+    const dialog = useRef<HTMLDivElement>(null);
+
+    useFocusTrap(dialog, () => input.current);
 
     const visible = useMemo(
         () =>
@@ -39,7 +43,6 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
         [commands, query],
     );
 
-    useEffect(() => input.current?.focus(), []);
     useEffect(() => setActive(0), [query]);
     useEffect(() => {
         list.current
@@ -77,6 +80,7 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
             }
         >
             <div
+                ref={dialog}
                 className="palette"
                 role="dialog"
                 aria-modal="true"
@@ -85,7 +89,13 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
                 <input
                     ref={input}
                     className="palette-input"
-                    placeholder="Digite um comando..."
+                    placeholder="Digite um comando…"
+                    aria-label="Buscar comando"
+                    aria-activedescendant={
+                        visible[active] ? `comando-${active}` : undefined
+                    }
+                    spellCheck={false}
+                    autoComplete="off"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     onKeyDown={onKeyDown}
@@ -107,6 +117,7 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
                     {visible.map((command, index) => (
                         <li
                             key={command.id}
+                            id={`comando-${index}`}
                             role="option"
                             aria-selected={index === active}
                             className={index === active ? "active" : ""}

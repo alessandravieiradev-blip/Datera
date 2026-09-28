@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    KeyboardEvent as ReactKeyboardEvent,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import icon from "../../resources/icon.png";
 import { CodeEditor, EditorApi } from "./components/CodeEditor";
 import { CommandPalette, PaletteCommand } from "./components/CommandPalette";
@@ -6,6 +13,7 @@ import { DataTable } from "./components/DataTable";
 import { NormalizerTester } from "./components/NormalizerTester";
 import { checkConfig, formatJson, Problem } from "./lib/json";
 import { NEW_CONFIG, SNIPPETS } from "./lib/snippets";
+import { useFocusTrap } from "../../../desktop/src/renderer/lib/focusTrap";
 import type {
     LogEntry,
     RunRecord,
@@ -38,6 +46,16 @@ const SOURCE_NAMES: Record<string, string> = {
     sheets: "sheets",
     custom: "custom",
 };
+
+const numberFormat = new Intl.NumberFormat("pt-BR");
+
+function num(value: number): string {
+    return numberFormat.format(value);
+}
+
+function plural(count: number, one: string, many: string): string {
+    return `${num(count)} ${count === 1 ? one : many}`;
+}
 
 function baseName(filePath: string): string {
     return filePath.split(/[\\/]/).pop() ?? filePath;
@@ -90,6 +108,20 @@ export function App() {
     );
     const configDirty = configText !== savedConfig;
     const activeModule = modules.find((file) => file.path === activeFile);
+    const anyDirty =
+        configDirty || modules.some((file) => file.text !== file.saved);
+    const dirtyRef = useRef(anyDirty);
+    dirtyRef.current = anyDirty;
+
+    useEffect(() => {
+        const onBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (!dirtyRef.current) return;
+            event.preventDefault();
+            event.returnValue = "";
+        };
+        window.addEventListener("beforeunload", onBeforeUnload);
+        return () => window.removeEventListener("beforeunload", onBeforeUnload);
+    }, []);
 
     const notify = useCallback((text: string) => setToast(text), []);
 
@@ -469,6 +501,19 @@ export function App() {
 
     const report = record?.ok ? record.report : undefined;
 
+    const onTabsKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+        const moves: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
+        const move = moves[event.key];
+        if (move === undefined) return;
+        event.preventDefault();
+        const current = OUTPUT_TABS.findIndex((tab) => tab.id === outputTab);
+        const next = (current + move + OUTPUT_TABS.length) % OUTPUT_TABS.length;
+        const tab = OUTPUT_TABS[next];
+        if (!tab) return;
+        setOutputTab(tab.id);
+        document.getElementById(`aba-${tab.id}`)?.focus();
+    };
+
     return (
         <div className="shell">
             <header className="topbar">
@@ -501,8 +546,7 @@ export function App() {
                         disabled={!configPath || running}
                         onClick={() => void runPipeline(true)}
                     >
-                        {running ? "Rodando..." : "Prévia"}{" "}
-                        <kbd>Ctrl+Enter</kbd>
+                        {running ? "Rodando…" : "Prévia"} <kbd>Ctrl+Enter</kbd>
                     </button>
                 </div>
             </header>
@@ -518,6 +562,9 @@ export function App() {
                         <nav className="tabs" aria-label="Arquivos">
                             <button
                                 type="button"
+                                aria-current={
+                                    activeFile === "config" ? "true" : undefined
+                                }
                                 className={
                                     activeFile === "config"
                                         ? "tab active"
@@ -527,16 +574,26 @@ export function App() {
                             >
                                 {baseName(configPath)}
                                 {configDirty && (
-                                    <span
-                                        className="dirty"
-                                        aria-label="não salvo"
-                                    />
+                                    <>
+                                        <span
+                                            className="dirty"
+                                            aria-hidden="true"
+                                        />
+                                        <span className="sr-only">
+                                            (não salvo)
+                                        </span>
+                                    </>
                                 )}
                             </button>
                             {modules.map((file) => (
                                 <button
                                     key={file.path}
                                     type="button"
+                                    aria-current={
+                                        activeFile === file.path
+                                            ? "true"
+                                            : undefined
+                                    }
                                     className={
                                         activeFile === file.path
                                             ? "tab active"
@@ -546,10 +603,15 @@ export function App() {
                                 >
                                     {baseName(file.path)}
                                     {file.text !== file.saved && (
-                                        <span
-                                            className="dirty"
-                                            aria-label="não salvo"
-                                        />
+                                        <>
+                                            <span
+                                                className="dirty"
+                                                aria-hidden="true"
+                                            />
+                                            <span className="sr-only">
+                                                (não salvo)
+                                            </span>
+                                        </>
                                     )}
                                 </button>
                             ))}
@@ -607,13 +669,21 @@ export function App() {
                     </section>
 
                     <section className="pane">
-                        <nav className="tabs" aria-label="Saída" role="tablist">
+                        <div
+                            className="tabs"
+                            aria-label="Saída"
+                            role="tablist"
+                            onKeyDown={onTabsKey}
+                        >
                             {OUTPUT_TABS.map((tab) => (
                                 <button
                                     key={tab.id}
+                                    id={`aba-${tab.id}`}
                                     type="button"
                                     role="tab"
                                     aria-selected={outputTab === tab.id}
+                                    aria-controls="painel-saida"
+                                    tabIndex={outputTab === tab.id ? 0 : -1}
                                     className={
                                         outputTab === tab.id
                                             ? "tab active"
@@ -626,20 +696,26 @@ export function App() {
                                     {tab.id === "problemas" &&
                                         check.problems.length > 0 && (
                                             <span className="count err">
-                                                {check.problems.length}
+                                                {num(check.problems.length)}
                                             </span>
                                         )}
                                     {tab.id === "pendencias" &&
                                         report &&
                                         report.pendingRows > 0 && (
                                             <span className="count warn">
-                                                {report.pendingRows}
+                                                {num(report.pendingRows)}
                                             </span>
                                         )}
                                 </button>
                             ))}
-                        </nav>
-                        <div className="output">
+                        </div>
+                        <div
+                            className="output"
+                            id="painel-saida"
+                            role="tabpanel"
+                            aria-labelledby={`aba-${outputTab}`}
+                            tabIndex={0}
+                        >
                             {outputTab === "resultado" && (
                                 <ResultView record={record} />
                             )}
@@ -671,7 +747,11 @@ export function App() {
                 <span className={check.problems.length > 0 ? "err" : "ok"}>
                     {configPath
                         ? check.problems.length > 0
-                            ? `${check.problems.length} problema(s)`
+                            ? plural(
+                                  check.problems.length,
+                                  "problema",
+                                  "problemas",
+                              )
                             : "config válida"
                         : ""}
                 </span>
@@ -680,8 +760,8 @@ export function App() {
                 {report && (
                     <span>
                         {report.dryRun ? "prévia" : "exportado"} ·{" "}
-                        {report.rowsRead} lidas · {report.rowsOut} no resultado
-                        · {report.pendingRows} pendências ·{" "}
+                        {num(report.rowsRead)} lidas · {num(report.rowsOut)} no
+                        resultado · {num(report.pendingRows)} pendências ·{" "}
                         {ms(report.durationMs)}
                     </span>
                 )}
@@ -701,11 +781,9 @@ export function App() {
                     onConfirm={() => void confirmExport()}
                 />
             )}
-            {toast && (
-                <div className="toast" role="status">
-                    {toast}
-                </div>
-            )}
+            <div className="toast-region" role="status" aria-live="polite">
+                {toast && <div className="toast">{toast}</div>}
+            </div>
         </div>
     );
 }
@@ -756,6 +834,10 @@ function Welcome({ onOpen, onNew }: { onOpen: () => void; onNew: () => void }) {
                         <dt>Ctrl+1 a 4</dt>
                         <dd>abas da saída</dd>
                     </div>
+                    <div>
+                        <dt>Esc, Tab</dt>
+                        <dd>sair do editor</dd>
+                    </div>
                 </dl>
             </div>
         </main>
@@ -780,8 +862,8 @@ function ResultView({ record }: { record: RunRecord | null }) {
     return (
         <>
             <p className="caption mono">
-                mostrando {record.report.preview.length} de{" "}
-                {record.report.rowsOut} linhas
+                mostrando {num(record.report.preview.length)} de{" "}
+                {num(record.report.rowsOut)} linhas
             </p>
             <DataTable rows={record.report.preview} />
         </>
@@ -805,7 +887,7 @@ function PendingView({ record }: { record: RunRecord | null }) {
                     {report.pendingByReason.map((item) => (
                         <tr key={item.reason}>
                             <td>{item.reason}</td>
-                            <td className="num">{item.count}</td>
+                            <td className="num">{num(item.count)}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -813,8 +895,8 @@ function PendingView({ record }: { record: RunRecord | null }) {
             {report.pendingPreview.length > 0 && (
                 <>
                     <p className="caption mono">
-                        mostrando {report.pendingPreview.length} de{" "}
-                        {report.pendingRows} pendências
+                        mostrando {num(report.pendingPreview.length)} de{" "}
+                        {num(report.pendingRows)} pendências
                     </p>
                     <DataTable
                         rows={report.pendingPreview}
@@ -865,17 +947,17 @@ function LogView({
                         {report.steps.map((step) => (
                             <tr key={step.name}>
                                 <td>{step.name}</td>
-                                <td className="num">{step.rowsIn}</td>
-                                <td className="num">{step.rowsOut}</td>
-                                <td className="num">{step.pending}</td>
+                                <td className="num">{num(step.rowsIn)}</td>
+                                <td className="num">{num(step.rowsOut)}</td>
+                                <td className="num">{num(step.pending)}</td>
                                 <td className="num">{ms(step.durationMs)}</td>
                             </tr>
                         ))}
                         <tr className="total">
                             <td>total</td>
-                            <td className="num">{report.rowsRead}</td>
-                            <td className="num">{report.rowsOut}</td>
-                            <td className="num">{report.pendingRows}</td>
+                            <td className="num">{num(report.rowsRead)}</td>
+                            <td className="num">{num(report.rowsOut)}</td>
+                            <td className="num">{num(report.pendingRows)}</td>
                             <td className="num">{ms(report.durationMs)}</td>
                         </tr>
                     </tbody>
@@ -923,13 +1005,15 @@ function ConfirmExport({
     onConfirm: () => void;
 }) {
     const confirmButton = useRef<HTMLButtonElement>(null);
-    useEffect(() => confirmButton.current?.focus(), []);
+    const dialog = useRef<HTMLDivElement>(null);
+    useFocusTrap(dialog, () => confirmButton.current);
     return (
         <div
             className="palette-overlay"
             onKeyDown={(event) => event.key === "Escape" && onCancel()}
         >
             <div
+                ref={dialog}
                 className="confirm"
                 role="dialog"
                 aria-modal="true"
