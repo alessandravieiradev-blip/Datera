@@ -8,6 +8,8 @@
 
 Aqui fica tudo pra quem vai rodar pelo terminal, montar a config na mão, usar o Datera Dev ou chamar o Datera de dentro de outro código.
 
+Se você só quer usar o Datera, sem mexer no código dele, não precisa clonar nada: é `npm install -g datera` e seguir o guia de [Comandos e API](api.md). O resto deste guia é pra quem clonou o repositório.
+
 ## Sumário
 
 - [Teste em 1 minuto](#teste-em-1-minuto)
@@ -20,7 +22,7 @@ Aqui fica tudo pra quem vai rodar pelo terminal, montar a config na mão, usar o
 
 ## Teste em 1 minuto
 
-Pra testar não precisa de banco nem de conta no Google. Deixei um CSV de exemplo na pasta `examples/`, com alunos de uma escola de música inventada (tem cadastro repetido, e-mail errado e um plano que não existe):
+Pra testar não precisa de banco nem de conta no Google. Com o repositório clonado, deixei um CSV de exemplo na pasta `examples/`, com alunos de uma escola de música inventada (tem cadastro repetido, e-mail errado e um plano que não existe):
 
 ```bash
 npm install
@@ -49,11 +51,13 @@ Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coi
 
 ## Instalação
 
+Dentro da pasta do repositório:
+
 ```bash
 npm install
 ```
 
-Depois é configurar. Os campos todos estão em [Configuração](configuracao.md).
+Ele instala tudo, inclusive os pacotes de Excel, Parquet e dos bancos, porque os apps e os testes usam todos. Depois é configurar. Os campos todos estão em [Configuração](configuracao.md).
 
 ## Rodando
 
@@ -115,14 +119,20 @@ Uma coisa importante: toda vez que roda, ele limpa a aba antes de escrever (a pr
 
 ### O comando `datera`
 
-Dá pra instalar o Datera como um comando do sistema, pra rodar de qualquer pasta sem `npm start` e sem o `tsx`:
+O Datera também é um comando do sistema, pra rodar de qualquer pasta sem `npm start` e sem o `tsx`. A versão publicada vem do npm:
+
+```bash
+npm install -g datera
+```
+
+Se você está mexendo no código e quer que o comando use as suas mudanças, instala a partir desta pasta:
 
 ```bash
 npm run build
 npm link
 ```
 
-O `build` compila o TypeScript pra JavaScript na pasta `dist/`, e o `npm link` registra o comando `datera` no seu computador apontando pra essa pasta. Depois disso, em qualquer terminal:
+O `build` compila o TypeScript pra JavaScript na pasta `dist/`, e o `npm link` faz o comando `datera` apontar pra essa pasta em vez da versão do npm. Depois disso, em qualquer terminal:
 
 ```bash
 datera run ./escola/config.json
@@ -133,7 +143,7 @@ datera --help
 
 O `run` pode ficar de fora (`datera ./escola/config.json` faz a mesma coisa), e sem caminho nenhum ele usa a `config.json` da pasta onde você está. O `--mode` e o `--dry-run` funcionam igual ao `npm start`. Ele também lê o `.env` que estiver do lado da config, então dá pra ter uma pasta por projeto, cada uma com a sua config e o seu `.env`.
 
-Quando mudar o código, roda `npm run build` de novo pro comando pegar a mudança. Pra desinstalar, `npm unlink -g datera`.
+Quando mudar o código, roda `npm run build` de novo pro comando pegar a mudança. Pra voltar pra versão do npm, `npm unlink -g datera` e depois `npm install -g datera`.
 
 Além do `run` e do `validate`, ele tem comandos que não precisam de config nenhuma: `convert` (troca o formato de um arquivo), `dedupe` (tira repetidos), `merge` (junta cadastros), `columns` (raio-x das colunas), `preview` (primeiras linhas), `init` (cria uma config pra começar) e `normalize` (testa um normalizador). Estão todos explicados, com exemplos, em [Comandos e API](api.md).
 
@@ -200,9 +210,17 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-Leva uns 10 minutos, e dá pra acompanhar na aba Actions. Se a versão da tag não bater com a dos dois `package.json`, ele para antes de gerar qualquer coisa e explica o que ajustar. Tag com hífen, tipo `v0.2.0-beta.1`, sai marcada como pré-lançamento.
+Leva uns 10 minutos, e dá pra acompanhar na aba Actions. Se a versão da tag não bater com a dos três `package.json`, ele para antes de gerar qualquer coisa e explica o que ajustar. Tag com hífen, tipo `v0.2.0-beta.1`, sai marcada como pré-lançamento.
 
 O texto que aparece no começo de toda release (qual arquivo baixar e o aviso do Windows) fica em `.github/release-notes.md`.
+
+Por último, publica a mesma versão no npm, da pasta do projeto:
+
+```bash
+npm publish
+```
+
+Ele compila e roda os testes antes (por causa do `prepublishOnly`) e pede o código da verificação em duas etapas. Uma versão publicada no npm não pode ser trocada nem reaproveitada, então vale conferir antes com `npm publish --dry-run`.
 
 ## Usando dentro de outro código
 

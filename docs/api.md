@@ -23,15 +23,22 @@ Todos os exemplos usam a escola de música inventada dos outros guias.
 
 ## Instalando
 
-Pra usar os comandos no terminal, dentro da pasta do projeto:
+O Datera está no [npm](https://www.npmjs.com/package/datera). Pra usar os comandos no terminal, de qualquer pasta:
 
 ```bash
-npm install
-npm run build
-npm link
+npm install -g datera
+datera --help
 ```
 
-Depois disso o comando `datera` funciona em qualquer pasta. Quando o pacote estiver no npm, vai ser só `npm install -g datera` pro terminal ou `npm install datera` pra usar no código.
+Pra usar as funções no seu código, dentro do seu projeto:
+
+```bash
+npm install datera
+```
+
+Funciona em TypeScript (os tipos já vêm junto) e em JavaScript, tanto com `import` quanto com `require`. Pra atualizar depois, é o mesmo comando com `@latest` no final, tipo `npm install -g datera@latest`.
+
+Se você está mexendo no código do próprio Datera e quer testar o comando com as suas mudanças, o caminho está no [guia para devs](devs.md#o-comando-datera).
 
 Precisa do Node 22.13 ou mais novo.
 
@@ -208,7 +215,7 @@ Tudo sai do mesmo lugar:
 import { readRows, clean, writeRows } from "datera";
 ```
 
-(Enquanto não está no npm, dentro deste repositório é `from "./src"`.)
+Com `require` é igual: `const { readRows, clean, writeRows } = require("datera")`. Dentro deste repositório, pra testar sem instalar, é `from "./src"`.
 
 Uma linha é sempre um objeto `{ coluna: valor }`, onde o valor é texto, número ou `null`. O tipo se chama `TableRow`.
 

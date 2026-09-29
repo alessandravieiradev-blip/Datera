@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/alessandravieiradev-blip/datera/actions/workflows/ci.yml"><img src="https://github.com/alessandravieiradev-blip/datera/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/datera"><img src="https://img.shields.io/npm/v/datera" alt="Versão no npm"></a>
 </p>
 
 <p align="center">
@@ -49,11 +50,11 @@ Então o Datera funciona assim: as regras ficam num arquivo de configuração (o
 
 Por isso ele tem três jeitos de usar, todos com o mesmo motor e a mesma configuração:
 
-| Jeito          | Pra quem                                      | O que tem                                                                 |
-| -------------- | --------------------------------------------- | ------------------------------------------------------------------------- |
-| **Datera**     | quem cuida dos dados mas não programa         | app com tela, passo a passo, regras em frases, gráficos e histórico       |
-| **Datera Dev** | quem programa                                 | app escuro com editor da config, prévia na hora, log e paleta de comandos |
-| **Terminal**   | quem quer automatizar ou usar em outro código | o comando `datera`, `--dry-run` e a função `runEtl`                       |
+| Jeito                 | Pra quem                                       | O que tem                                                                 |
+| --------------------- | ---------------------------------------------- | ------------------------------------------------------------------------- |
+| **Datera**            | quem cuida dos dados mas não programa          | app com tela, passo a passo, regras em frases, gráficos e histórico       |
+| **Datera Dev**        | quem programa                                  | app escuro com editor da config, prévia na hora, log e paleta de comandos |
+| **Terminal e código** | quem quer automatizar ou usar em outro projeto | o comando `datera` e funções pra usar no código, pelo npm                 |
 
 ## Como funciona
 
@@ -77,6 +78,9 @@ Hoje ele consegue:
 - decidir o que fazer com as linhas que não têm chave, sem elas sumirem nem se misturarem
 - espalhar valores em várias colunas sem jogar nenhum fora
 - ler e escrever em formatos diferentes sem mudar nada das regras
+- converter um arquivo de um formato pra outro, tirar repetidos ou juntar cadastros com um comando só, sem montar config
+- mostrar um raio-x das colunas de um arquivo (quantas vazias, quantos valores diferentes) antes de montar as regras
+- ser usado dentro de outro projeto em JavaScript ou TypeScript, com as mesmas regras da config
 
 ## Escolha o seu caminho
 
@@ -97,6 +101,10 @@ Você quer usar o app com tela: instalar, escolher de onde vêm os dados, montar
 ### Para devs
 
 Você quer rodar pelo terminal, usar o Datera Dev, escrever a config na mão, criar normalizadores ou chamar o Datera de dentro de outro código.
+
+```bash
+npm install -g datera
+```
 
 <a href="docs/devs.md"><img src="https://img.shields.io/badge/Abrir%20o%20guia%20para%20devs-16181D?style=for-the-badge" alt="Abrir o guia para devs"></a>
 <a href="docs/api.md"><img src="https://img.shields.io/badge/Comandos%20e%20API-475569?style=for-the-badge" alt="Comandos e API"></a>
@@ -125,7 +133,7 @@ Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBU
 
 ## Próximos passos
 
-A ideia é chegar num instalador de um clique pra quem não programa e numa biblioteca no npm pra quem programa.
+A ideia é que qualquer pessoa consiga usar o Datera: quem não programa, pelo instalador de um clique, e quem programa, pelo pacote no npm, no terminal ou no código.
 
 O que eu quero fazer fica nas [issues](https://github.com/alessandravieiradev-blip/datera/issues), agrupadas em etapas nos [milestones](https://github.com/alessandravieiradev-blip/datera/milestones). Lá dá pra ver o que já foi feito e o que falta, e tudo se atualiza sozinho conforme eu vou fazendo.
 
