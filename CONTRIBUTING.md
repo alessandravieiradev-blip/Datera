@@ -60,4 +60,6 @@ Se a mudança é algo que quem usa vai perceber (função nova, correção, algo
 2. Faz as mudanças e os commits
 3. Abre um pull request dizendo o que mudou e como testar
 
-Se for algo grande, abre uma issue antes pra gente conversar sobre o jeito de fazer.
+Se for algo grande, abre uma issue antes pra gente conversar sobre o jeito de fazer. Na hora de abrir, o GitHub mostra dois modelos: "Algo deu errado" e "Ideia ou melhoria". E o pull request já vem com uma listinha do que conferir.
+
+Falha de segurança não vai em issue pública: o caminho está no [SECURITY.md](SECURITY.md). E todo mundo que participa segue o [código de conduta](CODE_OF_CONDUCT.md).

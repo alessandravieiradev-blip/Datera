@@ -129,7 +129,7 @@ npm install -g datera
 
 ## Contribuir e licença
 
-Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBUTING.md](CONTRIBUTING.md). O código é aberto, sob a [licença MIT](LICENSE), e o que mudou em cada versão está no [CHANGELOG](CHANGELOG.md).
+Se quiser ajudar, o jeito de rodar, testar e mandar mudanças está no [CONTRIBUTING.md](CONTRIBUTING.md). O código é aberto, sob a [licença MIT](LICENSE), e o que mudou em cada versão está no [CHANGELOG](CHANGELOG.md). Quem participa segue o [código de conduta](CODE_OF_CONDUCT.md), e falha de segurança se avisa pelo caminho do [SECURITY.md](SECURITY.md).
 
 ## Próximos passos
 
