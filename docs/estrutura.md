@@ -77,7 +77,8 @@ apps/dev/                 # o Datera Dev, que reaproveita o núcleo do apps/desk
 docs/                     # os guias (gestores, devs e referência) e as imagens do README
 examples/                 # CSV, XML e as configs de exemplo (npm run example)
 local/                    # (ignorada pelo git) seus normalizadores e testes pessoais
-scripts/                  # scripts pra testar na mão (banco, config, sheets) e o que confere a versão antes de publicar
+scripts/                  # scripts pra testar na mão (banco, config, sheets) e os de versão (release:prepare, conferência da tag e texto da release)
+CHANGELOG.md              # o que mudou em cada versão
 dist/                     # o terminal compilado pelo npm run build (não vai pro git)
 .github/workflows/        # CI (type-check e testes a cada push)
 ```

@@ -197,30 +197,31 @@ Eles saem em `apps/desktop/release/Datera-Setup-0.1.0.exe` e `apps/dev/release/D
 
 ### Publicando uma versão
 
-Ninguém precisa gerar o instalador na mão pra publicar. Quando chega uma tag que começa com `v` no GitHub, a action `.github/workflows/release.yml` roda num Windows, confere a versão, roda os testes, gera os dois instaladores e cria a release na aba [Releases](https://github.com/alessandravieiradev-blip/datera/releases) com os dois `.exe` e a lista do que mudou.
+Toda versão sai igual em três lugares: no npm, no comando `datera` e nos instaladores da aba [Releases](https://github.com/alessandravieiradev-blip/datera/releases). O número segue o [versionamento semântico](https://semver.org/lang/pt-BR/), explicado no começo do [CHANGELOG](../CHANGELOG.md): correção sobe o último número, coisa nova sobe o do meio.
 
-O passo a passo:
+**Enquanto trabalha:** cada mudança que quem usa vai perceber ganha uma linha na seção `## [Não lançado]` do `CHANGELOG.md`, no mesmo commit da mudança.
 
-1. Troca o `version` do `package.json` da raiz, do `apps/desktop/package.json` e do `apps/dev/package.json` pro número novo (os três iguais, porque o `datera --version` também mostra esse número)
-2. Faz o commit e o push
-3. Cria a tag com o mesmo número e manda ela:
+**Na hora de lançar:**
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+npm run release:prepare -- 0.2.0
 ```
 
-Leva uns 10 minutos, e dá pra acompanhar na aba Actions. Se a versão da tag não bater com a dos três `package.json`, ele para antes de gerar qualquer coisa e explica o que ajustar. Tag com hífen, tipo `v0.2.0-beta.1`, sai marcada como pré-lançamento.
-
-O texto que aparece no começo de toda release (qual arquivo baixar e o aviso do Windows) fica em `.github/release-notes.md`.
-
-Por último, publica a mesma versão no npm, da pasta do projeto:
+Ele troca a versão nos três `package.json` (o da raiz e os dos dois apps) e transforma o "Não lançado" do CHANGELOG na seção `0.2.0` com a data de hoje. Se a seção estiver vazia, ele para e avisa. No final, ele mostra os comandos que faltam:
 
 ```bash
+npm install
+git add CHANGELOG.md package.json package-lock.json apps/desktop/package.json apps/dev/package.json
+git commit -m "chore: lança a versão 0.2.0"
+git push
+git tag v0.2.0
+git push origin v0.2.0
 npm publish
 ```
 
-Ele compila e roda os testes antes (por causa do `prepublishOnly`) e pede o código da verificação em duas etapas. Uma versão publicada no npm não pode ser trocada nem reaproveitada, então vale conferir antes com `npm publish --dry-run`.
+Quando a tag chega no GitHub, a action `.github/workflows/release.yml` roda num Windows: confere se a versão bate nos três `package.json` e no CHANGELOG, roda os testes, gera os dois instaladores e cria a release com os dois `.exe`. O texto da release é o `.github/release-notes.md` (qual arquivo baixar e o aviso do Windows) seguido da seção daquela versão no CHANGELOG. Leva uns 10 minutos, e dá pra acompanhar na aba Actions. Tag com hífen, tipo `v0.2.0-beta.1`, sai marcada como pré-lançamento.
+
+O `npm publish` compila e roda os testes antes (por causa do `prepublishOnly`) e pede o código da verificação em duas etapas. Uma versão publicada no npm não pode ser trocada nem reaproveitada, então vale conferir antes com `npm publish --dry-run`.
 
 ## Usando dentro de outro código
 

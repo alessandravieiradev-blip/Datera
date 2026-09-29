@@ -52,6 +52,8 @@ docs: explica o validate
 
 Um commit por mudança, e cada commit precisa passar no typecheck e nos testes sozinho.
 
+Se a mudança é algo que quem usa vai perceber (função nova, correção, algo que mudou de comportamento), escreve uma linha na seção `## [Não lançado]` do [CHANGELOG.md](CHANGELOG.md), no mesmo commit.
+
 ## Mandando a mudança
 
 1. Faz um fork e cria um branch a partir do `main`
