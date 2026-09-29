@@ -124,8 +124,12 @@ describe("RowValidator", () => {
         const { pending } = new RowValidator([
             { column: "nome", rule: "required" },
             { column: "email", rule: "required", message: "sem contato" },
-            { column: "telefone", rule: "required", message: "sem contato" },
-        ]).split([{ nome: "", email: "", telefone: null }]);
+            {
+                column: "email_responsavel",
+                rule: "required",
+                message: "sem contato",
+            },
+        ]).split([{ nome: "", email: "", email_responsavel: null }]);
 
         expect(pending[0]!.Motivo).toBe("nome vazio; sem contato");
     });

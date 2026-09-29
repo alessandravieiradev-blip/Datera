@@ -38,36 +38,36 @@ describe("MergeFilter", () => {
         expect(result[0]!.obs).toBe("vip; atrasou pagamento");
     });
 
-    it("extra-column joga o telefone excedente em telefone_2, telefone_3...", () => {
+    it("extra-column joga o instrumento excedente em instrumento_2, instrumento_3...", () => {
         const rows = [
-            { id: 1, codigo: "333", telefone: "1111-1111" },
-            { id: 2, codigo: "333", telefone: "2222-2222" },
-            { id: 3, codigo: "333", telefone: "3333-3333" },
+            { id: 1, codigo: "333", instrumento: "violão" },
+            { id: 2, codigo: "333", instrumento: "piano" },
+            { id: 3, codigo: "333", instrumento: "bateria" },
         ];
         const filter = new MergeFilter("codigo", [
-            { column: "telefone", strategy: "extra-column" },
+            { column: "instrumento", strategy: "extra-column" },
         ]);
 
         const result = filter.apply(rows);
 
-        expect(result[0]!.telefone).toBe("1111-1111");
-        expect(result[0]!.telefone_2).toBe("2222-2222");
-        expect(result[0]!.telefone_3).toBe("3333-3333");
+        expect(result[0]!.instrumento).toBe("violão");
+        expect(result[0]!.instrumento_2).toBe("piano");
+        expect(result[0]!.instrumento_3).toBe("bateria");
     });
 
     it("ignora campos vazios/nulos ao mesclar", () => {
         const rows = [
-            { id: 1, codigo: "444", telefone: null },
-            { id: 2, codigo: "444", telefone: "9999-9999" },
+            { id: 1, codigo: "444", instrumento: null },
+            { id: 2, codigo: "444", instrumento: "ukulele" },
         ];
         const filter = new MergeFilter("codigo", [
-            { column: "telefone", strategy: "extra-column" },
+            { column: "instrumento", strategy: "extra-column" },
         ]);
 
         const result = filter.apply(rows);
 
-        expect(result[0]!.telefone).toBe("9999-9999");
-        expect(result[0]!.telefone_2).toBeUndefined();
+        expect(result[0]!.instrumento).toBe("ukulele");
+        expect(result[0]!.instrumento_2).toBeUndefined();
     });
 
     it("não mescla linhas sem duplicata", () => {

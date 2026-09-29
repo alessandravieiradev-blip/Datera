@@ -54,7 +54,7 @@ const rows = [{ nome: "Lia", email: "lia@email.com" }];
 describe("writeData", () => {
     it("sem nome de aba escreve na primeira aba, limpando antes", async () => {
         const { client, calls } = fakeSheets([
-            { title: "Clientes", sheetId: 7 },
+            { title: "Alunos", sheetId: 7 },
             { title: "Outra", sheetId: 8 },
         ]);
 
@@ -66,8 +66,8 @@ describe("writeData", () => {
             "update",
             "batchUpdate",
         ]);
-        expect(calls[1]!.params.range).toBe("'Clientes'");
-        expect(calls[2]!.params.range).toBe("'Clientes'!A1");
+        expect(calls[1]!.params.range).toBe("'Alunos'");
+        expect(calls[2]!.params.range).toBe("'Alunos'!A1");
         expect(calls[2]!.params.requestBody.values).toEqual([
             ["nome", "email"],
             ["Lia", "lia@email.com"],
@@ -80,7 +80,7 @@ describe("writeData", () => {
 
     it("com nome de aba que já existe, usa ela sem criar outra", async () => {
         const { client, calls } = fakeSheets([
-            { title: "Clientes", sheetId: 7 },
+            { title: "Alunos", sheetId: 7 },
             { title: "Pendências", sheetId: 9 },
         ]);
 
@@ -91,9 +91,7 @@ describe("writeData", () => {
     });
 
     it("cria a aba quando ela não existe", async () => {
-        const { client, calls } = fakeSheets([
-            { title: "Clientes", sheetId: 7 },
-        ]);
+        const { client, calls } = fakeSheets([{ title: "Alunos", sheetId: 7 }]);
 
         await writeData(client, "id", rows, { sheetName: "Pendências" });
 
@@ -110,7 +108,7 @@ describe("writeData", () => {
 
     it("sem linhas só limpa a aba, pra não sobrar pendência velha", async () => {
         const { client, calls } = fakeSheets([
-            { title: "Clientes", sheetId: 7 },
+            { title: "Alunos", sheetId: 7 },
             { title: "Pendências", sheetId: 9 },
         ]);
 

@@ -4,8 +4,8 @@ import { etlConfigSchema } from "../config";
 describe("etlConfigSchema", () => {
     it("Aceita uma config válida com todos os campos corretos", () => {
         const validConfig = {
-            tableName: "Clientes",
-            spreadsheetId: "1fQycp0FJZJPObYZvWDu8l4U5otfBD4kXDyPEsYmxMk8",
+            tableName: "Alunos",
+            spreadsheetId: "ID_DA_PLANILHA_DE_TESTE",
             credentialsPath: "./credentials.json",
             mode: "raw",
             dbHost: "localhost",
@@ -39,7 +39,7 @@ describe("etlConfigSchema", () => {
 
     it("rejeita config com dbPort como texto em vez de número", () => {
         const configComPortaErrada = {
-            tableName: "clientes",
+            tableName: "alunos",
             spreadsheetId: "1AbCdEfGhIjKlMnOpQrStUv",
             credentialsPath: "./credentials.json",
             mode: "raw",
@@ -57,7 +57,7 @@ describe("etlConfigSchema", () => {
 
     it("rejeita mode com valor fora do enum permitido", () => {
         const configComModoInvalido = {
-            tableName: "clientes",
+            tableName: "alunos",
             spreadsheetId: "1AbCdEfGhIjKlMnOpQrStUv",
             credentialsPath: "./credentials.json",
             mode: "modo-que-nao-existe",
@@ -76,7 +76,7 @@ describe("etlConfigSchema", () => {
 
 describe("etlConfigSchema: opções do merge", () => {
     const base = {
-        tableName: "clientes",
+        tableName: "alunos",
         spreadsheetId: "1AbCdEfGhIjKlMnOpQrStUv",
         credentialsPath: "./credentials.json",
         mode: "merge",

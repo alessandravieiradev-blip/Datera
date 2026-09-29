@@ -60,7 +60,7 @@ O que acontece com essa config:
 Onde cada um costuma servir:
 
 - `lowercase`: e-mail, username, qualquer texto que muda de maiúscula pra minúscula
-- `digitsOnly`: telefone e código numérico escrito com ponto, traço e parêntese
+- `digitsOnly`: matrícula e código numérico escrito com ponto, traço, espaço ou parêntese (`2024-0042` e `20240042` viram o mesmo)
 - `alphanumeric`: código de produto que aparece como `AB-0042`, `ab 0042` e `AB0042`
 
 ## Criando o seu próprio normalizador
@@ -139,7 +139,7 @@ Depois é só rodar com `npm start`. Se o nome no `mergeKeyNormalizer` não exis
 | Situação                                                         | Como resolver                                                                            |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | E-mails com maiúscula/minúscula misturada                        | `lowercase`                                                                              |
-| Telefones escritos de jeitos diferentes                          | `digitsOnly`, ou um seu que também tire o `55` do começo                                 |
+| Matrículas escritas de jeitos diferentes                         | `digitsOnly`, ou um seu que também tire um prefixo fixo, tipo o ano                      |
 | Códigos de produto com hífen ou espaço                           | `alphanumeric`, ou um seu com `group` pelas letras (como no exemplo acima)               |
 | Matrícula com prefixo da unidade (`SP-1234`, `RJ-1234`)          | Um seu com `group` = prefixo e `key` = número, pra unidades diferentes nunca se juntarem |
 | Dois formatos de ID na mesma coluna (ex: 8 dígitos e 12 dígitos) | Um seu que tire tudo que não é número e use o tamanho como `group`                       |
