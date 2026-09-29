@@ -128,7 +128,7 @@ O `normalizer` é bom pra reaproveitar o normalizador do merge. Se ele rejeitar 
 
 A validação roda depois do `fillEmpty` e do `combineColumns`, então o que o `fillEmpty` preencheu já conta.
 
-O `pendingSheet` (padrão `Pendências`) é o nome da aba, e se ela não existir ele cria. O `reasonColumn` (padrão `Motivo`) é o nome da coluna do motivo, que fica sempre na primeira coluna. Se não tiver nenhuma pendência a aba fica vazia, ela é limpa do mesmo jeito pra não sobrar pendência antiga.
+O `pendingSheet` (padrão `Pendências`) é o nome da aba, e se ela não existir ele cria. O `reasonColumn` (padrão `Motivo`) é o nome da coluna do motivo, que fica sempre na primeira coluna. Se não tiver nenhuma pendência a aba fica vazia, ela é limpa do mesmo jeito pra não sobrar pendência antiga. Quando o destino é um banco, as pendências vão pra uma tabela com `_pendencias` no fim do nome, e quem escolhe outro nome é o `pendingTable` do destino, não o `pendingSheet` (veja [Bancos de dados como destino](fontes-e-destinos.md#bancos-de-dados-como-destino)).
 
 E se o `pattern` tiver uma regex inválida ou o `normalizer` não existir, ele avisa antes de ler o banco.
 

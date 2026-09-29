@@ -35,8 +35,8 @@ Depois de instalado, o Datera aparece no menu Iniciar e ganha um atalho na área
 Na primeira vez o app monta a configuração com você, em quatro passos:
 
 1. **Fonte dos dados:** arquivo Excel, arquivo CSV, arquivo XML, Google Planilhas, arquivo SQLite ou um banco de dados (MySQL, PostgreSQL ou SQL Server). A origem só é lida, nunca alterada.
-2. **Destino:** arquivo Excel, arquivo CSV, arquivo XML ou Google Planilhas. As pendências ficam do lado: numa aba separada ou num segundo arquivo.
-3. **Detalhes:** o arquivo, o link da planilha ou os dados do banco, e onde salvar o resultado.
+2. **Destino:** arquivo Excel, arquivo CSV, arquivo XML, Google Planilhas, um banco de dados (MySQL, PostgreSQL ou SQL Server) ou um arquivo SQLite. As pendências ficam do lado: numa aba separada, num segundo arquivo ou numa segunda tabela.
+3. **Detalhes:** o arquivo, o link da planilha ou os dados do banco, e onde salvar o resultado. Se o destino for um banco, você escolhe o nome de uma tabela nova. Quando a fonte também é um banco, dá para marcar **Salvar no mesmo servidor e banco de onde ele lê** e só escrever o nome da tabela.
 4. **Pronto:** um resumo das escolhas. Ao clicar em **Salvar configuração**, você escolhe onde guardar o arquivo com essas escolhas. Guarde numa pasta sua, porque é ele que o app abre das próximas vezes.
 
 Depois de salvar, o app leva você para a tela de Regras.
@@ -126,6 +126,8 @@ Os principais (todos podem ser trocados na tela Atalhos):
 ## Cuidados
 
 - **O destino é apagado e escrito de novo toda vez.** Use um arquivo ou uma aba só para o Datera e não deixe anotações suas ali.
+- **No banco, o Datera só mexe nas tabelas que ele mesmo criou.** Se o nome escolhido for de uma tabela que já existe e não é dele, ele avisa e não grava nada. Quem cuida do banco precisa dar ao usuário permissão para criar e apagar tabelas.
+- **Na primeira exportação, o app mostra de onde ele lê e onde vai gravar.** Confira, principalmente se a configuração veio de outra pessoa. Ele só pergunta de novo se a fonte ou o destino mudarem.
 - **A origem nunca é alterada.** O app não deixa escolher o mesmo arquivo (ou a mesma aba) para ler e para gravar.
 - **A senha do banco fica num arquivo `.env`, ao lado da configuração.** Assim a configuração pode ser enviada para outra pessoa sem a senha. Nunca mande o `.env`.
 - **Configurações podem trazer arquivos de código.** Quando isso acontece, o Datera mostra quais são e pergunta se você confia neles antes de executar. Só confirme se você sabe de onde eles vieram.

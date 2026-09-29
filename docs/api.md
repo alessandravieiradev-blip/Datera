@@ -63,17 +63,17 @@ Assim o projeto de quem usa fica menor e com menos pacotes de terceiros, o que t
 
 Quando você passa só o caminho de um arquivo (no terminal ou nas funções), o Datera descobre o formato sozinho:
 
-| Extensão                     | Formato | Lê  | Grava | Opções que importam                        |
-| ---------------------------- | ------- | --- | ----- | ------------------------------------------ |
-| `.csv`, `.txt`               | CSV     | sim | sim   | `delimiter`, `encoding` (leitura), `bom`   |
-| `.tsv`                       | CSV     | sim | sim   | já usa tab como separador                  |
-| `.json`                      | JSON    | sim | sim   | `recordsPath` (leitura)                    |
-| `.xml`                       | XML     | sim | sim   | `recordsPath` (leitura), `root` e `record` |
-| `.xlsx`                      | Excel   | sim | sim   | `sheet`                                    |
-| `.parquet`                   | Parquet | sim | sim   |                                            |
-| `.db`, `.sqlite`, `.sqlite3` | SQLite  | sim | não   | `table` (obrigatório)                      |
+| Extensão                     | Formato | Lê  | Grava | Opções que importam                                                              |
+| ---------------------------- | ------- | --- | ----- | -------------------------------------------------------------------------------- |
+| `.csv`, `.txt`               | CSV     | sim | sim   | `delimiter`, `encoding` (leitura), `bom`, `escapeFormulas`                       |
+| `.tsv`                       | CSV     | sim | sim   | já usa tab como separador                                                        |
+| `.json`                      | JSON    | sim | sim   | `recordsPath` (leitura)                                                          |
+| `.xml`                       | XML     | sim | sim   | `recordsPath` (leitura), `root` e `record`                                       |
+| `.xlsx`                      | Excel   | sim | sim   | `sheet`                                                                          |
+| `.parquet`                   | Parquet | sim | sim   |                                                                                  |
+| `.db`, `.sqlite`, `.sqlite3` | SQLite  | sim | sim   | `table` (obrigatório na leitura; na gravação o padrão é `dados`), `pendingTable` |
 
-Banco de servidor (MySQL, PostgreSQL, SQL Server) e Google Sheets não têm extensão, então pra eles você passa a config completa da fonte, igual a da [config](fontes-e-destinos.md).
+Banco de servidor (MySQL, PostgreSQL, SQL Server) e Google Sheets não têm extensão, então pra eles você passa a config completa da fonte ou do destino, igual a da [config](fontes-e-destinos.md).
 
 ## Terminal
 
@@ -198,12 +198,13 @@ Os comandos que leem arquivo (`convert`, `dedupe`, `merge`, `columns`, `preview`
 
 E os que gravam (`convert`, `dedupe`, `merge`):
 
-| Opção                            | Pra quê                          |
-| -------------------------------- | -------------------------------- |
-| `--output-sheet <aba>`           | nome da aba do Excel de saída    |
-| `--output-delimiter <separador>` | separador do CSV de saída        |
-| `--root <nome>`                  | elemento de fora do XML de saída |
-| `--record <nome>`                | elemento de cada linha do XML    |
+| Opção                            | Pra quê                                    |
+| -------------------------------- | ------------------------------------------ |
+| `--output-table <tabela>`        | tabela do SQLite de saída (padrão `dados`) |
+| `--output-sheet <aba>`           | nome da aba do Excel de saída              |
+| `--output-delimiter <separador>` | separador do CSV de saída                  |
+| `--root <nome>`                  | elemento de fora do XML de saída           |
+| `--record <nome>`                | elemento de cada linha do XML              |
 
 Se der erro, todos terminam com código 1, então dá pra encadear em script.
 
@@ -235,9 +236,20 @@ await writeRows(alunos, "./saida/alunos.parquet");
 await writeRows(resultado, "./saida/resultado.xlsx", {
     pending: pendencias,
 });
+await writeRows(resultado, "./saida/escola.db", {
+    table: "alunos_organizados",
+    pending: pendencias,
+});
+await writeRows(resultado, {
+    type: "postgres",
+    host: "localhost",
+    user: "escola",
+    database: "musica",
+    table: "alunos_organizados",
+});
 ```
 
-O `readRows` aceita um caminho (com as opções da tabela de formatos) ou a config completa de uma fonte. O `writeRows` aceita um caminho ou a config completa de um destino. Com `pending`, as pendências vão pra uma aba ou arquivo do lado, igual no `run`.
+O `readRows` aceita um caminho (com as opções da tabela de formatos) ou a config completa de uma fonte. O `writeRows` aceita um caminho ou a config completa de um destino. Com `pending`, as pendências vão pra uma aba, um arquivo ou uma tabela do lado, igual no `run`. No banco, ele só apaga e recria tabela que ele mesmo criou, e grava tudo numa transação. Os detalhes estão em [Bancos de dados como destino](fontes-e-destinos.md#bancos-de-dados-como-destino).
 
 ### Converter
 
@@ -443,7 +455,10 @@ datera convert sistema-antigo.db alunos.xlsx --table alunos
 
 ## Cuidados
 
+- **A config decide pra onde os dados vão.** Uma config pode ler qualquer arquivo ou banco que você consegue abrir e gravar numa planilha do Google ou num banco de outra pessoa. Por isso nunca passe pro `runEtl`, pro `writeRows` ou pro `convert` uma config ou um destino montado a partir do que os usuários do seu sistema mandaram. No app de gestores, a primeira exportação de cada config mostra de onde ele lê e onde grava, e só continua se você confirmar.
 - **Config de outra pessoa pode rodar código.** Os campos `normalizerModules` e `adapterModules` carregam arquivos JavaScript. No app de gestores ele pergunta antes, mas o `datera run` confia na config, do mesmo jeito que rodar um script. Só rode config que você sabe de onde veio. As regras do `clean` não aceitam esses campos, então dá pra montar regras a partir de dado de fora sem esse risco. Normalizador próprio no código é com `registerKeyNormalizer`.
 - **A saída é apagada antes de gravar.** Por isso o Datera não deixa a entrada e a saída serem o mesmo arquivo, mesmo escrito de outro jeito (`./alunos.csv` e `pasta/../alunos.csv`, ou com maiúscula diferente no Windows). O Excel de saída é recriado inteiro, então não aponte pra uma planilha que tem outras abas suas.
-- **CSV aberto no Excel.** Se os dados vieram de um formulário, alguém pode ter escrito algo começando com `=`, e o Excel trata isso como fórmula quando abre o CSV. Pra dado de fora, prefira gravar em `.xlsx`, que o Datera sempre grava como texto.
-- **Senhas.** Use o `.env` (`DB_PASSWORD`) em vez de colocar a senha na config ou no código.
+- **CSV aberto no Excel.** Se os dados vieram de um formulário, alguém pode ter escrito algo começando com `=`, e o Excel trata isso como fórmula quando abre o CSV (dá até pra mandar dado pra um site, com `HYPERLINK`). Por isso o Datera coloca um `'` na frente de toda célula de texto que começa com `=`, `+`, `-` ou `@`, menos quando é só um número. Se o CSV for pra outro programa e não pro Excel, dá pra desligar com `"escapeFormulas": false` no destino (ou `escapeFormulas: false` no `writeRows`). No `.xlsx` e no Google Sheets isso nem é preciso, porque o Datera sempre grava como texto.
+- **Senhas.** Use o `.env` (`DB_PASSWORD` e `DEST_DB_PASSWORD`) em vez de colocar a senha na config ou no código. A senha da fonte só é reaproveitada no destino quando os dois são o mesmo servidor, então uma config nunca manda a sua senha pra outro endereço.
+- **Banco fora da sua rede.** Coloque `"ssl": true` no MySQL e no PostgreSQL, pra senha e dados irem criptografados. O SQL Server já criptografa sozinho. Só use `trustServerCertificate` num servidor que você conhece.
+- **Banco como destino.** O Datera só apaga tabela que ele mesmo criou (a lista fica em `datera_tabelas`). Mesmo assim, o mais seguro é dar ao usuário do destino permissão só num banco ou schema separado pros resultados.

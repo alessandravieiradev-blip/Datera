@@ -14,12 +14,26 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 - este CHANGELOG, e o `npm run release:prepare -- <versão>`, que troca a versão nos três `package.json` e fecha a seção do CHANGELOG de uma vez
 - a action da aba Releases agora usa a seção do CHANGELOG como texto da release, e não deixa publicar uma versão sem ela
+- MySQL, PostgreSQL, SQL Server e SQLite como destino: o resultado vai pra uma tabela nova e as pendências pra outra (`_pendencias` no fim do nome, ou o `pendingTable`), tudo numa transação
+- o Datera anota as tabelas que ele cria em `datera_tabelas` e nunca apaga uma tabela que não foi ele que criou, nem a tabela de onde ele lê
+- variáveis `DEST_DB_*` no `.env` pro banco de destino. Se for o mesmo banco da fonte, o que faltar é copiado dela
+- `--output-table` no `convert`, `dedupe` e `merge`, e as opções `table` e `pendingTable` no `writeRows` e no `convert`
+- no app, banco de dados e arquivo SQLite aparecem como destino no passo a passo, com a opção de salvar no mesmo servidor da fonte, e o Datera Dev ganhou os trechos de destino dos quatro bancos
 - testes de tela dos dois apps com Playwright (`npm run test:telas`), nos temas claro e escuro, rodando no CI com as fotos de cada tela
 
 ### Mudou
 
 - os testes usam só os dados da escola de música inventada, sem "clientes" nem telefone
 - o `config.json.example` virou uma config de verdade, que já roda lendo o CSV de exemplo
+
+### Segurança
+
+- o CSV desarma célula de texto que o Excel leria como fórmula (começando com `=`, `+`, `-` ou `@`), colocando um `'` na frente. Dá pra desligar com `escapeFormulas: false`
+- no app, a primeira exportação de cada configuração mostra de onde ela lê e onde grava, e só continua se você confirmar
+- a senha da fonte só é reaproveitada no destino quando os dois são o mesmo servidor
+- `ssl` no MySQL, pra conexão criptografada
+- os instaladores desligam os recursos do Electron que deixariam usar o app como um Node.js escondido
+- nome de tabela ou coluna com caractere invisível é recusado antes de gravar no banco
 
 ### Removido
 

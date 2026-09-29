@@ -20,4 +20,4 @@ Eu respondo em até 7 dias dizendo se consegui repetir o problema e o que vou fa
 
 ## O que o Datera já faz
 
-Pra saber o que já é protegido (arquivos de código na config, senha no `.env`, XML com `<!DOCTYPE>`, entrada e saída no mesmo arquivo), veja a seção [Cuidados](docs/api.md#cuidados) do guia de comandos e API.
+Pra saber o que já é protegido (arquivos de código na config, confirmação de pra onde os dados vão, senha no `.env`, fórmula escondida no CSV, tabelas de banco que não são do Datera, XML com `<!DOCTYPE>`, entrada e saída no mesmo arquivo), veja a seção [Cuidados](docs/api.md#cuidados) do guia de comandos e API.

@@ -8,7 +8,7 @@
 
 # Fontes e destinos
 
-O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Hoje dá pra ler de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON, XML e Parquet e escrever no Google Sheets, no Excel, em CSV, em JSON, em XML e em Parquet, misturando do jeito que quiser.
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Hoje dá pra ler de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON, XML e Parquet e escrever no Google Sheets, no Excel, em CSV, em JSON, em XML, em Parquet e numa tabela nova de MySQL, PostgreSQL, SQL Server ou SQLite, misturando do jeito que quiser.
 
 ```json
 {
@@ -29,7 +29,7 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 
 | `type`      | Campos                                                                                         | Observações                                                                                                                                  |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mysql`     | `host`, `port`, `user`, `password`, `database`, `table`                                        | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                                   |
+| `mysql`     | `host`, `port`, `user`, `password`, `database`, `table`, `ssl?`                                | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                                   |
 | `postgres`  | `host`, `port`, `user`, `password`, `database`, `table`, `ssl?`                                | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `5432`. Veja [Bancos de dados](#bancos-de-dados)                          |
 | `sqlserver` | `host`, `port`, `user`, `password`, `database`, `table`, `encrypt?`, `trustServerCertificate?` | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `1433`. Veja [Bancos de dados](#bancos-de-dados)                          |
 | `sqlite`    | `path`, `table`                                                                                | Um arquivo `.db` ou `.sqlite`. Ele só lê, o arquivo nunca é alterado                                                                         |
@@ -86,23 +86,25 @@ fica assim:
 
 ## Destinos (`destination`)
 
-| `type`    | Campos                                       | A aba de pendências vira                                                                         |
-| --------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `sheets`  | `spreadsheetId`, `credentialsPath`, `sheet?` | outra aba na mesma planilha (a principal é a primeira aba, ou a que você colocar em `sheet`)     |
-| `csv`     | `path`, `delimiter?`, `bom?`                 | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                              |
-| `json`    | `path`                                       | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                            |
-| `xml`     | `path`, `root?`, `record?`                   | outro arquivo do lado: `resultado.xml` → `resultado.pendencias.xml`                              |
-| `parquet` | `path`                                       | outro arquivo do lado: `resultado.parquet` → `resultado.pendencias.parquet`                      |
-| `excel`   | `path`, `sheet?`                             | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`) |
-| `custom`  | `adapter`, `options?`                        | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                |
+| `type`                           | Campos                                          | A aba de pendências vira                                                                                                        |
+| -------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `sheets`                         | `spreadsheetId`, `credentialsPath`, `sheet?`    | outra aba na mesma planilha (a principal é a primeira aba, ou a que você colocar em `sheet`)                                    |
+| `csv`                            | `path`, `delimiter?`, `bom?`, `escapeFormulas?` | outro arquivo do lado: `resultado.csv` → `resultado.pendencias.csv`                                                             |
+| `json`                           | `path`                                          | outro arquivo do lado: `resultado.json` → `resultado.pendencias.json`                                                           |
+| `xml`                            | `path`, `root?`, `record?`                      | outro arquivo do lado: `resultado.xml` → `resultado.pendencias.xml`                                                             |
+| `parquet`                        | `path`                                          | outro arquivo do lado: `resultado.parquet` → `resultado.pendencias.parquet`                                                     |
+| `excel`                          | `path`, `sheet?`                                | outra aba no mesmo arquivo (a principal se chama `Dados`, ou o nome que você colocar em `sheet`)                                |
+| `mysql`, `postgres`, `sqlserver` | os mesmos da fonte, mais `pendingTable?`        | outra tabela no mesmo banco: `alunos` → `alunos_pendencias`. Veja [Bancos de dados como destino](#bancos-de-dados-como-destino) |
+| `sqlite`                         | `path`, `table`, `pendingTable?`                | outra tabela no mesmo arquivo: `alunos` → `alunos_pendencias`                                                                   |
+| `custom`                         | `adapter`, `options?`                           | o seu adapter recebe `{ name: "Pendências" }` no `write` e decide                                                               |
 
-O CSV sai com vírgula. Se for abrir no Excel em português, coloca `"delimiter": ";"`. Ele também sai com um caractere invisível no começo (o `bom`, que já vem ligado) pro Excel mostrar os acentos certo. Se o arquivo for pra outro programa e ele reclamar desse caractere, coloca `"bom": false`. E se a pasta do arquivo não existir, ele cria.
+O CSV sai com vírgula. Se for abrir no Excel em português, coloca `"delimiter": ";"`. Toda célula de texto que o Excel leria como fórmula (começando com `=`, `+`, `-` ou `@`, e que não é só um número) sai com um `'` na frente, pra ninguém esconder uma fórmula nos dados. Se o arquivo não for pro Excel, dá pra desligar com `"escapeFormulas": false`. Ele também sai com um caractere invisível no começo (o `bom`, que já vem ligado) pro Excel mostrar os acentos certo. Se o arquivo for pra outro programa e ele reclamar desse caractere, coloca `"bom": false`. E se a pasta do arquivo não existir, ele cria.
 
 Pra ler do Google Sheets, a planilha de origem também tem que estar compartilhada com o e-mail da service account (pode ser só como Leitor). Os números chegam como número e as datas chegam do jeito que aparecem na planilha.
 
 A planilha de onde ele lê nunca é alterada, ele só escreve no destino. O jeito mais seguro é usar outra planilha pro destino e compartilhar a original só como Leitor, aí nem o Google deixa mexer nela.
 
-Se quiser ler e escrever na mesma planilha, dá, mas precisa dizer as abas: `sheet` na fonte com a aba dos dados originais e `sheet` no destino com a aba do resultado. As duas (e a de pendências) têm que ter nomes diferentes. Se faltar alguma coisa ou algum nome bater, ele avisa e nem começa. O mesmo vale pra arquivo: a fonte e o destino não podem ser o mesmo arquivo.
+Se quiser ler e escrever na mesma planilha, dá, mas precisa dizer as abas: `sheet` na fonte com a aba dos dados originais e `sheet` no destino com a aba do resultado. As duas (e a de pendências) têm que ter nomes diferentes. Se faltar alguma coisa ou algum nome bater, ele avisa e nem começa. O mesmo vale pra arquivo: a fonte e o destino não podem ser o mesmo arquivo. A exceção é o SQLite, que pode ler de uma tabela e gravar em outra do mesmo `.db`.
 
 Sobre o Excel, umas coisas que acontecem por baixo:
 
@@ -133,11 +135,11 @@ Umas coisas que valem pros três:
 - a tabela pode vir com o schema na frente, tipo `public.alunos` no PostgreSQL ou `dbo.alunos` no SQL Server
 - o nome da tabela vai protegido na consulta, então não dá pra alguém colocar um comando SQL escondido nele
 - data vira texto no formato `2024-03-10` (ou com a hora junto), verdadeiro/falso vira `true`/`false` e número muito grande vira texto pra não perder dígito
-- ele só faz `SELECT`, nunca altera o banco. Mesmo assim, o mais seguro é usar um usuário que só tem permissão de leitura
+- como fonte, ele só faz `SELECT` e nunca altera o banco. Mesmo assim, o mais seguro é usar um usuário que só tem permissão de leitura
 
 Do PostgreSQL e do SQL Server, o Datera usa os pacotes `pg` e `mssql`. Neste repositório eles já vêm no `npm install`. Pra quem usa o Datera como pacote, é `npm install pg` ou `npm install mssql`, só o do banco que for usar.
 
-No PostgreSQL, se o servidor pedir conexão segura (os da nuvem normalmente pedem), coloca `"ssl": true`.
+No PostgreSQL e no MySQL, se o servidor pedir conexão segura (os da nuvem normalmente pedem), coloca `"ssl": true`. Pra banco fora da sua rede, vale colocar sempre, senão a senha e os dados passam pela internet sem proteção.
 
 No SQL Server a conexão já é criptografada por padrão. Se for um SQL Server na sua máquina ou na rede da empresa, é comum ele usar um certificado que ele mesmo gerou, e aí aparece um erro de certificado. Nesse caso, e só se você confia naquele servidor, coloca `"trustServerCertificate": true`.
 
@@ -146,6 +148,47 @@ O SQLite é um banco que mora num arquivo só, e o Node já sabe ler ele sem ins
 ```json
 "source": { "type": "sqlite", "path": "./escola.db", "table": "alunos" }
 ```
+
+## Bancos de dados como destino
+
+Ele também grava o resultado numa tabela de banco, no MySQL, no PostgreSQL, no SQL Server ou num arquivo SQLite. Os campos são os mesmos da fonte, e `table` é o nome da tabela onde gravar:
+
+```json
+"destination": {
+    "type": "postgres",
+    "host": "localhost",
+    "user": "escola",
+    "database": "musica",
+    "table": "alunos_organizados"
+}
+```
+
+```json
+"destination": { "type": "sqlite", "path": "./saida/escola.db", "table": "alunos_organizados" }
+```
+
+O jeito que ele grava:
+
+- a tabela é criada pelo próprio Datera, e as colunas saem do resultado. Coluna só com número inteiro vira inteiro, com número quebrado vira decimal, e qualquer texto no meio faz ela virar texto
+- as pendências vão pra outra tabela, com `_pendencias` no fim do nome (`alunos_organizados_pendencias`). Se quiser outro nome, coloca `"pendingTable": "revisar"`
+- toda vez que roda, a tabela é apagada e criada de novo com o resultado novo, igual os arquivos
+- tudo acontece numa transação: ou grava tudo, ou não grava nada. Se der erro no meio, a tabela de antes continua lá do jeito que estava. No MySQL, que não consegue desfazer um `CREATE TABLE`, ele grava numa tabela temporária e só no fim troca o nome dela pelo certo, o que dá o mesmo efeito
+- se não tiver nenhuma linha (tipo quando não sobra pendência), ele não cria a tabela. Se ela já existia de antes, fica vazia
+
+A parte que eu mais cuidei é não apagar nada de ninguém. Pra isso, ele anota numa tabela chamada `datera_tabelas` o nome de cada tabela que ele criou, e só apaga e recria tabela que está nessa lista. Se você colocar em `table` o nome de uma tabela que já existe e que não foi ele que criou, ele avisa e não mexe em nada. Ele também não deixa gravar na tabela de onde está lendo, nem usar o mesmo nome pro resultado e pras pendências.
+
+A senha do banco de destino fica no `.env`, com as variáveis `DEST_DB_*` (`DEST_DB_HOST`, `DEST_DB_PORT`, `DEST_DB_USER`, `DEST_DB_PASSWORD`, `DEST_DB_NAME` e `DEST_DB_TABLE`). O `DEST_` é pra não misturar com as `DB_*` da fonte, porque dá pra ler de um banco e gravar em outro.
+
+Se a fonte e o destino forem o mesmo banco, o que faltar no destino é copiado da fonte. Isso só acontece quando o destino não tem `host` ou tem o mesmo `host` e a mesma porta da fonte: se o servidor for outro, nada é copiado, pra senha da fonte nunca ir parar em outro endereço. Então, pra gravar no mesmo servidor e no mesmo banco de onde ele lê, basta o `type` e a `table`:
+
+```json
+"source": { "type": "mysql", "host": "localhost", "user": "escola", "database": "musica", "table": "alunos" },
+"destination": { "type": "mysql", "table": "alunos_organizados" }
+```
+
+O usuário do banco de destino precisa de permissão pra criar e apagar tabela (`CREATE` e `DROP`), além de gravar. Uma ideia é criar um banco ou um schema só pros resultados do Datera e dar essa permissão só lá.
+
+Nome de tabela e de coluna tem limite de tamanho: 63 no PostgreSQL, 64 no MySQL e 128 no SQL Server. Se passar, ele avisa antes de começar, em vez de cortar o nome no meio. Ele também avisa se tiver duas colunas que só mudam nas maiúsculas (`Email` e `email`), porque vários bancos acham que são a mesma.
 
 ## XML
 

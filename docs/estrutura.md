@@ -37,13 +37,15 @@ src/
   io/
     types.ts              # interfaces Source e Sink
     factory.ts            # escolhe o adapter pela config
+    servers.ts            # junta os dados de conexão dos bancos (config, .env e o que dá pra copiar da fonte)
+    safety.ts             # não deixa gravar em cima do que ele lê (arquivo, aba ou tabela)
     header.ts             # monta o cabeçalho das saídas
     files.ts              # ler e escrever arquivo, nome do arquivo de pendências
-    mysql/                # client.ts (conexão e leitura paginada) e mysqlSource.ts
-    postgres/             # postgresSource.ts
-    sqlserver/            # sqlServerSource.ts
-    sqlite/               # sqliteSource.ts (usa o SQLite que já vem no Node)
-    sql/                  # o que os bancos dividem: converter os valores e proteger o nome da tabela
+    mysql/                # client.ts (conexão e leitura paginada), mysqlSource.ts e mysqlSink.ts
+    postgres/             # postgresSource.ts e postgresSink.ts
+    sqlserver/            # sqlServerSource.ts e sqlServerSink.ts
+    sqlite/               # sqliteSource.ts e sqliteSink.ts (usam o SQLite que já vem no Node)
+    sql/                  # o que os bancos dividem: converter os valores, proteger os nomes e o writer.ts, que grava a tabela numa transação e só mexe nas tabelas que o Datera criou
     optional.ts           # carrega os pacotes opcionais (Excel, Parquet, bancos) e explica o que instalar quando falta
     sheets/               # client.ts (leitura e escrita em abas), sheetsSource.ts e sheetsSink.ts
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts

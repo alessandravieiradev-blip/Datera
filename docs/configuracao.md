@@ -20,16 +20,17 @@ cp config.json.example config.json
 
 O `.env`:
 
-| Variável                          | O que colocar                                                        |
-| --------------------------------- | -------------------------------------------------------------------- |
-| `DB_HOST`                         | Endereço do servidor do banco (MySQL, PostgreSQL ou SQL Server)      |
-| `DB_PORT`                         | Porta do banco (padrão `3306`, `5432` ou `1433`)                     |
-| `DB_USER`                         | Usuário de acesso ao banco                                           |
-| `DB_PASSWORD`                     | Senha do usuário (se tiver caractere especial, coloque entre aspas)  |
-| `DB_NAME`                         | Nome do banco                                                        |
-| `DB_TABLE`                        | Nome da tabela ou view a ser lida                                    |
-| `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` | Caminho pro arquivo de credenciais (`./credentials.json` por padrão) |
-| `GOOGLE_SPREADSHEET_ID`           | ID da planilha de destino, o trecho da URL entre `/d/` e `/edit`     |
+| Variável                                                                                            | O que colocar                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DB_HOST`                                                                                           | Endereço do servidor do banco (MySQL, PostgreSQL ou SQL Server)                                                                                                |
+| `DB_PORT`                                                                                           | Porta do banco (padrão `3306`, `5432` ou `1433`)                                                                                                               |
+| `DB_USER`                                                                                           | Usuário de acesso ao banco                                                                                                                                     |
+| `DB_PASSWORD`                                                                                       | Senha do usuário (se tiver caractere especial, coloque entre aspas)                                                                                            |
+| `DB_NAME`                                                                                           | Nome do banco                                                                                                                                                  |
+| `DB_TABLE`                                                                                          | Nome da tabela ou view a ser lida                                                                                                                              |
+| `GOOGLE_SERVICE_ACCOUNT_KEY_PATH`                                                                   | Caminho pro arquivo de credenciais (`./credentials.json` por padrão)                                                                                           |
+| `GOOGLE_SPREADSHEET_ID`                                                                             | ID da planilha de destino, o trecho da URL entre `/d/` e `/edit`                                                                                               |
+| `DEST_DB_HOST`, `DEST_DB_PORT`, `DEST_DB_USER`, `DEST_DB_PASSWORD`, `DEST_DB_NAME`, `DEST_DB_TABLE` | Os mesmos dados, mas do banco onde gravar, quando o destino é um banco. Veja [Bancos de dados como destino](fontes-e-destinos.md#bancos-de-dados-como-destino) |
 
 O `credentials.json`:
 
@@ -40,7 +41,7 @@ E o `config.json`:
 | Campo                                                | O que colocar                                                                                                                                            |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `source`                                             | De onde ler: um banco, uma planilha ou um arquivo. Veja [Fontes e destinos](fontes-e-destinos.md)                                                        |
-| `destination`                                        | Onde escrever: uma planilha ou um arquivo. Veja [Fontes e destinos](fontes-e-destinos.md)                                                                |
+| `destination`                                        | Onde escrever: uma planilha, um arquivo ou uma tabela de banco. Veja [Fontes e destinos](fontes-e-destinos.md)                                           |
 | `tableName`, `spreadsheetId`, `credentialsPath`      | Mesmos valores do `.env` (servem de reserva caso o `.env` não defina)                                                                                    |
 | `mode`                                               | `"raw"`, `"dedupe"` ou `"merge"`                                                                                                                         |
 | `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env`                                                                                                                                   |

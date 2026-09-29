@@ -28,12 +28,14 @@ flowchart LR
     end
     subgraph destinos["Escreve em"]
         direction TB
+        B2["Bancos<br/>MySQL · PostgreSQL<br/>SQL Server · SQLite"]
         P2["Planilhas<br/>Google Sheets · Excel"]
         A2["Arquivos<br/>CSV · JSON<br/>XML · Parquet"]
     end
     B --> D((Datera))
     P1 --> D
     A1 --> D
+    D --> B2
     D --> P2
     D --> A2
     classDef datera fill:#2563EB,stroke:#2563EB,color:#ffffff
@@ -78,6 +80,7 @@ Hoje ele consegue:
 - decidir o que fazer com as linhas que não têm chave, sem elas sumirem nem se misturarem
 - espalhar valores em várias colunas sem jogar nenhum fora
 - ler e escrever em formatos diferentes sem mudar nada das regras
+- gravar o resultado numa tabela nova de banco, sem nunca mexer numa tabela que não foi ele que criou
 - converter um arquivo de um formato pra outro, tirar repetidos ou juntar cadastros com um comando só, sem montar config
 - mostrar um raio-x das colunas de um arquivo (quantas vazias, quantos valores diferentes) antes de montar as regras
 - ser usado dentro de outro projeto em JavaScript ou TypeScript, com as mesmas regras da config
