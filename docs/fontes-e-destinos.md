@@ -21,6 +21,8 @@ O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquant
 }
 ```
 
+Pra quem usa o Datera como pacote do npm, Excel, Parquet, Google Sheets e os bancos de servidor precisam de um pacote a mais, que só é instalado se for usar. A lista está em [Comandos e API](api.md#só-o-que-você-usar).
+
 Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um objeto `{ coluna: valor }`. Os filtros (fillEmpty, validation, merge...) só entendem isso, então nem sabem de onde o dado veio. Cada formato tem uma pecinha que converte do formato dela pra essa lista, ou o contrário. Descobri depois que isso tem nome, é o padrão Adapter, e é por causa dele que dá pra colocar formato novo sem mexer no resto.
 
 ## Fontes (`source`)
@@ -133,7 +135,7 @@ Umas coisas que valem pros três:
 - data vira texto no formato `2024-03-10` (ou com a hora junto), verdadeiro/falso vira `true`/`false` e número muito grande vira texto pra não perder dígito
 - ele só faz `SELECT`, nunca altera o banco. Mesmo assim, o mais seguro é usar um usuário que só tem permissão de leitura
 
-Do PostgreSQL e do SQL Server, o Datera usa os pacotes `pg` e `mssql`, que já vêm no `npm install`.
+Do PostgreSQL e do SQL Server, o Datera usa os pacotes `pg` e `mssql`. Neste repositório eles já vêm no `npm install`. Pra quem usa o Datera como pacote, é `npm install pg` ou `npm install mssql`, só o do banco que for usar.
 
 No PostgreSQL, se o servidor pedir conexão segura (os da nuvem normalmente pedem), coloca `"ssl": true`.
 

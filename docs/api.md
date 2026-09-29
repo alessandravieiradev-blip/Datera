@@ -35,6 +35,23 @@ Depois disso o comando `datera` funciona em qualquer pasta. Quando o pacote esti
 
 Precisa do Node 22.13 ou mais novo.
 
+### Só o que você usar
+
+Quem instala o Datera pelo npm leva só o básico. CSV, JSON, XML e SQLite já funcionam de cara, sem nada a mais. Os outros formatos precisam de um pacote extra, e você só instala o do formato que for usar:
+
+| Pra usar      | Instale                                                        |
+| ------------- | -------------------------------------------------------------- |
+| Excel         | `npm install exceljs`                                          |
+| Parquet       | `npm install hyparquet hyparquet-compressors hyparquet-writer` |
+| Google Sheets | `npm install @googleapis/sheets`                               |
+| MySQL         | `npm install mysql2`                                           |
+| PostgreSQL    | `npm install pg`                                               |
+| SQL Server    | `npm install mssql`                                            |
+
+Se usou o comando instalado com `-g`, instale o extra com `-g` também (tipo `npm install -g exceljs`). E se esquecer, tudo bem: na hora que precisar, o Datera avisa qual pacote falta e o comando pra instalar.
+
+Assim o projeto de quem usa fica menor e com menos pacotes de terceiros, o que também diminui o risco de uma dependência comprometida. Dentro deste repositório o `npm install` já instala tudo, porque os apps e os testes usam todos os formatos.
+
 ## Formatos que ele reconhece pela extensão
 
 Quando você passa só o caminho de um arquivo (no terminal ou nas funções), o Datera descobre o formato sozinho:

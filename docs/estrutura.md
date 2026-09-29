@@ -41,7 +41,8 @@ src/
     postgres/             # postgresSource.ts
     sqlserver/            # sqlServerSource.ts
     sqlite/               # sqliteSource.ts (usa o SQLite que já vem no Node)
-    sql/                  # o que os bancos dividem: converter os valores, proteger o nome da tabela e carregar o driver
+    sql/                  # o que os bancos dividem: converter os valores e proteger o nome da tabela
+    optional.ts           # carrega os pacotes opcionais (Excel, Parquet, bancos) e explica o que instalar quando falta
     sheets/               # client.ts (leitura e escrita em abas), sheetsSource.ts e sheetsSink.ts
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
     json/                 # jsonSource.ts e jsonSink.ts
