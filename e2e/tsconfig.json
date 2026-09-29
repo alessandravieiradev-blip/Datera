@@ -1,0 +1,10 @@
+{
+    "extends": "../apps/desktop/tsconfig.json",
+    "include": [
+        ".",
+        "../playwright.config.ts",
+        "../apps/desktop/src/renderer/env.d.ts",
+        "../apps/desktop/src/renderer/assets.d.ts"
+    ],
+    "exclude": [".build", "resultados", "relatorio"]
+}

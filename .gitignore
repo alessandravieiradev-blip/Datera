@@ -35,3 +35,9 @@ Thumbs.db
 
 # Saída dos exemplos
 examples/saida/
+saida/
+
+# Testes de tela
+e2e/.build/
+e2e/resultados/
+e2e/relatorio/
