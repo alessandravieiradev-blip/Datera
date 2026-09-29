@@ -1,0 +1,57 @@
+name: Algo deu errado
+description: O Datera travou, deu erro ou fez algo diferente do esperado.
+title: "Erro: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigada por avisar! Use sempre dados inventados nos exemplos, nunca dados reais de pessoas ou clientes.
+        Se for uma falha de segurança, não abra issue: veja o SECURITY.md.
+  - type: dropdown
+    id: onde
+    attributes:
+      label: Onde aconteceu
+      options:
+        - App Datera (gestores)
+        - Datera Dev
+        - Comando datera no terminal
+        - Pacote do npm, no meu código
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão
+      description: No terminal, datera --version. Nos apps, o número do instalador.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: O que você fez
+      description: O passo a passo pra acontecer de novo. Se usou uma config, cole ela (sem senha).
+      placeholder: |
+        1. Rodei datera merge alunos.csv juntos.xlsx --key matricula
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que esperava que acontecesse
+    validations:
+      required: true
+  - type: textarea
+    id: aconteceu
+    attributes:
+      label: O que aconteceu
+      description: A mensagem de erro inteira, se tiver.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: sistema
+    attributes:
+      label: Sistema e versão do Node
+      placeholder: "Windows 11, Node 22.14"

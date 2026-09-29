@@ -1,0 +1,32 @@
+name: Ideia ou melhoria
+description: Algo que o Datera poderia fazer, ou fazer melhor.
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual problema isso resolve
+      description: Conte a situação do dia a dia. Por exemplo, "recebo uma planilha por mês e preciso juntar todas".
+    validations:
+      required: true
+  - type: textarea
+    id: ideia
+    attributes:
+      label: Como você imagina que funcionaria
+      description: Pode ser no app, no terminal ou no código. Um exemplo de antes e depois ajuda muito.
+    validations:
+      required: true
+  - type: dropdown
+    id: pra-quem
+    attributes:
+      label: Pra quem é
+      multiple: true
+      options:
+        - Quem usa o app de gestores
+        - Quem usa o Datera Dev
+        - Quem usa o terminal
+        - Quem usa no código
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Como você resolve isso hoje
+      description: Opcional. Se já tem um jeito de contornar, ajuda a entender a prioridade.

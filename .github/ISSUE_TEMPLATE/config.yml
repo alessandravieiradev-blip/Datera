@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Dúvida de como usar
+    url: https://github.com/alessandravieiradev-blip/datera/blob/main/docs/api.md
+    about: Antes de abrir uma issue, dá uma olhada no guia de comandos e API.
+  - name: Falha de segurança
+    url: https://github.com/alessandravieiradev-blip/datera/security/advisories/new
+    about: Avise de forma privada, sem abrir issue pública.
