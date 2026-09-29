@@ -46,10 +46,10 @@ jobs:
         run: |
           extra=()
           if [[ "$TAG" == *-* ]]; then extra+=(--prerelease); fi
+          npx tsx scripts/releaseNotes.ts "$TAG" > notas-da-release.md
           gh release create "$TAG" \
             apps/desktop/release/*.exe \
             apps/dev/release/*.exe \
             --title "Datera $TAG" \
-            --notes-file .github/release-notes.md \
-            --generate-notes \
+            --notes-file notas-da-release.md \
             "${extra[@]}"
