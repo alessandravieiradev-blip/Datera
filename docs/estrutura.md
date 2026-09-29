@@ -11,7 +11,7 @@
 ```text
 src/
   cli.ts                  # os comandos do terminal e as opções de cada um
-  env.ts                  # ajuda pra ler variável de ambiente
+  env.ts                  # lê variável de ambiente
   main.ts                 # o que o npm start e o comando datera rodam: lê a config, chama o runEtl e mostra o resumo
   commands.ts             # o que cada comando do terminal faz (convert, dedupe, merge, columns...)
   api/                    # as funções pra usar no código: readRows, writeRows, convert, clean, dedupe, merge...
@@ -32,6 +32,8 @@ src/
     validationSchema.ts   # validation
     mergeSchema.ts        # mergeColumns, distribute, byGroup
     load.ts               # lê o json e junta com o .env
+    check.ts              # confere a config e os arquivos que ela cita (o datera validate)
+    messages.ts           # traduz os erros do schema pra frases em português
   io/
     types.ts              # interfaces Source e Sink
     factory.ts            # escolhe o adapter pela config
@@ -64,7 +66,7 @@ src/
     registry.ts           # onde os normalizadores ficam registrados
     builtin.ts            # os prontos (trim, lowercase, digitsOnly, alphanumeric)
     loader.ts             # carrega normalizador de arquivo seu
-  tests/                  # testes (Vitest), nas mesmas pastas do código: io/, filters/, normalizers/, pipeline/
+  tests/                  # testes (Vitest), nas mesmas pastas do código: api/, config/, io/, filters/, normalizers/, pipeline/, scripts/ e desktop/
 apps/desktop/             # o app com tela (Electron + React)
   scripts/                # dev.ts, build.ts e dist.ts (esbuild e instalador), usados pelos dois apps
   src/main/               # a parte que roda no Node: janela, arquivos, chama o runEtl
@@ -74,13 +76,21 @@ apps/desktop/             # o app com tela (Electron + React)
 apps/dev/                 # o Datera Dev, que reaproveita o núcleo do apps/desktop
   src/renderer/           # editor, paleta de comandos e saída
   IDENTIDADE.md           # a identidade visual da versão dev
+e2e/                      # testes de tela dos dois apps (Playwright), com o window.datera de mentira e os dados da escola
 docs/                     # os guias (gestores, devs e referência) e as imagens do README
 examples/                 # CSV, XML e as configs de exemplo (npm run example)
 local/                    # (ignorada pelo git) seus normalizadores e testes pessoais
-scripts/                  # scripts pra testar na mão (banco, config, sheets) e os de versão (release:prepare, conferência da tag e texto da release)
+scripts/                  # os de versão (release:prepare, conferência da tag e texto da release) e o test:sheet, que escreve numa planilha de verdade
 CHANGELOG.md              # o que mudou em cada versão
+config.json.example       # uma config pronta pra copiar, lendo o CSV de exemplo
+playwright.config.ts      # a config dos testes de tela (temas claro e escuro)
+vitest.config.ts          # a config dos testes unitários
 dist/                     # o terminal compilado pelo npm run build (não vai pro git)
-.github/workflows/        # CI (type-check e testes a cada push)
+.github/workflows/        # ci.yml (type-check, testes, build e testes de tela a cada push) e release.yml (instaladores a cada tag)
+.github/ISSUE_TEMPLATE/   # os modelos de issue (algo deu errado e ideia)
+CONTRIBUTING.md           # como rodar, testar e mandar mudança
+CODE_OF_CONDUCT.md        # código de conduta
+SECURITY.md               # como avisar de falha de segurança
 ```
 
 ---

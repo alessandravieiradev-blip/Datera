@@ -14,10 +14,16 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 - este CHANGELOG, e o `npm run release:prepare -- <versão>`, que troca a versão nos três `package.json` e fecha a seção do CHANGELOG de uma vez
 - a action da aba Releases agora usa a seção do CHANGELOG como texto da release, e não deixa publicar uma versão sem ela
+- testes de tela dos dois apps com Playwright (`npm run test:telas`), nos temas claro e escuro, rodando no CI com as fotos de cada tela
 
 ### Mudou
 
 - os testes usam só os dados da escola de música inventada, sem "clientes" nem telefone
+- o `config.json.example` virou uma config de verdade, que já roda lendo o CSV de exemplo
+
+### Removido
+
+- os scripts `test:config` e `test:connection`, que faziam o mesmo que o `datera validate` e o `--dry-run`
 
 ## [0.1.0] - 2026-09-29
 

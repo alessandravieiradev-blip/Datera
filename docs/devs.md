@@ -258,18 +258,34 @@ Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch
 
 ## Testes
 
-| Comando                   | O que faz                                                            |
-| ------------------------- | -------------------------------------------------------------------- |
-| `npm run example`         | Roda o exemplo com CSV, sem precisar de banco nem Google             |
-| `npm run example:excel`   | O mesmo exemplo, mas gerando um arquivo do Excel                     |
-| `npm run example:xml`     | O mesmo exemplo, lendo e gerando XML                                 |
-| `npm test`                | Testes unitários (Vitest), sem precisar de banco ou planilha reais   |
-| `npm run test:watch`      | Os mesmos testes, rodando de novo a cada arquivo salvo (Q para sair) |
-| `npm run test:config`     | Carrega e valida o `config.json`                                     |
-| `npm run validate`        | Confere a config e os arquivos citados, sem rodar nada               |
-| `npm run build`           | Compila pra `dist/`, que é o que o comando `datera` usa              |
-| `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas                 |
-| `npm run test:sheet`      | Escreve duas linhas de teste numa planilha real                      |
+| Comando                  | O que faz                                                            |
+| ------------------------ | -------------------------------------------------------------------- |
+| `npm run example`        | Roda o exemplo com CSV, sem precisar de banco nem Google             |
+| `npm run example:excel`  | O mesmo exemplo, mas gerando um arquivo do Excel                     |
+| `npm run example:xml`    | O mesmo exemplo, lendo e gerando XML                                 |
+| `npm test`               | Testes unitários (Vitest), sem precisar de banco ou planilha reais   |
+| `npm run test:watch`     | Os mesmos testes, rodando de novo a cada arquivo salvo (Q para sair) |
+| `npm run test:telas`     | Testes de tela dos dois apps (Playwright), nos temas claro e escuro  |
+| `npm run test:telas:ver` | Os mesmos testes de tela, mas com o navegador aparecendo             |
+| `npm run validate`       | Confere a config e os arquivos citados, sem rodar nada               |
+| `npm run build`          | Compila pra `dist/`, que é o que o comando `datera` usa              |
+| `npm run test:sheet`     | Escreve duas linhas de teste numa planilha real do Google            |
+
+Pra conferir se a config e o banco estão certos sem gravar nada, use `npm run validate` e depois `npm start -- --dry-run`.
+
+### Testes de tela
+
+Os testes de tela ficam em `e2e/`. Eles não abrem o Electron: montam só a parte React de cada app e trocam o `window.datera` por uma versão de mentira (`e2e/mock.ts`), com os dados da escola de música de `e2e/dados.ts`. Assim dá pra testar o clique, o teclado e o texto na tela sem arquivo nem banco de verdade.
+
+Na primeira vez, baixa o navegador:
+
+```bash
+npx playwright install chromium
+```
+
+Depois é só `npm run test:telas`. Cada teste roda duas vezes, uma no tema claro e outra no escuro, e falha se aparecer erro no console. As fotos de cada tela ficam em `e2e/resultados/`, e no CI elas vão junto com o relatório na aba Actions, em **Artifacts**, com o nome `telas`.
+
+Se mudou um texto ou um botão que algum teste procura, o teste quebra de propósito: é só ajustar o `e2e/gestores.spec.ts` ou o `e2e/dev.spec.ts` pro texto novo.
 
 ## Referência
 

@@ -24,9 +24,11 @@ npm run typecheck
 npm run typecheck -w apps/desktop
 npm run typecheck -w apps/dev
 npm test
+npm run build
+npm run test:telas
 ```
 
-E se mexeu num app, abre ele e confere a tela que mudou (`npm run desktop` ou `npm run desktop:dev`), nos temas claro e escuro.
+O `npm run test:telas` abre os dois apps num navegador escondido e clica pelas telas principais, nos temas claro e escuro. Na primeira vez precisa baixar o navegador com `npx playwright install chromium`. E se mexeu num app, vale abrir ele também e conferir a tela que mudou (`npm run desktop` ou `npm run desktop:dev`).
 
 ## Jeito do código
 
