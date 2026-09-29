@@ -3,6 +3,7 @@ import { requireOptional } from "../optional";
 import { TableRow } from "../../types";
 import { buildHeader } from "../header";
 import { consoleLogger, Logger } from "../../logger";
+import { cellOf } from "../../cells";
 
 export function createSheetsClient(credentialsPath: string): sheets_v4.Sheets {
     const { auth, sheets: sheetsApi } = requireOptional<
@@ -187,7 +188,9 @@ export async function writeData(
     }
 
     const header = buildHeader(data);
-    const rows = data.map((row) => header.map((column) => row[column] ?? ""));
+    const rows = data.map((row) =>
+        header.map((column) => cellOf(row, column) ?? ""),
+    );
 
     await sheets.spreadsheets.values.update({
         spreadsheetId,

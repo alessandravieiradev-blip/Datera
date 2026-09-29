@@ -76,6 +76,53 @@ test.describe("app de gestores", () => {
         ).toBeVisible();
     });
 
+    test("o passo a passo grava numa tabela nova do banco", async ({
+        abrir,
+        foto,
+    }) => {
+        const page = await abrir("gestores", "novo");
+        await page.getByRole("button", { name: "Criar configuração" }).click();
+
+        await page.getByRole("radio", { name: /Banco de dados/ }).click();
+        await page.getByRole("button", { name: /Próximo/ }).click();
+        await page.getByRole("radio", { name: /Banco de dados/ }).click();
+        await page.getByRole("button", { name: /Próximo/ }).click();
+
+        await page.getByLabel("Usuário").fill("escola");
+        await page.getByLabel("Banco", { exact: true }).fill("musica");
+        await page.getByLabel("Tabela", { exact: true }).fill("alunos");
+        await page.getByLabel("Tabela do resultado").fill("Alunos");
+        await expect(
+            page.getByText("A tabela do resultado precisa ser diferente"),
+        ).toBeVisible();
+
+        await page.getByLabel("Tabela do resultado").fill("alunos_organizados");
+        await page.getByRole("checkbox", { name: /mesmo servidor/ }).uncheck();
+        await expect(page.getByLabel("Servidor", { exact: true })).toHaveCount(
+            2,
+        );
+        await page.getByRole("checkbox", { name: /mesmo servidor/ }).check();
+        await foto("gestores-destino-banco");
+        await page.getByRole("button", { name: /Próximo/ }).click();
+
+        await expect(page.getByText("tabela alunos_organizados")).toBeVisible();
+        await page.getByRole("button", { name: "Salvar configuração" }).click();
+        await expect(
+            page.getByRole("heading", { level: 1, name: "Regras" }),
+        ).toBeVisible();
+
+        const salva = await page.evaluate(() => window.datera.readConfig());
+        expect(salva).toMatchObject({
+            ok: true,
+            config: {
+                destination: {
+                    type: "mysql",
+                    table: "alunos_organizados",
+                },
+            },
+        });
+    });
+
     test("a prévia mostra o resultado sem gravar", async ({ abrir, foto }) => {
         const page = await abrir("gestores");
         await page

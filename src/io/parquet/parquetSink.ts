@@ -10,6 +10,7 @@ import {
     ParquetLibrary,
     parquetLibrary,
 } from "./parquetLibrary";
+import { cellOf } from "../../cells";
 
 export interface ParquetSinkOptions {
     path: string;
@@ -31,7 +32,7 @@ function typeOf(values: TableRow[string][]): ParquetColumnType {
 
 export function parquetColumns(rows: TableRow[]): ParquetColumn[] {
     return buildHeader(rows).map((name) => {
-        const values = rows.map((row) => row[name] ?? null);
+        const values = rows.map((row) => cellOf(row, name) ?? null);
         const type = typeOf(values);
         return {
             name,

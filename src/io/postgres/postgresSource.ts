@@ -15,7 +15,10 @@ export interface PostgresConnection {
 
 export interface PostgresClient {
     connect(): Promise<unknown>;
-    query(text: string): Promise<{ rows: Record<string, unknown>[] }>;
+    query(
+        text: string,
+        values?: unknown[],
+    ): Promise<{ rows: Record<string, unknown>[] }>;
     end(): Promise<unknown>;
 }
 

@@ -9,6 +9,12 @@ export const ENV_KEYS = [
     "DB_PASSWORD",
     "DB_NAME",
     "DB_TABLE",
+    "DEST_DB_HOST",
+    "DEST_DB_PORT",
+    "DEST_DB_USER",
+    "DEST_DB_PASSWORD",
+    "DEST_DB_NAME",
+    "DEST_DB_TABLE",
     "GOOGLE_SPREADSHEET_ID",
     "GOOGLE_SERVICE_ACCOUNT_KEY_PATH",
 ];

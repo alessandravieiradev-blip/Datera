@@ -1,6 +1,7 @@
 import { TableRow } from "../types";
 import { getKeyNormalizer } from "../normalizers/registry";
 import { ValidationRule } from "./validateTypes";
+import { cellOf, setCell } from "../cells";
 
 export const DEFAULT_PENDING_SHEET = "Pendências";
 export const DEFAULT_REASON_COLUMN = "Motivo";
@@ -35,7 +36,9 @@ export class RowValidator {
 
         for (const row of rows) {
             const reasons = this.checks
-                .filter((check) => !this.passes(check, row[check.column]))
+                .filter(
+                    (check) => !this.passes(check, cellOf(row, check.column)),
+                )
                 .map((check) => check.message);
 
             if (reasons.length === 0) {
@@ -44,8 +47,10 @@ export class RowValidator {
             }
 
             const withReason: TableRow = { [this.reasonColumn]: null, ...row };
-            withReason[this.reasonColumn] = Array.from(new Set(reasons)).join(
-                "; ",
+            setCell(
+                withReason,
+                this.reasonColumn,
+                Array.from(new Set(reasons)).join("; "),
             );
             pending.push(withReason);
         }

@@ -1,6 +1,7 @@
 import { TableRow } from "../types";
 import { MergeColumnConfig } from "./mergeTypes";
 import { DEFAULT_SEPARATOR, presentValues } from "./mergeStrategies";
+import { setCell } from "../cells";
 
 export function buildUnkeyedRows(
     rows: TableRow[],
@@ -22,9 +23,11 @@ export function buildUnkeyedRows(
     for (const { column, unkeyed } of collapsing) {
         const target = unkeyed?.into ?? `${column} ${label}`;
         const separator = unkeyed?.separator ?? DEFAULT_SEPARATOR;
-        collapsed[target] = presentValues(rows, column)
-            .map(String)
-            .join(separator);
+        setCell(
+            collapsed,
+            target,
+            presentValues(rows, column).map(String).join(separator),
+        );
     }
 
     return [collapsed];

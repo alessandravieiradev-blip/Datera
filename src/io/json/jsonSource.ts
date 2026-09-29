@@ -1,6 +1,7 @@
 import { TableRow } from "../../types";
 import { Source } from "../types";
 import { readTextFile } from "../files";
+import { setCell } from "../../cells";
 
 export interface JsonSourceOptions {
     path: string;
@@ -11,21 +12,23 @@ type Json = unknown;
 
 function flatten(value: Json, prefix: string, row: TableRow): void {
     if (value === null || value === undefined) {
-        row[prefix] = null;
+        setCell(row, prefix, null);
     } else if (Array.isArray(value)) {
-        row[prefix] = value.every(
-            (item) => typeof item !== "object" || item === null,
-        )
-            ? value.map((item) => String(item ?? "")).join(", ")
-            : JSON.stringify(value);
+        setCell(
+            row,
+            prefix,
+            value.every((item) => typeof item !== "object" || item === null)
+                ? value.map((item) => String(item ?? "")).join(", ")
+                : JSON.stringify(value),
+        );
     } else if (typeof value === "object") {
         for (const [key, inner] of Object.entries(value)) {
             flatten(inner, prefix ? `${prefix}.${key}` : key, row);
         }
     } else if (typeof value === "number" || typeof value === "string") {
-        row[prefix] = value;
+        setCell(row, prefix, value);
     } else {
-        row[prefix] = String(value);
+        setCell(row, prefix, String(value));
     }
 }
 

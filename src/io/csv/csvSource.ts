@@ -2,6 +2,7 @@ import { TableRow } from "../../types";
 import { Source } from "../types";
 import { detectDelimiter, parseCsv, stripBom } from "./csvFormat";
 import { FileEncoding, readTextFile } from "../files";
+import { setCell } from "../../cells";
 
 export interface CsvSourceOptions {
     path: string;
@@ -26,8 +27,11 @@ export class CsvSource implements Source {
             const row: TableRow = {};
             columns.forEach((column, index) => {
                 const value = values[index];
-                row[column] =
-                    value === undefined || value === "" ? null : value;
+                setCell(
+                    row,
+                    column,
+                    value === undefined || value === "" ? null : value,
+                );
             });
             return row;
         });

@@ -2,6 +2,7 @@ import type { sheets_v4 } from "@googleapis/sheets";
 import { TableRow } from "../../types";
 import { Source } from "../types";
 import { readSheet } from "./client";
+import { setCell } from "../../cells";
 
 type CellValue = string | number | null;
 
@@ -38,7 +39,7 @@ export class SheetsSource implements Source {
             columns.forEach((column, index) => {
                 if (column === null) return;
                 const value = fromSheetCell(values[index]);
-                row[column] = value;
+                setCell(row, column, value);
                 if (value !== null) hasValue = true;
             });
             if (hasValue) rows.push(row);

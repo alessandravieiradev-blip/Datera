@@ -15,7 +15,7 @@ import { createSource } from "../../../../src/io/factory";
 import { loadAdapterModules } from "../../../../src/io/custom/loader";
 import { buildHeader } from "../../../../src/io/header";
 import { previewSizeOf, splitEnv } from "./safe";
-import { codeFilesOf, confirmCodeFiles } from "./trust";
+import { codeFilesOf, confirmCodeFiles, confirmRoute } from "./trust";
 import {
     ColumnsResult,
     LogEntry,
@@ -196,6 +196,7 @@ export async function runWithConfig(
             async () => {
                 const config = readConfigFrom(configPath, request.configText);
                 await confirmCodeFiles(configPath, codeFilesOf(config));
+                if (!request.dryRun) await confirmRoute(configPath, config);
                 reloadModules(config);
                 const labels = describe(config);
                 const report = await runEtl(config, {

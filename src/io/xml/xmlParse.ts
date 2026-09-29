@@ -85,7 +85,12 @@ class Reader {
 function decode(value: string, reader: Reader, at: number): string {
     return value.replace(/&([^;&\s]*);?/g, (whole, entity: string) => {
         if (!whole.endsWith(";")) reader.fail("Tem um & solto no texto", at);
-        const named = NAMED_ENTITIES[entity];
+        const named = Object.prototype.hasOwnProperty.call(
+            NAMED_ENTITIES,
+            entity,
+        )
+            ? NAMED_ENTITIES[entity]
+            : undefined;
         if (named !== undefined) return named;
         const code = entity.startsWith("#x")
             ? parseInt(entity.slice(2), 16)
@@ -120,7 +125,7 @@ function readElement(reader: Reader): XmlElement {
     reader.skip("<");
     const element: XmlElement = {
         name: reader.name(),
-        attributes: {},
+        attributes: Object.create(null) as Record<string, string>,
         children: [],
         text: "",
     };

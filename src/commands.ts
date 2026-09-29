@@ -13,15 +13,30 @@ import {
     merge,
     normalize,
     readRows,
+    ReadOptions,
     sourceFromPath,
     writeRows,
+    WriteOptions,
 } from "./api";
 import { Logger } from "./logger";
-import { assertDifferentFiles } from "./io/safety";
+import { assertSourceIsSafe } from "./io/safety";
 import { formatReport, parseMode, runEtl } from "./pipeline";
 
 type RunOptions = Extract<CliOptions, { command: "run" }>;
 type InitOptions = Extract<CliOptions, { command: "init" }>;
+
+function assertSafeOutput(cli: {
+    input: string;
+    output: string;
+    read: ReadOptions;
+    write: WriteOptions;
+}): void {
+    assertSourceIsSafe({
+        mode: "raw",
+        source: sourceFromPath(cli.input, cli.read),
+        destination: destinationFromPath(cli.output, cli.write),
+    });
+}
 
 function plural(count: number, one: string, many: string): string {
     return `${count} ${count === 1 ? one : many}`;
@@ -151,7 +166,7 @@ export async function runCommand(
         }
 
         case "dedupe": {
-            assertDifferentFiles(cli.input, cli.output);
+            assertSafeOutput(cli);
             const rows = await readRows(cli.input, cli.read);
             const result = dedupe(rows, cli.by, {
                 keep: cli.keep,
@@ -165,7 +180,7 @@ export async function runCommand(
         }
 
         case "merge": {
-            assertDifferentFiles(cli.input, cli.output);
+            assertSafeOutput(cli);
             const rows = await readRows(cli.input, cli.read);
             const result = merge(rows, cli.key, {
                 normalizer: cli.normalizer,

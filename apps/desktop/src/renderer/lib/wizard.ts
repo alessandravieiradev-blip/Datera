@@ -9,7 +9,8 @@ export const DEFAULT_PORTS: Record<DatabaseKind, string> = {
     postgres: "5432",
     sqlserver: "1433",
 };
-export type DestinationKind = "excel" | "csv" | "xml" | "sheets";
+export type DestinationKind =
+    "excel" | "csv" | "xml" | "sqlite" | "sheets" | "database";
 
 export type FileSideKind = "excel" | "csv" | "xml" | "sqlite";
 
@@ -35,6 +36,14 @@ export interface WizardDraft {
     destinationPath: string;
     destinationLink: string;
     destinationSheet: string;
+    destinationTable: string;
+    sameServer: boolean;
+    destinationDatabaseKind: DatabaseKind;
+    destinationHost: string;
+    destinationPort: string;
+    destinationUser: string;
+    destinationPassword: string;
+    destinationDatabase: string;
     credentialsPath: string;
     host: string;
     port: string;
@@ -55,6 +64,14 @@ export const EMPTY_DRAFT: WizardDraft = {
     destinationPath: "",
     destinationLink: "",
     destinationSheet: "",
+    destinationTable: "",
+    sameServer: true,
+    destinationDatabaseKind: "mysql",
+    destinationHost: "localhost",
+    destinationPort: "3306",
+    destinationUser: "",
+    destinationPassword: "",
+    destinationDatabase: "",
     credentialsPath: "",
     host: "localhost",
     port: "3306",
@@ -71,6 +88,43 @@ export function spreadsheetIdFrom(link: string): string {
 
 export function usesGoogle(draft: WizardDraft): boolean {
     return draft.source === "sheets" || draft.destination === "sheets";
+}
+
+export function usesSameServer(draft: WizardDraft): boolean {
+    return (
+        draft.source === "database" &&
+        draft.destination === "database" &&
+        draft.sameServer
+    );
+}
+
+function sameText(a: string, b: string): boolean {
+    return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+function destinationTableProblem(draft: WizardDraft): string | null {
+    if (draft.destination !== "database" && draft.destination !== "sqlite")
+        return null;
+    if (!draft.destinationTable.trim())
+        return "Escreva o nome da tabela onde salvar o resultado.";
+    if (
+        draft.destination === "database" &&
+        !usesSameServer(draft) &&
+        (!draft.destinationHost ||
+            !draft.destinationUser ||
+            !draft.destinationDatabase)
+    ) {
+        return "Preencha servidor, usuário e banco de onde salvar.";
+    }
+    const sameTable = sameText(draft.table, draft.destinationTable);
+    const sameFile =
+        draft.source === "sqlite" &&
+        draft.destination === "sqlite" &&
+        sameText(draft.sourcePath, draft.destinationPath);
+    if (sameTable && (usesSameServer(draft) || sameFile)) {
+        return "A tabela do resultado precisa ser diferente da tabela de onde ele lê.";
+    }
+    return null;
 }
 
 export function detailsProblem(draft: WizardDraft): string | null {
@@ -92,6 +146,8 @@ export function detailsProblem(draft: WizardDraft): string | null {
     if (draft.destination === "sheets" && !draft.destinationLink.trim()) {
         return "Cole o link da planilha onde salvar.";
     }
+    const tableProblem = destinationTableProblem(draft);
+    if (tableProblem) return tableProblem;
     if (usesGoogle(draft) && !draft.credentialsPath)
         return "Escolha o arquivo de credenciais do Google.";
     if (
@@ -168,6 +224,30 @@ function destinationOf(draft: WizardDraft): RawConfig {
             return { type: "csv", path: draft.destinationPath, delimiter: ";" };
         case "xml":
             return { type: "xml", path: draft.destinationPath };
+        case "sqlite":
+            return {
+                type: "sqlite",
+                path: draft.destinationPath,
+                table: draft.destinationTable.trim(),
+            };
+        case "database":
+            if (usesSameServer(draft)) {
+                return {
+                    type: draft.databaseKind,
+                    table: draft.destinationTable.trim(),
+                };
+            }
+            return {
+                type: draft.destinationDatabaseKind,
+                host: draft.destinationHost.trim(),
+                port:
+                    Number(draft.destinationPort) ||
+                    Number(DEFAULT_PORTS[draft.destinationDatabaseKind]),
+                user: draft.destinationUser.trim(),
+                ...optional("password", draft.destinationPassword),
+                database: draft.destinationDatabase.trim(),
+                table: draft.destinationTable.trim(),
+            };
         default:
             return {
                 type: "sheets",

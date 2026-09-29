@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { translateIssue } from "./messages";
 import { EtlConfig, etlConfigSchema } from "./schema";
+import { tableProblem } from "../io/safety";
 
 export interface ConfigProblem {
     where: string;
@@ -88,6 +89,9 @@ export function checkConfigText(text: string, folder: string): ConfigCheck {
         };
     }
     const problems = missingFiles(result.data, folder);
+    const tables = tableProblem(result.data);
+    if (tables !== null)
+        problems.push({ where: "destination.table", message: tables });
     return { ok: problems.length === 0, problems };
 }
 

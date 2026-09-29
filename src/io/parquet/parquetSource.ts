@@ -3,6 +3,7 @@ import { TableRow } from "../../types";
 import { Source } from "../types";
 import { toCell } from "../sql/cell";
 import { ParquetLibrary, parquetLibrary } from "./parquetLibrary";
+import { setCell } from "../../cells";
 
 export interface ParquetSourceOptions {
     path: string;
@@ -32,11 +33,13 @@ function flatten(value: unknown, prefix: string, row: TableRow): void {
             flatten(inner, join(prefix, name), row);
         }
     } else if (Array.isArray(value) && value.every(isSimple)) {
-        row[prefix] = value
-            .map((item) => String(toCell(item) ?? ""))
-            .join(", ");
+        setCell(
+            row,
+            prefix,
+            value.map((item) => String(toCell(item) ?? "")).join(", "),
+        );
     } else {
-        row[prefix] = toCell(value);
+        setCell(row, prefix, toCell(value));
     }
 }
 

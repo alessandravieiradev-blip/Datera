@@ -50,6 +50,13 @@ function configFor(info: AppInfo, output: string): Configuration {
         files: ["out/**/*", "!out/**/*.map", "package.json"],
         asar: true,
         npmRebuild: false,
+        electronFuses: {
+            runAsNode: false,
+            enableNodeOptionsEnvironmentVariable: false,
+            enableNodeCliInspectArguments: false,
+            onlyLoadAppFromAsar: true,
+            enableCookieEncryption: true,
+        },
         win: {
             icon: "resources/icon.ico",
             artifactName: info.artifactName,

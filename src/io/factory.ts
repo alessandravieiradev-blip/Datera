@@ -11,6 +11,10 @@ import { XmlSource } from "./xml/xmlSource";
 import { PostgresSource } from "./postgres/postgresSource";
 import { SqlServerSource } from "./sqlserver/sqlServerSource";
 import { SqliteSource } from "./sqlite/sqliteSource";
+import { SqliteSink } from "./sqlite/sqliteSink";
+import { PostgresSink } from "./postgres/postgresSink";
+import { SqlServerSink } from "./sqlserver/sqlServerSink";
+import { MysqlSink } from "./mysql/mysqlSink";
 import { XmlSink } from "./xml/xmlSink";
 import { ParquetSource } from "./parquet/parquetSource";
 import { ParquetSink } from "./parquet/parquetSink";
@@ -20,10 +24,13 @@ import { SheetsSource } from "./sheets/sheetsSource";
 import { createCustomSink, createCustomSource } from "./custom/registry";
 import { consoleLogger, Logger } from "../logger";
 import { assertSourceIsSafe } from "./safety";
+import { destinationSharesSource, serverOf } from "./servers";
 
-const DEFAULT_MYSQL_PORT = 3306;
-const DEFAULT_POSTGRES_PORT = 5432;
-const DEFAULT_SQLSERVER_PORT = 1433;
+const SERVER_NAMES = {
+    mysql: "MySQL",
+    postgres: "PostgreSQL",
+    sqlserver: "SQL Server",
+};
 
 function required<T>(value: T | undefined, what: string): T {
     if (value === undefined || value === "") {
@@ -46,7 +53,7 @@ export function createSource(
                         source.host ?? config.dbHost,
                         "o host do MySQL",
                     ),
-                    port: source.port ?? config.dbPort ?? DEFAULT_MYSQL_PORT,
+                    port: serverOf(config, "source")!.port,
                     user: required(
                         source.user ?? config.dbUser,
                         "o usuário do MySQL",
@@ -56,6 +63,7 @@ export function createSource(
                         source.database ?? config.dbName,
                         "o banco do MySQL",
                     ),
+                    ssl: source.ssl,
                 },
                 required(source.table ?? config.tableName, "a tabela do MySQL"),
                 logger,
@@ -64,7 +72,7 @@ export function createSource(
             return new PostgresSource(
                 {
                     host: required(source.host, "o host do PostgreSQL"),
-                    port: source.port ?? DEFAULT_POSTGRES_PORT,
+                    port: serverOf(config, "source")!.port,
                     user: required(source.user, "o usuário do PostgreSQL"),
                     password: source.password,
                     database: required(
@@ -79,7 +87,7 @@ export function createSource(
             return new SqlServerSource(
                 {
                     host: required(source.host, "o servidor do SQL Server"),
-                    port: source.port ?? DEFAULT_SQLSERVER_PORT,
+                    port: serverOf(config, "source")!.port,
                     user: required(source.user, "o usuário do SQL Server"),
                     password: source.password,
                     database: required(
@@ -131,6 +139,71 @@ export function createSink(
     const destination = config.destination ?? { type: "sheets" as const };
 
     switch (destination.type) {
+        case "mysql":
+        case "postgres":
+        case "sqlserver": {
+            const server = serverOf(config, "destination")!;
+            const what = SERVER_NAMES[destination.type];
+            const connection = {
+                host: required(server.host, `o host do ${what} de destino`),
+                port: server.port,
+                user: required(server.user, `o usuário do ${what} de destino`),
+                password: server.password,
+                database: required(
+                    server.database,
+                    `o banco do ${what} de destino`,
+                ),
+            };
+            const target = {
+                table: required(
+                    destination.table,
+                    `a tabela do ${what} onde gravar`,
+                ),
+                pendingTable: destination.pendingTable,
+            };
+            if (destination.type === "mysql") {
+                const same =
+                    config.source?.type === "mysql" &&
+                    destinationSharesSource(config)
+                        ? config.source
+                        : undefined;
+                return new MysqlSink(
+                    { ...connection, ssl: destination.ssl ?? same?.ssl },
+                    target,
+                    logger,
+                );
+            }
+            if (destination.type === "postgres") {
+                const same =
+                    config.source?.type === "postgres" &&
+                    destinationSharesSource(config)
+                        ? config.source
+                        : undefined;
+                return new PostgresSink(
+                    { ...connection, ssl: destination.ssl ?? same?.ssl },
+                    target,
+                    logger,
+                );
+            }
+            const same =
+                config.source?.type === "sqlserver" &&
+                destinationSharesSource(config)
+                    ? config.source
+                    : undefined;
+            return new SqlServerSink(
+                {
+                    ...connection,
+                    encrypt: destination.encrypt ?? same?.encrypt,
+                    trustServerCertificate:
+                        destination.trustServerCertificate ??
+                        same?.trustServerCertificate,
+                },
+                target,
+                logger,
+            );
+        }
+        case "sqlite":
+            return new SqliteSink(destination, logger);
         case "sheets": {
             const credentialsPath = required(
                 destination.credentialsPath ?? config.credentialsPath,

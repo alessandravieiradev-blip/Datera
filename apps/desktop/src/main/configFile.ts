@@ -74,31 +74,58 @@ export function prepareNewConfig(
     return withRelativePaths(path.dirname(configPath), config);
 }
 
+const SERVER_TYPES = ["mysql", "postgres", "sqlserver"];
+
+function moveSidePassword(
+    configPath: string,
+    config: RawConfig,
+    side: "source" | "destination",
+    prefix: "DB" | "DEST_DB",
+): RawConfig {
+    const target = config[side];
+    if (!isObject(target) || !SERVER_TYPES.includes(String(target.type)))
+        return config;
+    const password = target.password;
+    const host = target.host;
+    if (typeof password !== "string" || password === "") return config;
+    if (typeof host !== "string" || host.trim() === "") return config;
+    const lines: [string, string | null][] = [
+        [`${prefix}_HOST`, envLine(`${prefix}_HOST`, host.trim())],
+        [`${prefix}_PASSWORD`, envLine(`${prefix}_PASSWORD`, password)],
+    ];
+    if (typeof target.port === "number") {
+        lines.push([
+            `${prefix}_PORT`,
+            envLine(`${prefix}_PORT`, String(target.port)),
+        ]);
+    }
+    if (lines.some(([, line]) => line === null)) {
+        throw new Error(
+            "A senha ou o servidor têm um caractere que não dá para guardar no .env com segurança. Troque a senha ou coloque ela direto no .env.",
+        );
+    }
+
+    const envPath = path.join(path.dirname(configPath), ".env");
+    let content = fs.existsSync(envPath)
+        ? fs.readFileSync(envPath, "utf-8")
+        : "";
+    for (const [key, line] of lines) content = setEnvLine(content, key, line!);
+    fs.writeFileSync(envPath, content);
+
+    const rest = Object.fromEntries(
+        Object.entries(target).filter(([name]) => name !== "password"),
+    );
+    return { ...config, [side]: rest };
+}
+
 export function movePasswordToEnv(
     configPath: string,
     config: RawConfig,
 ): RawConfig {
-    const source = config.source;
-    if (
-        !isObject(source) ||
-        (source.type !== "mysql" &&
-            source.type !== "postgres" &&
-            source.type !== "sqlserver")
-    )
-        return config;
-    const password = source.password;
-    if (typeof password !== "string" || password === "") return config;
-    const line = envLine("DB_PASSWORD", password);
-    if (line === null) return config;
-
-    const envPath = path.join(path.dirname(configPath), ".env");
-    const current = fs.existsSync(envPath)
-        ? fs.readFileSync(envPath, "utf-8")
-        : "";
-    fs.writeFileSync(envPath, setEnvLine(current, "DB_PASSWORD", line));
-
-    const rest = Object.fromEntries(
-        Object.entries(source).filter(([key]) => key !== "password"),
+    return moveSidePassword(
+        configPath,
+        moveSidePassword(configPath, config, "source", "DB"),
+        "destination",
+        "DEST_DB",
     );
-    return { ...config, source: rest };
 }

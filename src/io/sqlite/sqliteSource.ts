@@ -3,22 +3,11 @@ import { TableRow } from "../../types";
 import { Source } from "../types";
 import { quoteTable } from "../sql/names";
 import { toRow } from "../sql/cell";
+import { loadSqlite } from "./sqlite";
 
 export interface SqliteSourceOptions {
     path: string;
     table: string;
-}
-
-type SqliteModule = typeof import("node:sqlite");
-
-function loadSqlite(): SqliteModule {
-    try {
-        return require("node:sqlite") as SqliteModule;
-    } catch {
-        throw new Error(
-            "Essa versão do Node não sabe ler SQLite. Atualize pro Node 22.13 ou mais novo.",
-        );
-    }
 }
 
 export class SqliteSource implements Source {

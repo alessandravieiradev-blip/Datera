@@ -9,6 +9,7 @@ export interface MysqlConnection {
     user: string;
     password?: string | undefined;
     database: string;
+    ssl?: boolean | undefined;
 }
 
 export function createPool(connection: MysqlConnection): Pool {
@@ -25,6 +26,7 @@ export function createPool(connection: MysqlConnection): Pool {
             ? { password: connection.password }
             : {}),
         database: connection.database,
+        ...(connection.ssl ? { ssl: { rejectUnauthorized: true } } : {}),
     });
 }
 

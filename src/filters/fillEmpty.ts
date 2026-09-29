@@ -1,6 +1,7 @@
 import { Filter } from "./types";
 import { TableRow } from "../types";
 import { FillEmptyConfig } from "./fillEmptyTypes";
+import { cellOf, setCell } from "../cells";
 
 export class FillEmptyFilter implements Filter<TableRow> {
     constructor(private readonly rules: FillEmptyConfig[]) {}
@@ -13,16 +14,16 @@ export class FillEmptyFilter implements Filter<TableRow> {
                 fallbackColumns = [],
                 default: fallbackValue,
             } of this.rules) {
-                if (!this.isEmpty(row[column])) continue;
+                if (!this.isEmpty(cellOf(row, column))) continue;
 
                 const fromColumn = fallbackColumns
-                    .map((fallback) => row[fallback])
+                    .map((fallback) => cellOf(row, fallback))
                     .find((value) => !this.isEmpty(value));
 
                 if (fromColumn !== undefined) {
-                    result[column] = fromColumn;
+                    setCell(result, column, fromColumn);
                 } else if (fallbackValue !== undefined) {
-                    result[column] = fallbackValue;
+                    setCell(result, column, fallbackValue);
                 }
             }
             return result;

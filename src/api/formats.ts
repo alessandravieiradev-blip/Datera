@@ -25,10 +25,15 @@ export interface ReadOptions {
     encoding?: "utf-8" | "latin1" | undefined;
 }
 
+export const DEFAULT_TABLE = "dados";
+
 export interface WriteOptions {
+    table?: string | undefined;
+    pendingTable?: string | undefined;
     sheet?: string | undefined;
     delimiter?: string | undefined;
     bom?: boolean | undefined;
+    escapeFormulas?: boolean | undefined;
     root?: string | undefined;
     record?: string | undefined;
 }
@@ -113,6 +118,7 @@ export function destinationFromPath(
                         ? "\t"
                         : undefined),
                 bom: options.bom,
+                escapeFormulas: options.escapeFormulas,
             });
         case "json":
             return { type: "json", path: filePath };
@@ -132,8 +138,11 @@ export function destinationFromPath(
         case "parquet":
             return { type: "parquet", path: filePath };
         case "sqlite":
-            throw new Error(
-                "Ainda não dá pra gravar em SQLite. Escolha outro formato pra saída.",
-            );
+            return defined({
+                type: "sqlite",
+                path: filePath,
+                table: options.table?.trim() || DEFAULT_TABLE,
+                pendingTable: options.pendingTable,
+            });
     }
 }

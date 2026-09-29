@@ -15,6 +15,7 @@ import { TableRow } from "../types";
 import { Mode } from "./modes";
 import { buildSteps } from "./steps";
 import { EtlReport, PendingReason, Step, StepReport } from "./types";
+import { cellOf } from "../cells";
 
 export const DEFAULT_PREVIEW_SIZE = 5;
 
@@ -24,7 +25,7 @@ export function countPendingReasons(
 ): PendingReason[] {
     const counts = new Map<string, number>();
     for (const row of pending) {
-        const text = row[reasonColumn];
+        const text = cellOf(row, reasonColumn);
         if (text === null || text === undefined) continue;
         for (const part of String(text).split(";")) {
             const reason = part.trim();

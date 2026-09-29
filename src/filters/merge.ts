@@ -10,6 +10,7 @@ import {
 } from "./mergeStrategies";
 import { buildUnkeyedRows } from "./mergeUnkeyed";
 import { KeyNormalizer, getKeyNormalizer } from "../normalizers/registry";
+import { cellOf, setCell } from "../cells";
 
 const identityNormalizer: KeyNormalizer = (raw) => ({
     key: typeof raw === "string" ? raw.trim() : raw,
@@ -45,7 +46,7 @@ export class MergeFilter implements Filter<TableRow> {
         const rejectedKeyRows: TableRow[] = [];
 
         for (const row of rows) {
-            const rawKey = row[this.keyColumn];
+            const rawKey = cellOf(row, this.keyColumn);
 
             if (
                 rawKey === null ||
@@ -151,10 +152,14 @@ export class MergeFilter implements Filter<TableRow> {
 
             switch (resolvedStrategy) {
                 case "overwrite":
-                    merged[target] = mergeOverwrite(group, column);
+                    setCell(merged, target, mergeOverwrite(group, column));
                     break;
                 case "concat":
-                    merged[target] = mergeConcat(group, column, finalSeparator);
+                    setCell(
+                        merged,
+                        target,
+                        mergeConcat(group, column, finalSeparator),
+                    );
                     break;
                 case "extra-column":
                     mergeExtraColumns(group, column, merged, target);

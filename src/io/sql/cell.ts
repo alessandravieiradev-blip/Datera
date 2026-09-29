@@ -1,3 +1,4 @@
+import { setCell } from "../../cells";
 import { TableRow } from "../../types";
 
 type Cell = TableRow[string];
@@ -30,7 +31,7 @@ export function toCell(value: unknown): Cell {
 export function toRow(record: Record<string, unknown>): TableRow {
     const row: TableRow = {};
     for (const [column, value] of Object.entries(record)) {
-        row[column] = toCell(value);
+        setCell(row, column, toCell(value));
     }
     return row;
 }

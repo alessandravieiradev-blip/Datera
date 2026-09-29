@@ -2,6 +2,7 @@ import { buildHeader } from "../io/header";
 import { registerBuiltinKeyNormalizers } from "../normalizers";
 import { getKeyNormalizer, listKeyNormalizers } from "../normalizers/registry";
 import { TableRow } from "../types";
+import { cellOf } from "../cells";
 
 export type ColumnKind = "número" | "texto" | "misto" | "vazio";
 
@@ -30,7 +31,7 @@ function kindOf(values: TableRow[string][]): ColumnKind {
 export function describeColumns(rows: TableRow[]): ColumnInfo[] {
     return buildHeader(rows).map((name) => {
         const present = rows
-            .map((row) => row[name])
+            .map((row) => cellOf(row, name))
             .filter((value): value is string | number => !isEmpty(value));
         const distinct = new Set(present.map((value) => String(value)));
         return {

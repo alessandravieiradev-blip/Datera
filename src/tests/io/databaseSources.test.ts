@@ -254,23 +254,65 @@ describe("config dos bancos", () => {
         expect(result.success).toBe(false);
     });
 
-    it("a senha do .env também vale pro postgres e pro sqlserver", () => {
-        const before = process.env.DB_PASSWORD;
+    it("a senha do .env também vale pro postgres e pro sqlserver, no servidor do .env", () => {
+        const before = [process.env.DB_PASSWORD, process.env.DB_HOST];
         process.env.DB_PASSWORD = "segredo";
+        process.env.DB_HOST = "banco.escola";
         try {
             for (const type of ["postgres", "sqlserver"]) {
                 const config = withEnv(
                     etlConfigSchema.parse({
                         mode: "raw",
-                        source: { type, host: "localhost" },
+                        source: { type, host: "servidor.de.outra.pessoa" },
                         destination: { type: "csv", path: "./saida.csv" },
                     }),
                 );
-                expect(config.source).toMatchObject({ password: "segredo" });
+                expect(config.source).toMatchObject({
+                    host: "banco.escola",
+                    password: "segredo",
+                });
             }
         } finally {
-            if (before === undefined) delete process.env.DB_PASSWORD;
-            else process.env.DB_PASSWORD = before;
+            const [password, host] = before;
+            if (password === undefined) delete process.env.DB_PASSWORD;
+            else process.env.DB_PASSWORD = password;
+            if (host === undefined) delete process.env.DB_HOST;
+            else process.env.DB_HOST = host;
+        }
+    });
+
+    it("sem DB_HOST no .env, a senha do .env não é usada com o servidor da config", () => {
+        const before = [process.env.DB_PASSWORD, process.env.DB_HOST];
+        process.env.DB_PASSWORD = "segredo";
+        delete process.env.DB_HOST;
+        try {
+            const configs = [
+                {
+                    mode: "raw",
+                    source: {
+                        type: "postgres",
+                        host: "servidor.de.outra.pessoa",
+                    },
+                    destination: { type: "csv", path: "./saida.csv" },
+                },
+                {
+                    mode: "raw",
+                    tableName: "alunos",
+                    dbHost: "servidor.de.outra.pessoa",
+                    destination: { type: "csv", path: "./saida.csv" },
+                },
+            ];
+            for (const value of configs) {
+                expect(() => withEnv(etlConfigSchema.parse(value))).toThrow(
+                    "DB_HOST",
+                );
+            }
+        } finally {
+            const [password, host] = before;
+            if (password === undefined) delete process.env.DB_PASSWORD;
+            else process.env.DB_PASSWORD = password;
+            if (host === undefined) delete process.env.DB_HOST;
+            else process.env.DB_HOST = host;
         }
     });
 });

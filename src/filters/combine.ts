@@ -1,6 +1,7 @@
 import { Filter } from "./types";
 import { TableRow } from "../types";
 import { CombineColumnsConfig } from "./combineTypes";
+import { cellOf, hasCell, setCell } from "../cells";
 
 export class CombineFilter implements Filter<TableRow> {
     constructor(private readonly combinations: CombineColumnsConfig[]) {}
@@ -38,15 +39,16 @@ export class CombineFilter implements Filter<TableRow> {
         const result: TableRow = {};
         for (const [column, value] of Object.entries(row)) {
             const into = anchorOf.get(column);
-            if (into !== undefined) result[into] = combined.get(into) ?? null;
+            if (into !== undefined)
+                setCell(result, into, combined.get(into) ?? null);
             if (combined.has(column)) {
-                result[column] = combined.get(column) ?? null;
+                setCell(result, column, combined.get(column) ?? null);
             } else if (!sourcesToRemove.has(column)) {
-                result[column] = value;
+                setCell(result, column, value);
             }
         }
         for (const [into, value] of combined) {
-            if (!(into in result)) result[into] = value;
+            if (!hasCell(result, into)) setCell(result, into, value);
         }
         return result;
     }
@@ -58,7 +60,7 @@ export class CombineFilter implements Filter<TableRow> {
         const values: string[] = [];
 
         for (const column of columns) {
-            const raw = row[column];
+            const raw = cellOf(row, column);
             const text =
                 raw === null || raw === undefined ? "" : String(raw).trim();
             if (text === "") return null;

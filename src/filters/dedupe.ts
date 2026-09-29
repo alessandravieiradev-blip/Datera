@@ -1,6 +1,7 @@
 import { Filter } from "./types";
 import { TableRow } from "../types";
 import { KeyNormalizer } from "../normalizers/registry";
+import { cellOf } from "../cells";
 
 export type DedupeStrategy = "keep-first" | "keep-last";
 
@@ -12,7 +13,7 @@ export class DedupeFilter implements Filter<TableRow> {
     ) {}
 
     private keyOf(row: TableRow): unknown {
-        const raw = row[this.column];
+        const raw = cellOf(row, this.column);
         if (raw === null || raw === undefined) return undefined;
         if (!this.normalizer) return raw;
         const normalized = this.normalizer(raw);

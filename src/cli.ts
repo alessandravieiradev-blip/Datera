@@ -72,6 +72,7 @@ interface ReadFlags {
 }
 
 interface WriteFlags {
+    outputTable?: string;
     outputSheet?: string;
     outputDelimiter?: string;
     root?: string;
@@ -97,6 +98,10 @@ function withReadFlags(command: Command): Command {
 
 function withWriteFlags(command: Command): Command {
     return command
+        .option(
+            "--output-table <tabela>",
+            'Tabela onde gravar, quando a saída é SQLite (padrão: "dados").',
+        )
         .option("--output-sheet <aba>", "Nome da aba, quando a saída é Excel.")
         .option("--output-delimiter <separador>", "Separador do CSV de saída.")
         .option("--root <nome>", "Elemento de fora, quando a saída é XML.")
@@ -118,6 +123,7 @@ function readOptions(flags: ReadFlags): ReadOptions {
 
 function writeOptions(flags: WriteFlags): WriteOptions {
     return {
+        table: flags.outputTable,
         sheet: flags.outputSheet,
         delimiter: flags.outputDelimiter,
         root: flags.root,

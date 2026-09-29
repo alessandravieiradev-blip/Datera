@@ -20,6 +20,7 @@ export const sourceSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("mysql"),
         ...serverFields,
+        ssl: z.boolean().optional(),
     }),
     z.object({
         type: z.literal("postgres"),
@@ -75,7 +76,36 @@ export const sourceSchema = z.discriminatedUnion("type", [
     }),
 ]);
 
+const tableTargetFields = {
+    pendingTable: z.string().trim().min(1).optional(),
+};
+
 export const destinationSchema = z.discriminatedUnion("type", [
+    z.object({
+        type: z.literal("mysql"),
+        ...serverFields,
+        ...tableTargetFields,
+        ssl: z.boolean().optional(),
+    }),
+    z.object({
+        type: z.literal("postgres"),
+        ...serverFields,
+        ...tableTargetFields,
+        ssl: z.boolean().optional(),
+    }),
+    z.object({
+        type: z.literal("sqlserver"),
+        ...serverFields,
+        ...tableTargetFields,
+        encrypt: z.boolean().optional(),
+        trustServerCertificate: z.boolean().optional(),
+    }),
+    z.object({
+        type: z.literal("sqlite"),
+        path: z.string(),
+        table: z.string().trim().min(1),
+        ...tableTargetFields,
+    }),
     z.object({
         type: z.literal("sheets"),
         spreadsheetId: z.string().optional(),
@@ -87,6 +117,7 @@ export const destinationSchema = z.discriminatedUnion("type", [
         path: z.string(),
         delimiter: z.string().min(1).optional(),
         bom: z.boolean().optional(),
+        escapeFormulas: z.boolean().optional(),
     }),
     z.object({
         type: z.literal("json"),

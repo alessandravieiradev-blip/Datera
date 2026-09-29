@@ -4,13 +4,16 @@ import path from "path";
 import { BrowserWindow, dialog, MessageBoxOptions } from "electron";
 import { isInsideFolder } from "./safe";
 import { readJson, writeJson } from "./storage";
+import { describeRoute, routeKey } from "./route";
+import { EtlConfig } from "../../../../src";
 
 const FILE = "confianca.json";
+const ROUTES = "destinos-confirmados.json";
 
 type Trusted = Record<string, string>;
 
-function readTrusted(): Trusted {
-    const saved = readJson<unknown>(FILE, {});
+function readTrusted(file: string = FILE): Trusted {
+    const saved = readJson<unknown>(file, {});
     if (typeof saved !== "object" || saved === null || Array.isArray(saved))
         return {};
     const result: Trusted = {};
@@ -100,4 +103,39 @@ export async function confirmCodeFiles(
         );
     }
     for (const file of pending) trustFile(file);
+}
+
+async function askRoute(source: string, destination: string): Promise<boolean> {
+    const options: MessageBoxOptions = {
+        type: "question",
+        title: "Confira para onde os dados vão",
+        message:
+            "Antes da primeira exportação, confira de onde o Datera lê e onde ele grava.",
+        detail: `Lê de:\n${source}\n\nGrava em:\n${destination}\n\nSe você recebeu esta configuração de outra pessoa, confira se o destino é um lugar seu. O Datera só pergunta de novo se a fonte ou o destino mudarem.`,
+        buttons: ["Confirmar e exportar", "Cancelar"],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+    };
+    const window = BrowserWindow.getFocusedWindow();
+    const { response } = window
+        ? await dialog.showMessageBox(window, options)
+        : await dialog.showMessageBox(options);
+    return response === 0;
+}
+
+export async function confirmRoute(
+    configPath: string,
+    config: EtlConfig,
+): Promise<void> {
+    const route = describeRoute(config, path.dirname(configPath));
+    const key = routeKey(route, config);
+    const confirmed = readTrusted(ROUTES);
+    if (confirmed[keyOf(configPath)] === key) return;
+    if (!(await askRoute(route.source, route.destination))) {
+        throw new Error(
+            "A exportação foi cancelada antes de gravar qualquer coisa.",
+        );
+    }
+    writeJson(ROUTES, { ...readTrusted(ROUTES), [keyOf(configPath)]: key });
 }

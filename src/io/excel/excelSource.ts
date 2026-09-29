@@ -2,6 +2,7 @@ import { TableRow } from "../../types";
 import { Source } from "../types";
 import { openWorkbook } from "./workbook";
 import { fromExcelCell } from "./excelCell";
+import { setCell } from "../../cells";
 
 export interface ExcelSourceOptions {
     path: string;
@@ -41,7 +42,7 @@ export class ExcelSource implements Source {
             let hasValue = false;
             for (const [column, name] of header) {
                 const value = fromExcelCell(excelRow.getCell(column).value);
-                row[name] = value;
+                setCell(row, name, value);
                 if (value !== null) hasValue = true;
             }
             if (hasValue) rows.push(row);

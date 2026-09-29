@@ -86,6 +86,26 @@ export const SNIPPETS: Snippet[] = [
         text: '"destination": { "type": "sheets", "spreadsheetId": "ID_DA_PLANILHA", "sheet": "Resultado" }',
     },
     {
+        id: "destino-sqlite",
+        label: "Destino: SQLite",
+        text: '"destination": { "type": "sqlite", "path": "./saida/escola.db", "table": "alunos_organizados" }',
+    },
+    {
+        id: "destino-mysql",
+        label: "Destino: MySQL",
+        text: '"destination": { "type": "mysql", "host": "localhost", "port": 3306, "user": "usuario", "database": "banco", "table": "alunos_organizados" }',
+    },
+    {
+        id: "destino-postgres",
+        label: "Destino: PostgreSQL",
+        text: '"destination": { "type": "postgres", "host": "localhost", "port": 5432, "user": "usuario", "database": "banco", "table": "public.alunos_organizados" }',
+    },
+    {
+        id: "destino-sqlserver",
+        label: "Destino: SQL Server",
+        text: '"destination": { "type": "sqlserver", "host": "localhost", "port": 1433, "user": "usuario", "database": "banco", "table": "dbo.alunos_organizados" }',
+    },
+    {
         id: "regra-vazio",
         label: "Regra: campo obrigatório",
         text: '{ "column": "coluna", "rule": "required", "message": "Campo vazio" }',

@@ -4,6 +4,7 @@ import { Sink, SinkWriteOptions } from "../types";
 import { buildHeader } from "../header";
 import { createWorkbook, openWorkbook, saveWorkbook } from "./workbook";
 import { consoleLogger, Logger } from "../../logger";
+import { cellOf } from "../../cells";
 
 export interface ExcelSinkOptions {
     path: string;
@@ -53,12 +54,16 @@ export class ExcelSink implements Sink {
         if (header.length > 0) {
             worksheet.addRow(header).font = { bold: true };
             for (const row of rows) {
-                worksheet.addRow(header.map((column) => row[column] ?? null));
+                worksheet.addRow(
+                    header.map((column) => cellOf(row, column) ?? null),
+                );
             }
             header.forEach((column, index) => {
                 const longest = Math.max(
                     column.length,
-                    ...rows.map((row) => String(row[column] ?? "").length),
+                    ...rows.map(
+                        (row) => String(cellOf(row, column) ?? "").length,
+                    ),
                 );
                 worksheet.getColumn(index + 1).width = Math.min(
                     Math.max(longest + 2, 10),

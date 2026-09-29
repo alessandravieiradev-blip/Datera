@@ -22,6 +22,7 @@ import {
     SourceKind,
     usesFile,
     usesGoogle,
+    usesSameServer,
     WizardDraft,
 } from "../lib/wizard";
 import type { FileKind } from "../../shared/api";
@@ -87,6 +88,16 @@ const DESTINATIONS: Option<DestinationKind>[] = [
         id: "sheets",
         title: "Google Planilhas",
         text: "Grava numa planilha do Google, com uma aba de pendências.",
+    },
+    {
+        id: "database",
+        title: "Banco de dados",
+        text: "Cria uma tabela nova num banco MySQL, PostgreSQL ou SQL Server, e outra para as pendências.",
+    },
+    {
+        id: "sqlite",
+        title: "Arquivo SQLite",
+        text: "Cria uma tabela num arquivo .db, e outra para as pendências.",
     },
 ];
 
@@ -394,6 +405,154 @@ function FilePicker({
     );
 }
 
+interface ServerValues {
+    kind: DatabaseKind;
+    host: string;
+    port: string;
+    user: string;
+    password: string;
+    database: string;
+}
+
+function sourceServer(draft: WizardDraft): ServerValues {
+    return {
+        kind: draft.databaseKind,
+        host: draft.host,
+        port: draft.port,
+        user: draft.user,
+        password: draft.password,
+        database: draft.database,
+    };
+}
+
+function fromSourceServer(change: Partial<ServerValues>): Partial<WizardDraft> {
+    return {
+        ...(change.kind !== undefined ? { databaseKind: change.kind } : {}),
+        ...(change.host !== undefined ? { host: change.host } : {}),
+        ...(change.port !== undefined ? { port: change.port } : {}),
+        ...(change.user !== undefined ? { user: change.user } : {}),
+        ...(change.password !== undefined ? { password: change.password } : {}),
+        ...(change.database !== undefined ? { database: change.database } : {}),
+    };
+}
+
+function destinationServer(draft: WizardDraft): ServerValues {
+    return {
+        kind: draft.destinationDatabaseKind,
+        host: draft.destinationHost,
+        port: draft.destinationPort,
+        user: draft.destinationUser,
+        password: draft.destinationPassword,
+        database: draft.destinationDatabase,
+    };
+}
+
+function fromDestinationServer(
+    change: Partial<ServerValues>,
+): Partial<WizardDraft> {
+    return {
+        ...(change.kind !== undefined
+            ? { destinationDatabaseKind: change.kind }
+            : {}),
+        ...(change.host !== undefined ? { destinationHost: change.host } : {}),
+        ...(change.port !== undefined ? { destinationPort: change.port } : {}),
+        ...(change.user !== undefined ? { destinationUser: change.user } : {}),
+        ...(change.password !== undefined
+            ? { destinationPassword: change.password }
+            : {}),
+        ...(change.database !== undefined
+            ? { destinationDatabase: change.database }
+            : {}),
+    };
+}
+
+function ServerFields({
+    values,
+    onChange,
+}: {
+    values: ServerValues;
+    onChange: (change: Partial<ServerValues>) => void;
+}) {
+    return (
+        <>
+            <Field label="Tipo de banco">
+                <select
+                    className="field"
+                    value={values.kind}
+                    onChange={(event) => {
+                        const kind = event.target.value as DatabaseKind;
+                        onChange({
+                            kind,
+                            port:
+                                values.port === DEFAULT_PORTS[values.kind]
+                                    ? DEFAULT_PORTS[kind]
+                                    : values.port,
+                        });
+                    }}
+                >
+                    <option value="mysql">MySQL</option>
+                    <option value="postgres">PostgreSQL</option>
+                    <option value="sqlserver">SQL Server</option>
+                </select>
+            </Field>
+            <Field label="Servidor">
+                <input
+                    className="field"
+                    spellCheck={false}
+                    autoComplete="off"
+                    value={values.host}
+                    onChange={(event) => onChange({ host: event.target.value })}
+                />
+            </Field>
+            <Field label="Porta">
+                <input
+                    className="field"
+                    spellCheck={false}
+                    autoComplete="off"
+                    inputMode="numeric"
+                    value={values.port}
+                    onChange={(event) => onChange({ port: event.target.value })}
+                />
+            </Field>
+            <Field label="Usuário">
+                <input
+                    className="field"
+                    spellCheck={false}
+                    autoComplete="off"
+                    value={values.user}
+                    onChange={(event) => onChange({ user: event.target.value })}
+                />
+            </Field>
+            <Field
+                label="Senha"
+                hint="Fica salva num arquivo .env ao lado da configuração, e não dentro dela."
+            >
+                <input
+                    className="field"
+                    spellCheck={false}
+                    autoComplete="off"
+                    type="password"
+                    value={values.password}
+                    onChange={(event) =>
+                        onChange({ password: event.target.value })
+                    }
+                />
+            </Field>
+            <Field label="Banco">
+                <input
+                    className="field"
+                    spellCheck={false}
+                    autoComplete="off"
+                    value={values.database}
+                    onChange={(event) =>
+                        onChange({ database: event.target.value })
+                    }
+                />
+            </Field>
+        </>
+    );
+}
+
 function DetailsStep({
     draft,
     set,
@@ -504,94 +663,12 @@ function DetailsStep({
                     )}
                     {draft.source === "database" && (
                         <div className="form-grid">
-                            <Field label="Tipo de banco">
-                                <select
-                                    className="field"
-                                    value={draft.databaseKind}
-                                    onChange={(event) => {
-                                        const databaseKind = event.target
-                                            .value as DatabaseKind;
-                                        set({
-                                            databaseKind,
-                                            port:
-                                                draft.port ===
-                                                DEFAULT_PORTS[
-                                                    draft.databaseKind
-                                                ]
-                                                    ? DEFAULT_PORTS[
-                                                          databaseKind
-                                                      ]
-                                                    : draft.port,
-                                        });
-                                    }}
-                                >
-                                    <option value="mysql">MySQL</option>
-                                    <option value="postgres">PostgreSQL</option>
-                                    <option value="sqlserver">
-                                        SQL Server
-                                    </option>
-                                </select>
-                            </Field>
-                            <Field label="Servidor">
-                                <input
-                                    className="field"
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    value={draft.host}
-                                    onChange={(event) =>
-                                        set({ host: event.target.value })
-                                    }
-                                />
-                            </Field>
-                            <Field label="Porta">
-                                <input
-                                    className="field"
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    inputMode="numeric"
-                                    value={draft.port}
-                                    onChange={(event) =>
-                                        set({ port: event.target.value })
-                                    }
-                                />
-                            </Field>
-                            <Field label="Usuário">
-                                <input
-                                    className="field"
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    value={draft.user}
-                                    onChange={(event) =>
-                                        set({ user: event.target.value })
-                                    }
-                                />
-                            </Field>
-                            <Field
-                                label="Senha"
-                                hint="Fica salva num arquivo .env ao lado da configuração, e não dentro dela."
-                            >
-                                <input
-                                    className="field"
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    type="password"
-                                    value={draft.password}
-                                    onChange={(event) =>
-                                        set({ password: event.target.value })
-                                    }
-                                />
-                            </Field>
-                            <Field label="Banco">
-                                <input
-                                    className="field"
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    value={draft.database}
-                                    onChange={(event) =>
-                                        set({ database: event.target.value })
-                                    }
-                                />
-                            </Field>
+                            <ServerFields
+                                values={sourceServer(draft)}
+                                onChange={(change) =>
+                                    set(fromSourceServer(change))
+                                }
+                            />
                             <Field label="Tabela">
                                 <input
                                     className="field"
@@ -610,8 +687,16 @@ function DetailsStep({
                     <h3>Onde salvar</h3>
                     {usesFile(draft.destination) && (
                         <Field
-                            label="Arquivo do resultado"
-                            hint="As pendências ficam do lado, no mesmo lugar."
+                            label={
+                                draft.destination === "sqlite"
+                                    ? "Arquivo SQLite"
+                                    : "Arquivo do resultado"
+                            }
+                            hint={
+                                draft.destination === "sqlite"
+                                    ? "Pode ser um arquivo novo ou um que já existe. As outras tabelas dele continuam como estão."
+                                    : "As pendências ficam do lado, no mesmo lugar."
+                            }
                             group
                         >
                             <FilePicker
@@ -620,6 +705,56 @@ function DetailsStep({
                                 save
                                 onPick={(destinationPath) =>
                                     set({ destinationPath })
+                                }
+                            />
+                        </Field>
+                    )}
+                    {draft.destination === "database" && (
+                        <>
+                            {draft.source === "database" && (
+                                <label className="checkbox">
+                                    <input
+                                        type="checkbox"
+                                        checked={draft.sameServer}
+                                        onChange={(event) =>
+                                            set({
+                                                sameServer:
+                                                    event.target.checked,
+                                            })
+                                        }
+                                    />
+                                    Salvar no mesmo servidor e banco de onde ele
+                                    lê
+                                </label>
+                            )}
+                            {!usesSameServer(draft) && (
+                                <div className="form-grid">
+                                    <ServerFields
+                                        values={destinationServer(draft)}
+                                        onChange={(change) =>
+                                            set(fromDestinationServer(change))
+                                        }
+                                    />
+                                </div>
+                            )}
+                        </>
+                    )}
+                    {(draft.destination === "database" ||
+                        draft.destination === "sqlite") && (
+                        <Field
+                            label="Tabela do resultado"
+                            hint="Use um nome novo. O Datera cria essa tabela e outra para as pendências, com _pendencias no fim do nome, e nunca mexe numa tabela que não foi ele que criou."
+                        >
+                            <input
+                                className="field"
+                                spellCheck={false}
+                                autoComplete="off"
+                                placeholder="alunos_organizados"
+                                value={draft.destinationTable}
+                                onChange={(event) =>
+                                    set({
+                                        destinationTable: event.target.value,
+                                    })
                                 }
                             />
                         </Field>
@@ -711,6 +846,10 @@ function SummaryStep({ draft }: { draft: WizardDraft }) {
                                 {" "}
                                 ({fileName(draft.destinationPath)})
                             </strong>
+                        )}
+                        {(draft.destination === "database" ||
+                            draft.destination === "sqlite") && (
+                            <strong> (tabela {draft.destinationTable})</strong>
                         )}
                         .
                     </span>

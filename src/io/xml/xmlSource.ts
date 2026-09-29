@@ -2,6 +2,7 @@ import { TableRow } from "../../types";
 import { Source } from "../types";
 import { readTextFile } from "../files";
 import { parseXml, XmlElement, XmlError } from "./xmlParse";
+import { setCell } from "../../cells";
 
 export interface XmlSourceOptions {
     path: string;
@@ -31,12 +32,12 @@ function groupByName(elements: XmlElement[]): Map<string, XmlElement[]> {
 
 function flatten(element: XmlElement, prefix: string, row: TableRow): void {
     for (const [name, value] of Object.entries(element.attributes)) {
-        row[join(prefix, name)] = value === "" ? null : value;
+        setCell(row, join(prefix, name), value === "" ? null : value);
     }
 
     if (prefix && element.children.length === 0) {
-        if (element.text !== "") row[prefix] = element.text;
-        else if (isSimple(element)) row[prefix] = null;
+        if (element.text !== "") setCell(row, prefix, element.text);
+        else if (isSimple(element)) setCell(row, prefix, null);
     }
 
     for (const [name, group] of groupByName(element.children)) {
@@ -45,14 +46,18 @@ function flatten(element: XmlElement, prefix: string, row: TableRow): void {
         if (group.length === 1 && first) {
             flatten(first, key, row);
         } else if (group.every(isSimple)) {
-            row[key] = group.map((item) => item.text).join(", ");
+            setCell(row, key, group.map((item) => item.text).join(", "));
         } else {
-            row[key] = JSON.stringify(
-                group.map((item) => {
-                    const inner: TableRow = {};
-                    flatten(item, "", inner);
-                    return inner;
-                }),
+            setCell(
+                row,
+                key,
+                JSON.stringify(
+                    group.map((item) => {
+                        const inner: TableRow = {};
+                        flatten(item, "", inner);
+                        return inner;
+                    }),
+                ),
             );
         }
     }

@@ -16,6 +16,11 @@ config.json
 !.env.example
 credentials.json
 
+# Bancos SQLite gerados na sua máquina
+*.db
+*.sqlite
+*.sqlite3
+
 # Normalizadores e testes locais, fora do repositório
 local/
 normalizadores.cjs

