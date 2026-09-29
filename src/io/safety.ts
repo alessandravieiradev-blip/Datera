@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import { EtlConfig } from "../config";
 import { DEFAULT_PENDING_SHEET } from "../filters/validate";
@@ -43,6 +44,38 @@ function assertSheetsAreSafe(config: EtlConfig): void {
     }
 }
 
+function comparablePath(file: string): string {
+    const resolved = path.resolve(file);
+    let real = resolved;
+    try {
+        real = fs.realpathSync.native(resolved);
+    } catch {
+        try {
+            real = path.join(
+                fs.realpathSync.native(path.dirname(resolved)),
+                path.basename(resolved),
+            );
+        } catch {
+            real = resolved;
+        }
+    }
+    return process.platform === "win32" || process.platform === "darwin"
+        ? real.toLowerCase()
+        : real;
+}
+
+export function isSameFile(a: string, b: string): boolean {
+    return comparablePath(a) === comparablePath(b);
+}
+
+export function assertDifferentFiles(input: string, output: string): void {
+    if (isSameFile(input, output)) {
+        throw new Error(
+            `A entrada e a saída são o mesmo arquivo (${input}). A saída é apagada antes de gravar, então escolha outro arquivo pra ela.`,
+        );
+    }
+}
+
 function assertFilesAreSafe(config: EtlConfig): void {
     const sourcePath = config.source ? filePath(config.source) : undefined;
     const destinationPath = config.destination
@@ -50,7 +83,7 @@ function assertFilesAreSafe(config: EtlConfig): void {
         : undefined;
     if (sourcePath === undefined || destinationPath === undefined) return;
 
-    if (path.resolve(sourcePath) === path.resolve(destinationPath)) {
+    if (isSameFile(sourcePath, destinationPath)) {
         throw new Error(
             `A fonte e o destino são o mesmo arquivo (${sourcePath}). O destino é apagado antes de gravar, então escolha outro arquivo pra saída.`,
         );

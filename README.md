@@ -53,7 +53,7 @@ Por isso ele tem três jeitos de usar, todos com o mesmo motor e a mesma configu
 | -------------- | --------------------------------------------- | ------------------------------------------------------------------------- |
 | **Datera**     | quem cuida dos dados mas não programa         | app com tela, passo a passo, regras em frases, gráficos e histórico       |
 | **Datera Dev** | quem programa                                 | app escuro com editor da config, prévia na hora, log e paleta de comandos |
-| **Terminal**   | quem quer automatizar ou usar em outro código | `npm start`, `--dry-run` e a função `runEtl`                              |
+| **Terminal**   | quem quer automatizar ou usar em outro código | o comando `datera`, `--dry-run` e a função `runEtl`                       |
 
 ## Como funciona
 
@@ -99,6 +99,7 @@ Você quer usar o app com tela: instalar, escolher de onde vêm os dados, montar
 Você quer rodar pelo terminal, usar o Datera Dev, escrever a config na mão, criar normalizadores ou chamar o Datera de dentro de outro código.
 
 <a href="docs/devs.md"><img src="https://img.shields.io/badge/Abrir%20o%20guia%20para%20devs-16181D?style=for-the-badge" alt="Abrir o guia para devs"></a>
+<a href="docs/api.md"><img src="https://img.shields.io/badge/Comandos%20e%20API-475569?style=for-the-badge" alt="Comandos e API"></a>
 
 </td>
 </tr>
@@ -110,6 +111,7 @@ Você quer rodar pelo terminal, usar o Datera Dev, escrever a config na mão, cr
 | ---------------------------------------------------------- | -------------------------------------------------------------------- |
 | [Para gestores](docs/gestores.md)                          | instalar e usar o app com tela                                       |
 | [Para devs](docs/devs.md)                                  | teste em 1 minuto, terminal, Datera Dev, uso em código e testes      |
+| [Comandos e API](docs/api.md)                              | os comandos do terminal e as funções pra usar no seu código          |
 | [Configuração](docs/configuracao.md)                       | todos os campos do `config.json`, os modos e as estratégias do merge |
 | [Fontes e destinos](docs/fontes-e-destinos.md)             | cada formato que ele lê e escreve, e como criar o seu                |
 | [Exemplos](docs/exemplos.md)                               | dez configs, do mais simples ao mais completo                        |

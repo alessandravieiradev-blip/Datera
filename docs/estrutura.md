@@ -10,9 +10,11 @@
 
 ```text
 src/
-  cli.ts                  # argumentos da linha de comando (--config, --mode, --dry-run)
+  cli.ts                  # os comandos do terminal e as opções de cada um
   env.ts                  # ajuda pra ler variável de ambiente
-  main.ts                 # o que o npm start roda: lê a config, chama o runEtl e mostra o resumo
+  main.ts                 # o que o npm start e o comando datera rodam: lê a config, chama o runEtl e mostra o resumo
+  commands.ts             # o que cada comando do terminal faz (convert, dedupe, merge, columns...)
+  api/                    # as funções pra usar no código: readRows, writeRows, convert, clean, dedupe, merge...
   index.ts                # o que dá pra importar de fora (runEtl, loadConfig, registrar adapter...)
   logger.ts               # pra onde vão as mensagens (console, silencioso ou memória)
   types.ts                # TableRow, o formato de linha que todo mundo usa
@@ -74,7 +76,8 @@ apps/dev/                 # o Datera Dev, que reaproveita o núcleo do apps/desk
 docs/                     # os guias (gestores, devs e referência) e as imagens do README
 examples/                 # CSV, XML e as configs de exemplo (npm run example)
 local/                    # (ignorada pelo git) seus normalizadores e testes pessoais
-scripts/                  # scripts pra testar na mão (banco, config, sheets)
+scripts/                  # scripts pra testar na mão (banco, config, sheets) e o que confere a versão antes de publicar
+dist/                     # o terminal compilado pelo npm run build (não vai pro git)
 .github/workflows/        # CI (type-check e testes a cada push)
 ```
 

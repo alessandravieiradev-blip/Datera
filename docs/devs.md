@@ -113,6 +113,30 @@ Se der erro, ele mostra a mensagem e termina com código 1. Então dá pra coloc
 
 Uma coisa importante: toda vez que roda, ele limpa a aba antes de escrever (a primeira aba e a de pendências, se tiver `validation`). Assim não sobra linha velha. Então não deixa anotação sua nessas abas, usa outra aba.
 
+### O comando `datera`
+
+Dá pra instalar o Datera como um comando do sistema, pra rodar de qualquer pasta sem `npm start` e sem o `tsx`:
+
+```bash
+npm run build
+npm link
+```
+
+O `build` compila o TypeScript pra JavaScript na pasta `dist/`, e o `npm link` registra o comando `datera` no seu computador apontando pra essa pasta. Depois disso, em qualquer terminal:
+
+```bash
+datera run ./escola/config.json
+datera run ./escola/config.json --dry-run
+datera validate ./escola/config.json
+datera --help
+```
+
+O `run` pode ficar de fora (`datera ./escola/config.json` faz a mesma coisa), e sem caminho nenhum ele usa a `config.json` da pasta onde você está. O `--mode` e o `--dry-run` funcionam igual ao `npm start`. Ele também lê o `.env` que estiver do lado da config, então dá pra ter uma pasta por projeto, cada uma com a sua config e o seu `.env`.
+
+Quando mudar o código, roda `npm run build` de novo pro comando pegar a mudança. Pra desinstalar, `npm unlink -g datera`.
+
+Além do `run` e do `validate`, ele tem comandos que não precisam de config nenhuma: `convert` (troca o formato de um arquivo), `dedupe` (tira repetidos), `merge` (junta cadastros), `columns` (raio-x das colunas), `preview` (primeiras linhas), `init` (cria uma config pra começar) e `normalize` (testa um normalizador). Estão todos explicados, com exemplos, em [Comandos e API](api.md).
+
 ## Os dois apps
 
 Os dois apps ficam em `apps/` e usam o mesmo motor e o mesmo `config.json` do terminal. A config que você faz num serve no outro.
@@ -167,7 +191,7 @@ Ninguém precisa gerar o instalador na mão pra publicar. Quando chega uma tag q
 
 O passo a passo:
 
-1. Troca o `version` do `apps/desktop/package.json` e do `apps/dev/package.json` pro número novo (os dois iguais)
+1. Troca o `version` do `package.json` da raiz, do `apps/desktop/package.json` e do `apps/dev/package.json` pro número novo (os três iguais, porque o `datera --version` também mostra esse número)
 2. Faz o commit e o push
 3. Cria a tag com o mesmo número e manda ela:
 
@@ -182,7 +206,7 @@ O texto que aparece no começo de toda release (qual arquivo baixar e o aviso do
 
 ## Usando dentro de outro código
 
-Também dá pra chamar o Datera de dentro de outro projeto, sem ser pelo terminal. É o mesmo código que o `npm start` usa por baixo:
+Também dá pra chamar o Datera de dentro de outro projeto, sem ser pelo terminal. Tem funções prontas pra ler e gravar qualquer formato, limpar dados que já estão na memória, tirar repetidos e juntar cadastros, todas em [Comandos e API](api.md). Aqui fica o jeito de rodar uma config inteira, que é o mesmo código que o `npm start` usa por baixo:
 
 ```ts
 import { formatReport, loadConfig, runEtl } from "./src";
@@ -209,6 +233,7 @@ As opções que ele aceita:
 | `logger`         | pra onde vão as mensagens. O padrão é o console, o `silentLogger` não mostra nada e dá pra passar o seu com `info`, `warn` e `error` |
 | `source`, `sink` | uma fonte e um destino prontos, no lugar dos que viriam da config. Eu uso isso nos testes pra ler e escrever na memória              |
 | `previewSize`    | quantas linhas vêm no `preview` (o padrão é 5)                                                                                       |
+| `onStep`         | uma função chamada no fim de cada etapa, com o nome e quantas linhas entraram e saíram. Serve pra mostrar progresso                  |
 
 Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch`.
 
@@ -223,6 +248,7 @@ Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch
 | `npm run test:watch`      | Os mesmos testes, rodando de novo a cada arquivo salvo (Q para sair) |
 | `npm run test:config`     | Carrega e valida o `config.json`                                     |
 | `npm run validate`        | Confere a config e os arquivos citados, sem rodar nada               |
+| `npm run build`           | Compila pra `dist/`, que é o que o comando `datera` usa              |
 | `npm run test:connection` | Conecta no banco real e mostra as 3 primeiras linhas                 |
 | `npm run test:sheet`      | Escreve duas linhas de teste numa planilha real                      |
 
@@ -230,6 +256,7 @@ Se alguma coisa der errado ele lança o erro, então vale colocar num `try/catch
 
 | Guia                                                  | O que tem                                                            |
 | ----------------------------------------------------- | -------------------------------------------------------------------- |
+| [Comandos e API](api.md)                              | todos os comandos do terminal e as funções pra usar no código        |
 | [Configuração](configuracao.md)                       | todos os campos do `config.json`, os modos e as estratégias do merge |
 | [Fontes e destinos](fontes-e-destinos.md)             | cada formato que ele lê e escreve, e como criar o seu                |
 | [Exemplos](exemplos.md)                               | dez configs, do mais simples ao mais completo                        |

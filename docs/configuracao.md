@@ -35,15 +35,16 @@ Aqui vai a chave JSON de uma service account do Google Cloud. Depois de criar a 
 
 E o `config.json`:
 
-| Campo                                                | O que colocar                                                                                     |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `source`                                             | De onde ler: um banco, uma planilha ou um arquivo. Veja [Fontes e destinos](fontes-e-destinos.md) |
-| `destination`                                        | Onde escrever: Google Sheets, CSV ou JSON. Veja [Fontes e destinos](fontes-e-destinos.md)         |
-| `tableName`, `spreadsheetId`, `credentialsPath`      | Mesmos valores do `.env` (servem de reserva caso o `.env` não defina)                             |
-| `mode`                                               | `"raw"`, `"dedupe"` ou `"merge"`                                                                  |
-| `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env`                                                                            |
-| `dedupeColumn`                                       | Só se `mode` for `"dedupe"`. Coluna usada pra identificar duplicatas                              |
-| `dedupeStrategy`                                     | Opcional, só no modo `dedupe`. `"keep-first"` ou `"keep-last"` (padrão: `"keep-first"`)           |
+| Campo                                                | O que colocar                                                                                                                                            |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `source`                                             | De onde ler: um banco, uma planilha ou um arquivo. Veja [Fontes e destinos](fontes-e-destinos.md)                                                        |
+| `destination`                                        | Onde escrever: uma planilha ou um arquivo. Veja [Fontes e destinos](fontes-e-destinos.md)                                                                |
+| `tableName`, `spreadsheetId`, `credentialsPath`      | Mesmos valores do `.env` (servem de reserva caso o `.env` não defina)                                                                                    |
+| `mode`                                               | `"raw"`, `"dedupe"` ou `"merge"`                                                                                                                         |
+| `dbHost`, `dbPort`, `dbUser`, `dbPassword`, `dbName` | Mesmos dados do `.env`                                                                                                                                   |
+| `dedupeColumn`                                       | Só se `mode` for `"dedupe"`. Coluna usada pra identificar duplicatas                                                                                     |
+| `dedupeStrategy`                                     | Opcional, só no modo `dedupe`. `"keep-first"` ou `"keep-last"` (padrão: `"keep-first"`)                                                                  |
+| `dedupeKeyNormalizer`                                | Opcional, só no modo `dedupe`. Normalizador aplicado antes de comparar, tipo `"lowercase"` pra `Lia@Email.com` e `lia@email.com` contarem como repetidos |
 
 Os campos do modo `merge` (só o `mergeKeyColumn` e o `mergeColumns` são obrigatórios):
 
@@ -90,7 +91,7 @@ destino: Google Sheets (primeira aba), CSV ou JSON
 ### Modos
 
 O `raw` é o padrão e só escreve os dados do jeito que vieram.
-O `dedupe` tira as linhas repetidas olhando uma coluna e fica com a primeira ou com a última (`dedupeStrategy`). A linha que sai vai embora inteira.
+O `dedupe` tira as linhas repetidas olhando uma coluna e fica com a primeira ou com a última (`dedupeStrategy`). A linha que sai vai embora inteira. Com `dedupeKeyNormalizer`, ele compara depois de passar o valor por um normalizador, os mesmos do merge.
 O `merge` junta as linhas com a mesma chave numa só, e cada coluna do `mergeColumns` diz como os valores vão ser juntados.
 
 ### Estratégias do merge
