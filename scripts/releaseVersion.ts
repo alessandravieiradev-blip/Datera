@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { hasEntries, sectionFor } from "./changelog";
 
 const PACKAGES = [".", "apps/desktop", "apps/dev"];
 const VERSION = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
@@ -30,5 +31,14 @@ for (const { file, found } of wrong) {
     );
 }
 
-if (wrong.length > 0) process.exit(1);
-console.log(`A versão ${version} confere no terminal e nos dois apps.`);
+const changes = sectionFor(fs.readFileSync("CHANGELOG.md", "utf-8"), version);
+if (!hasEntries(changes)) {
+    console.error(
+        `O CHANGELOG.md não tem o que mudou na versão ${version}. Rode "npm run release:prepare -- ${version}" antes de criar a tag.`,
+    );
+}
+
+if (wrong.length > 0 || !hasEntries(changes)) process.exit(1);
+console.log(
+    `A versão ${version} confere no terminal, nos dois apps e no CHANGELOG.`,
+);

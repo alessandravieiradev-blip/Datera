@@ -1,0 +1,45 @@
+# Mudanças
+
+Tudo que muda de uma versão pra outra do Datera fica aqui, da mais nova pra mais antiga. Vale pro pacote do npm, pro comando `datera` e pros dois apps, que saem sempre com o mesmo número.
+
+Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
+
+- o último número sobe quando é só correção (`0.1.0` → `0.1.1`)
+- o do meio sobe quando entra coisa nova sem quebrar o que já funcionava (`0.1.1` → `0.2.0`)
+- o primeiro sobe quando alguma coisa deixa de funcionar do jeito antigo e precisa de ajuste de quem usa (`0.9.0` → `1.0.0`)
+
+## [Não lançado]
+
+### Adicionado
+
+- este CHANGELOG, e o `npm run release:prepare -- <versão>`, que troca a versão nos três `package.json` e fecha a seção do CHANGELOG de uma vez
+- a action da aba Releases agora usa a seção do CHANGELOG como texto da release, e não deixa publicar uma versão sem ela
+
+### Mudou
+
+- os testes usam só os dados da escola de música inventada, sem "clientes" nem telefone
+
+## [0.1.0] - 2026-09-29
+
+Primeira versão publicada no npm e na aba Releases.
+
+### Adicionado
+
+- lê de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON, XML e Parquet, e escreve no Google Sheets, Excel, CSV, JSON, XML e Parquet
+- modos `raw`, `dedupe` e `merge`, com normalizadores (`trim`, `lowercase`, `digitsOnly`, `alphanumeric`) e os seus próprios
+- preparação (`fillEmpty`, `combineColumns`, `distribute`) e validação com a lista de pendências e o motivo de cada linha
+- app Datera, pra quem não programa, com passo a passo, regras em frases, prévia, histórico e tema escuro
+- app Datera Dev, com editor da config, erros marcados na linha, paleta de comandos e teste de normalizador
+- instaladores pra Windows gerados sozinhos a cada tag de versão
+- comando `datera` com `run`, `validate`, `init`, `convert`, `dedupe`, `merge`, `columns`, `preview`, `normalizers` e `normalize`
+- funções pra usar no código: `readRows`, `writeRows`, `convert`, `clean`, `fillEmpty`, `combineColumns`, `validate`, `dedupe`, `merge`, `describeColumns`, `defineConfig` e `onStep` pra acompanhar o progresso
+- `dedupeKeyNormalizer`, pra comparar repetidos depois de passar por um normalizador
+- os pacotes de Excel, Parquet, Google Sheets e dos bancos são opcionais: só instala quem for usar
+
+### Segurança
+
+- arquivos de código citados na config só rodam depois de confirmados no app
+- a senha do banco fica no `.env`, e o app só lê do `.env` as variáveis que conhece
+- as telas não navegam pra fora do app nem abrem janelas novas
+- o leitor de XML recusa `<!DOCTYPE>`
+- entrada e saída nunca podem ser o mesmo arquivo, mesmo escrito de outro jeito
