@@ -10,6 +10,8 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 ## [Não lançado]
 
+## [0.2.0] - 2026-09-29
+
 ### Adicionado
 
 - este CHANGELOG, e o `npm run release:prepare -- <versão>`, que troca a versão nos três `package.json` e fecha a seção do CHANGELOG de uma vez
