@@ -2,6 +2,7 @@ import { EtlConfig } from "../config";
 import { DedupeFilter } from "../filters/dedupe";
 import { MergeFilter } from "../filters/merge";
 import { Step } from "./types";
+import { getKeyNormalizer } from "../normalizers/registry";
 
 export const MODES = ["raw", "dedupe", "merge"] as const;
 export type Mode = (typeof MODES)[number];
@@ -29,6 +30,9 @@ export function buildModeStep(mode: Mode, config: EtlConfig): Step {
             const filter = new DedupeFilter(
                 config.dedupeColumn,
                 config.dedupeStrategy,
+                config.dedupeKeyNormalizer === undefined
+                    ? undefined
+                    : getKeyNormalizer(config.dedupeKeyNormalizer),
             );
             return {
                 name: "dedupe",

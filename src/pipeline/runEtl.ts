@@ -14,7 +14,7 @@ import { consoleLogger, Logger } from "../logger";
 import { TableRow } from "../types";
 import { Mode } from "./modes";
 import { buildSteps } from "./steps";
-import { EtlReport, PendingReason, StepReport } from "./types";
+import { EtlReport, PendingReason, Step, StepReport } from "./types";
 
 export const DEFAULT_PREVIEW_SIZE = 5;
 
@@ -37,6 +37,41 @@ export function countPendingReasons(
     );
 }
 
+export interface AppliedSteps {
+    rows: TableRow[];
+    pending: TableRow[];
+    steps: StepReport[];
+}
+
+export function applySteps(
+    steps: Step[],
+    input: TableRow[],
+    onStep?: (report: StepReport) => void,
+): AppliedSteps {
+    let rows = input;
+    const pending: TableRow[] = [];
+    const reports: StepReport[] = [];
+
+    for (const step of steps) {
+        const startedAt = Date.now();
+        const output = step.run(rows);
+        const stepPending = output.pending ?? [];
+        pending.push(...stepPending);
+        const report: StepReport = {
+            name: step.name,
+            rowsIn: rows.length,
+            rowsOut: output.rows.length,
+            pending: stepPending.length,
+            durationMs: Date.now() - startedAt,
+        };
+        reports.push(report);
+        onStep?.(report);
+        rows = output.rows;
+    }
+
+    return { rows, pending, steps: reports };
+}
+
 export interface RunEtlOptions {
     mode?: Mode | undefined;
     dryRun?: boolean | undefined;
@@ -44,6 +79,7 @@ export interface RunEtlOptions {
     source?: Source | undefined;
     sink?: Sink | undefined;
     previewSize?: number | undefined;
+    onStep?: ((report: StepReport) => void) | undefined;
 }
 
 export async function runEtl(
@@ -71,24 +107,11 @@ export async function runEtl(
         const rawRows = await source.read();
         logger.info(`${rawRows.length} linhas lidas.`);
 
-        let rows = rawRows;
-        const pending: TableRow[] = [];
-        const stepReports: StepReport[] = [];
-
-        for (const step of steps) {
-            const stepStartedAt = Date.now();
-            const output = step.run(rows);
-            const stepPending = output.pending ?? [];
-            pending.push(...stepPending);
-            stepReports.push({
-                name: step.name,
-                rowsIn: rows.length,
-                rowsOut: output.rows.length,
-                pending: stepPending.length,
-                durationMs: Date.now() - stepStartedAt,
-            });
-            rows = output.rows;
-        }
+        const {
+            rows,
+            pending,
+            steps: stepReports,
+        } = applySteps(steps, rawRows, options.onStep);
 
         if (!dryRun) {
             await sink.write(rows);

@@ -1,5 +1,10 @@
-export { runEtl, countPendingReasons, DEFAULT_PREVIEW_SIZE } from "./runEtl";
-export type { RunEtlOptions } from "./runEtl";
+export {
+    runEtl,
+    applySteps,
+    countPendingReasons,
+    DEFAULT_PREVIEW_SIZE,
+} from "./runEtl";
+export type { RunEtlOptions, AppliedSteps } from "./runEtl";
 export { buildSteps } from "./steps";
 export { MODES, parseMode, buildModeStep } from "./modes";
 export type { Mode } from "./modes";

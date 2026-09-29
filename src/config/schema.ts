@@ -19,6 +19,7 @@ export const etlConfigSchema = z
         dbName: z.string().optional(),
         dedupeColumn: z.string().optional(),
         dedupeStrategy: z.enum(["keep-first", "keep-last"]).optional(),
+        dedupeKeyNormalizer: z.string().optional(),
         mergeKeyColumn: z.string().optional(),
         mergeColumns: z.array(mergeColumnSchema).optional(),
         mergeEmptyKeyLabel: z.string().optional(),
