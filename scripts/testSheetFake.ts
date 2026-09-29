@@ -1,23 +1,36 @@
 import "dotenv/config";
 import { writeData, createSheetsClient } from "../src/io/sheets/client";
-import { requireEnv } from "../src/env";
+
+function variavel(nome: string): string {
+    const valor = process.env[nome];
+    if (!valor) throw new Error(`Falta a variável ${nome} no .env`);
+    return valor;
+}
 
 async function main() {
     try {
-        const fakeData = [
-            { id: 1, nome: "João Fernando", email: "joaoteste@gmail.com" },
-            { id: 2, nome: "Maria Antonia", email: "mariaantonia@gmail.com" },
+        const alunos = [
+            {
+                matricula: "2024-0042",
+                nome: "Lia Martins",
+                email: "lia@email.com",
+                instrumento: "violão",
+            },
+            {
+                matricula: "2024-0051",
+                nome: "Theo Souza",
+                email: "theo@email.com",
+                instrumento: "bateria",
+            },
         ];
 
         const sheets = createSheetsClient(
-            requireEnv("GOOGLE_SERVICE_ACCOUNT_KEY_PATH"),
+            variavel("GOOGLE_SERVICE_ACCOUNT_KEY_PATH"),
         );
 
-        const spreadsheetId = requireEnv("GOOGLE_SPREADSHEET_ID");
+        await writeData(sheets, variavel("GOOGLE_SPREADSHEET_ID"), alunos);
 
-        await writeData(sheets, spreadsheetId, fakeData);
-
-        console.log("Fluxo do Google Funcionou!");
+        console.log("Escrevi duas linhas de teste na planilha.");
     } catch (error) {
         console.error("Deu erro: ", error);
     }

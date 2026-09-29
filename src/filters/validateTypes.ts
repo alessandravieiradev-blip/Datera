@@ -26,9 +26,3 @@ export interface NormalizerRule extends BaseRule {
 
 export type ValidationRule =
     RequiredRule | PatternRule | OneOfRule | NormalizerRule;
-
-export interface ValidationConfig {
-    rules: ValidationRule[];
-    pendingSheet?: string | undefined;
-    reasonColumn?: string | undefined;
-}

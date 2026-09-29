@@ -1,124 +1,29 @@
 {
-    "source": {
-        "type": "Opcional. mysql, sheets, excel, csv, json ou custom (veja o README). Sem source, usa os campos do MySQL abaixo",
-        "path": "Só pra excel, csv e json. Ex: ./dados/alunos.xlsx"
-    },
-    "destination": {
-        "type": "Opcional. sheets, excel, csv, json ou custom. Sem destination, usa spreadsheetId e credentialsPath",
-        "path": "Só pra excel, csv e json. Ex: ./saida/resultado.xlsx"
-    },
-    "tableName": "clientes",
-    "spreadsheetId": "seu_id_aqui",
-    "credentialsPath": "./credentials.json",
-    "mode": "checar readme",
-    "dedupeColumn": "Caso mode dedupe",
-    "dedupeStrategy": "Caso mode dedupe",
-    "mergeKeyColumn": "Caso mode merge",
-    "fillEmpty": [
-        {
-            "column": "colunanome4",
-            "fallbackColumns": [
-                "Opcional. Colunas reserva, na ordem"
-            ],
-            "default": "Opcional. Valor se tudo estiver vazio"
-        }
-    ],
-    "combineColumns": [
-        {
-            "into": "Nome da coluna nova",
-            "columns": [
-                "colunanome5",
-                "colunanome6"
-            ],
-            "separator": " ",
-            "keepSources": false
-        }
-    ],
+    "source": { "type": "csv", "path": "./examples/alunos.csv" },
+    "destination": { "type": "excel", "path": "./saida/alunos.xlsx" },
+    "mode": "dedupe",
+    "dedupeColumn": "email",
+    "dedupeKeyNormalizer": "lowercase",
+    "fillEmpty": [{ "column": "cidade", "default": "não informada" }],
     "validation": {
-        "pendingSheet": "Opcional. Nome da aba de pendências (default: Pendências)",
-        "reasonColumn": "Opcional. Nome da coluna com o motivo (default: Motivo)",
         "rules": [
             {
-                "column": "colunanome8",
+                "column": "matricula",
                 "rule": "required",
-                "message": "Opcional. Texto do motivo"
+                "message": "sem matrícula"
             },
             {
-                "column": "colunanome9",
+                "column": "email",
                 "rule": "pattern",
-                "pattern": "Expressão regular",
-                "flags": "Opcional. Ex: i"
+                "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+                "message": "e-mail fora do formato"
             },
             {
-                "column": "colunanome10",
+                "column": "plano",
                 "rule": "oneOf",
-                "values": [
-                    "valor1",
-                    "valor2"
-                ],
+                "values": ["mensal", "trimestral", "anual"],
                 "ignoreCase": true
-            },
-            {
-                "column": "colunanome11",
-                "rule": "normalizer",
-                "normalizer": "Nome de um normalizador, ex: digitsOnly"
             }
         ]
-    },
-    "mergeColumns": [
-        {
-            "column": "colunanome",
-            "strategy": "extra-column",
-            "byGroup": {
-                "NomeDoGrupo": {
-                    "strategy": "concat",
-                    "into": "Opcional. Nome da coluna nova",
-                    "separator": " | "
-                }
-            },
-            "unkeyed": {
-                "strategy": "collapse-column",
-                "into": "Opcional. Nome da coluna nova",
-                "separator": " | "
-            }
-        },
-        {
-            "column": "colunanome2",
-            "strategy": "concat",
-            "separator": " | "
-        },
-        {
-            "column": "colunanome3",
-            "strategy": "overwrite"
-        },
-        {
-            "column": "colunanome7",
-            "strategy": "concat",
-            "separator": " | ",
-            "distribute": {
-                "columns": [
-                    "colunanome7",
-                    "colunanome7_2"
-                ],
-                "sources": [
-                    "Opcional. Outras colunas que entram junto"
-                ],
-                "overflowInto": "Opcional. Coluna pro que sobrar"
-            }
-        }
-    ],
-    "mergeEmptyKeyLabel": "Opcional. Rótulo pras linhas sem valor na mergeKeyColumn (default: '(sem <coluna>)')",
-    "mergeKeyNormalizer": "Opcional. Nome de um normalizador de chave, trim, lowercase, digitsOnly, alphanumeric ou um seu (default: trim)",
-    "normalizerModules": [
-        "Opcional. Caminhos de arquivos com normalizadores seus, ex: ./local/meusNormalizers.ts"
-    ],
-    "adapterModules": [
-        "Opcional. Caminhos de arquivos com fontes e destinos seus, ex: ./local/meusAdapters.cjs"
-    ],
-    "mergeRejectedKeyLabel": "Opcional. Rótulo pras linhas cuja chave o normalizador rejeitou (default: '(<coluna> inválido)')",
-    "dbHost": "localhost",
-    "dbPort": 3306,
-    "dbUser": "usuario",
-    "dbPassword": "senha",
-    "dbName": "banco"
+    }
 }
