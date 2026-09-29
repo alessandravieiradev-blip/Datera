@@ -8,7 +8,9 @@
 
 # Configuração
 
-O projeto usa três arquivos que não vão pro git. É só copiar os exemplos e colocar os seus dados (se você for usar só CSV ou JSON, o `config.json` já resolve):
+Se você instalou pelo npm, o jeito mais rápido de começar é `datera init`, que cria uma `config.json` na pasta (com `--from alunos.xlsx`, ela já sai lendo desse arquivo).
+
+No repositório, o projeto usa três arquivos que não vão pro git. É só copiar os exemplos e colocar os seus dados (se você não for usar banco nem Google Sheets, o `config.json` já resolve):
 
 ```bash
 cp .env.example .env
@@ -85,7 +87,7 @@ fonte: banco, planilha ou arquivo
    │    merge   junta as linhas com a mesma chave
    │
    ▼
-destino: Google Sheets (primeira aba), CSV ou JSON
+destino: planilha ou arquivo
 ```
 
 ### Modos

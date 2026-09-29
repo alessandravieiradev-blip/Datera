@@ -8,7 +8,7 @@
 
 # Fontes e destinos
 
-O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Por enquanto dá pra ler de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON, XML e Parquet e escrever no Google Sheets, no Excel, em CSV, em JSON, em XML e em Parquet, misturando do jeito que quiser.
+O ETL lê de um lugar (`source`) e escreve em outro (`destination`). Hoje dá pra ler de MySQL, PostgreSQL, SQL Server, SQLite, Google Sheets, Excel, CSV, JSON, XML e Parquet e escrever no Google Sheets, no Excel, em CSV, em JSON, em XML e em Parquet, misturando do jeito que quiser.
 
 ```json
 {
