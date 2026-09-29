@@ -1,4 +1,5 @@
-export { runEtl, formatReport, parseMode, MODES } from "./pipeline";
+export * from "./api";
+export { runEtl, applySteps, formatReport, parseMode, MODES } from "./pipeline";
 export type {
     RunEtlOptions,
     EtlReport,
