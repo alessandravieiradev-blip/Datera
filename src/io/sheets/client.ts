@@ -1,9 +1,17 @@
-import { auth, sheets as sheetsApi, sheets_v4 } from "@googleapis/sheets";
+import type { sheets_v4 } from "@googleapis/sheets";
+import { requireOptional } from "../optional";
 import { TableRow } from "../../types";
 import { buildHeader } from "../header";
 import { consoleLogger, Logger } from "../../logger";
 
 export function createSheetsClient(credentialsPath: string): sheets_v4.Sheets {
+    const { auth, sheets: sheetsApi } = requireOptional<
+        typeof import("@googleapis/sheets")
+    >(
+        () => require("@googleapis/sheets"),
+        ["@googleapis/sheets"],
+        "Google Sheets",
+    );
     const credentials = new auth.GoogleAuth({
         keyFile: credentialsPath,
         scopes: ["https://www.googleapis.com/auth/spreadsheets"],

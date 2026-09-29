@@ -1,6 +1,6 @@
 import { TableRow } from "../../types";
 import { Source } from "../types";
-import { loadDriver } from "../sql/driver";
+import { requireOptional } from "../optional";
 import { quoteTable } from "../sql/names";
 import { toRow } from "../sql/cell";
 
@@ -38,9 +38,9 @@ interface MssqlModule {
 export const createSqlServerClient: SqlServerClientFactory = async (
     connection,
 ) => {
-    const mssql = loadDriver<MssqlModule>(
+    const mssql = requireOptional<MssqlModule>(
         () => require("mssql"),
-        "mssql",
+        ["mssql"],
         "SQL Server",
     );
     const pool = new mssql.ConnectionPool({

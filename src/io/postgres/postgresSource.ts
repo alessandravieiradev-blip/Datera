@@ -1,6 +1,6 @@
 import { TableRow } from "../../types";
 import { Source } from "../types";
-import { loadDriver } from "../sql/driver";
+import { requireOptional } from "../optional";
 import { quoteTable } from "../sql/names";
 import { toRow } from "../sql/cell";
 
@@ -28,7 +28,11 @@ interface PgModule {
 }
 
 export const createPostgresClient: PostgresClientFactory = (connection) => {
-    const pg = loadDriver<PgModule>(() => require("pg"), "pg", "PostgreSQL");
+    const pg = requireOptional<PgModule>(
+        () => require("pg"),
+        ["pg"],
+        "PostgreSQL",
+    );
     return new pg.Client({
         host: connection.host,
         port: connection.port,

@@ -1,4 +1,4 @@
-import { sheets_v4 } from "@googleapis/sheets";
+import type { sheets_v4 } from "@googleapis/sheets";
 import { writeData } from "./client";
 import { TableRow } from "../../types";
 import { Sink, SinkWriteOptions } from "../types";

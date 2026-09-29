@@ -60,26 +60,62 @@
     "devDependencies": {
         "@commitlint/cli": "^21.2.3",
         "@commitlint/config-conventional": "^21.2.3",
+        "@googleapis/sheets": "^18.0.1",
         "@types/node": "^22.20.3",
+        "exceljs": "^4.4.0",
         "husky": "^9.1.7",
+        "hyparquet": "^1.31.2",
+        "hyparquet-compressors": "^1.1.2",
+        "hyparquet-writer": "^0.16.10",
         "lint-staged": "^17.5.1",
+        "mssql": "^12.7.2",
+        "mysql2": "^3.24.4",
+        "pg": "^8.23.0",
         "prettier": "^3.9.9",
         "tsx": "^4.23.13",
         "typescript": "^7.0.2",
         "vitest": "^5.0.1"
     },
     "dependencies": {
-        "@googleapis/sheets": "^18.0.1",
         "commander": "^15.0.0",
         "dotenv": "^17.4.2",
+        "zod": "^4.6.5"
+    },
+    "peerDependencies": {
+        "@googleapis/sheets": "^18.0.1",
         "exceljs": "^4.4.0",
         "hyparquet": "^1.31.2",
         "hyparquet-compressors": "^1.1.2",
         "hyparquet-writer": "^0.16.10",
         "mssql": "^12.7.2",
         "mysql2": "^3.24.4",
-        "pg": "^8.23.0",
-        "zod": "^4.6.5"
+        "pg": "^8.23.0"
+    },
+    "peerDependenciesMeta": {
+        "@googleapis/sheets": {
+            "optional": true
+        },
+        "exceljs": {
+            "optional": true
+        },
+        "hyparquet": {
+            "optional": true
+        },
+        "hyparquet-compressors": {
+            "optional": true
+        },
+        "hyparquet-writer": {
+            "optional": true
+        },
+        "mssql": {
+            "optional": true
+        },
+        "mysql2": {
+            "optional": true
+        },
+        "pg": {
+            "optional": true
+        }
     },
     "lint-staged": {
         "**/*.{ts,tsx,json,md}": [

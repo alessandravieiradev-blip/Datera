@@ -1,4 +1,5 @@
-import mysql, { Pool } from "mysql2/promise";
+import type { Pool } from "mysql2/promise";
+import { requireOptional } from "../optional";
 import { TableRow } from "../../types";
 import { consoleLogger, Logger } from "../../logger";
 
@@ -11,6 +12,11 @@ export interface MysqlConnection {
 }
 
 export function createPool(connection: MysqlConnection): Pool {
+    const mysql = requireOptional<typeof import("mysql2/promise")>(
+        () => require("mysql2/promise"),
+        ["mysql2"],
+        "MySQL",
+    );
     return mysql.createPool({
         host: connection.host,
         port: connection.port,

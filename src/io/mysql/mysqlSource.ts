@@ -1,4 +1,4 @@
-import { Pool } from "mysql2/promise";
+import type { Pool } from "mysql2/promise";
 import { createPool, readTable, MysqlConnection } from "./client";
 import { TableRow } from "../../types";
 import { Source } from "../types";

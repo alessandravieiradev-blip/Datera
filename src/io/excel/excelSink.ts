@@ -1,9 +1,8 @@
 import fs from "fs";
-import { Workbook } from "exceljs";
 import { TableRow } from "../../types";
 import { Sink, SinkWriteOptions } from "../types";
 import { buildHeader } from "../header";
-import { openWorkbook, saveWorkbook } from "./workbook";
+import { createWorkbook, openWorkbook, saveWorkbook } from "./workbook";
 import { consoleLogger, Logger } from "../../logger";
 
 export interface ExcelSinkOptions {
@@ -40,7 +39,7 @@ export class ExcelSink implements Sink {
         const workbook =
             !isMain && fs.existsSync(this.options.path)
                 ? await openWorkbook(this.options.path)
-                : new Workbook();
+                : createWorkbook();
         if (!isMain) {
             const old = workbook.getWorksheet(sheetName);
             if (old) workbook.removeWorksheet(old.id);

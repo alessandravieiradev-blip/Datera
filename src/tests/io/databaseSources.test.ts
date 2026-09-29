@@ -15,7 +15,7 @@ import {
 import { SqliteSource } from "../../io/sqlite/sqliteSource";
 import { toCell } from "../../io/sql/cell";
 import { quoteTable } from "../../io/sql/names";
-import { loadDriver } from "../../io/sql/driver";
+import { importOptional, requireOptional } from "../../io/optional";
 import { withEnv } from "../../config/load";
 import { etlConfigSchema } from "../../config";
 
@@ -275,14 +275,34 @@ describe("config dos bancos", () => {
     });
 });
 
-describe("loadDriver", () => {
-    it("explica como instalar quando o pacote do banco não está instalado", () => {
+describe("pacotes opcionais", () => {
+    it("explica como instalar quando o pacote não está instalado", async () => {
+        const missing = "pacote-que-nao-existe-no-datera";
         expect(() =>
-            loadDriver(
-                () => require("pacote-que-nao-existe-no-datera"),
-                "pg",
+            requireOptional(
+                () => require(missing),
+                ["pacote-que-nao-existe-no-datera"],
                 "PostgreSQL",
             ),
-        ).toThrow("npm install pg");
+        ).toThrow("npm install pacote-que-nao-existe-no-datera");
+        await expect(
+            importOptional(
+                () => import(missing),
+                ["pacote-que-nao-existe-no-datera"],
+                "Parquet",
+            ),
+        ).rejects.toThrow("npm install pacote-que-nao-existe-no-datera");
+    });
+
+    it("não esconde outro erro que não seja pacote faltando", () => {
+        expect(() =>
+            requireOptional(
+                () => {
+                    throw new Error("deu ruim de verdade");
+                },
+                ["pg"],
+                "PostgreSQL",
+            ),
+        ).toThrow("deu ruim de verdade");
     });
 });
