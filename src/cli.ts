@@ -58,6 +58,27 @@ export type CliOptions =
           read: ReadOptions;
           write: WriteOptions;
       }
+    | {
+          command: "join";
+          inputs: string[];
+          output: string;
+          originColumn: string | false;
+          blocks: boolean;
+          sheetBy?: string | undefined;
+          splitBy?: string | undefined;
+          align: boolean;
+          read: ReadOptions;
+          write: WriteOptions;
+      }
+    | {
+          command: "split";
+          input: string;
+          output: string;
+          by: string;
+          files: boolean;
+          read: ReadOptions;
+          write: WriteOptions;
+      }
     | { command: "columns"; input: string; read: ReadOptions }
     | { command: "preview"; input: string; rows: number; read: ReadOptions }
     | { command: "normalizers" }
@@ -545,6 +566,113 @@ export function buildProgram(
             rows: flags.rows,
             read: readOptions(flags),
         }),
+    );
+
+    withWriteFlags(
+        withReadFlags(
+            program
+                .command("join")
+                .description(
+                    'Junta vários arquivos num só, com uma coluna dizendo de onde veio cada linha (tipo "datera join meses/*.xlsx todos.xlsx").',
+                )
+                .argument(
+                    "<arquivos...>",
+                    "As entradas (aceita pasta e * no nome) e, por último, o arquivo de saída.",
+                )
+                .option(
+                    "--origin-column <nome>",
+                    'Nome da coluna que diz de qual arquivo veio a linha (padrão: "origem").',
+                )
+                .option("--no-origin", "Não cria a coluna de origem.")
+                .option(
+                    "--blocks",
+                    "Em vez da coluna, separa cada arquivo com uma linha de título.",
+                )
+                .option(
+                    "--sheet-by <coluna>",
+                    "Uma aba (ou tabela) pra cada valor dessa coluna.",
+                )
+                .option(
+                    "--split-by <coluna>",
+                    "Um arquivo pra cada valor dessa coluna.",
+                )
+                .option(
+                    "--no-align",
+                    "Não junta as colunas que só mudam em maiúscula, acento ou espaço.",
+                ),
+        ),
+    ).action(
+        (
+            files: string[],
+            flags: ReadFlags &
+                WriteFlags & {
+                    originColumn?: string;
+                    origin: boolean;
+                    blocks?: boolean;
+                    sheetBy?: string;
+                    splitBy?: string;
+                    align: boolean;
+                },
+            command: Command,
+        ) => {
+            if (files.length < 2) {
+                command.error(
+                    "erro: diga as entradas e, por último, o arquivo de saída.",
+                );
+            }
+            onCommand({
+                command: "join",
+                inputs: files.slice(0, -1),
+                output: files[files.length - 1]!,
+                originColumn: flags.origin
+                    ? (flags.originColumn ?? "origem")
+                    : false,
+                blocks: flags.blocks ?? false,
+                sheetBy: flags.sheetBy,
+                splitBy: flags.splitBy,
+                align: flags.align,
+                read: readOptions(flags),
+                write: writeOptions(flags),
+            });
+        },
+    );
+
+    withWriteFlags(
+        withReadFlags(
+            program
+                .command("split")
+                .description(
+                    "Separa um arquivo pelo valor de uma coluna: uma aba por valor no Excel, ou um arquivo por valor.",
+                )
+                .argument("<entrada>", "Arquivo de entrada.")
+                .argument(
+                    "<saida>",
+                    'Saída. No .xlsx vira uma aba por valor; nos outros formatos, um arquivo por valor (tipo "saida-Pelotas.csv").',
+                )
+                .requiredOption(
+                    "--by <coluna>",
+                    "Coluna que decide a separação.",
+                )
+                .option(
+                    "--files",
+                    "Mesmo no Excel, grava um arquivo por valor em vez de abas.",
+                ),
+        ),
+    ).action(
+        (
+            input: string,
+            output: string,
+            flags: ReadFlags & WriteFlags & { by: string; files?: boolean },
+        ) =>
+            onCommand({
+                command: "split",
+                input,
+                output,
+                by: flags.by,
+                files: flags.files ?? false,
+                read: readOptions(flags),
+                write: writeOptions(flags),
+            }),
     );
 
     program

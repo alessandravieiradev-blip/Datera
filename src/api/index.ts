@@ -51,3 +51,6 @@ export type {
 export { describeColumns, listNormalizers, normalize } from "./inspect";
 export type { ColumnInfo, ColumnKind } from "./inspect";
 export type { AlignOptions } from "../filters/align";
+export { joinFiles, splitFile, splitRows } from "./join";
+export type { JoinOptions, SplitOptions } from "./join";
+export type { RowGroup } from "../pipeline/groups";

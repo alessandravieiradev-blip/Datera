@@ -9,6 +9,8 @@ import {
     dedupe,
     findFiles,
     findSimilarColumns,
+    joinFiles,
+    splitFile,
     planOutputs,
     describeColumns,
     destinationFromPath,
@@ -318,6 +320,36 @@ export async function runCommand(
             await writeRows(result, cli.output, cli.write);
             logger.info(
                 `${plural(rows.length, "linha lida", "linhas lidas")}, juntadas em ${plural(result.length, "registro", "registros")} gravados em ${cli.output}.`,
+            );
+            return 0;
+        }
+
+        case "join": {
+            const report = await joinFiles(cli.inputs, cli.output, {
+                read: cli.read,
+                write: cli.write,
+                originColumn: cli.originColumn,
+                blocks: cli.blocks,
+                sheetBy: cli.sheetBy,
+                splitBy: cli.splitBy,
+                align: cli.align,
+                logger,
+            });
+            logger.info(
+                `${plural(report.rowsOut, "linha juntada", "linhas juntadas")} em ${cli.output}.`,
+            );
+            return 0;
+        }
+
+        case "split": {
+            const report = await splitFile(cli.input, cli.output, cli.by, {
+                read: cli.read,
+                write: cli.write,
+                files: cli.files,
+                logger,
+            });
+            logger.info(
+                `${plural(report.rowsOut, "linha separada", "linhas separadas")} pela coluna "${cli.by}".`,
             );
             return 0;
         }

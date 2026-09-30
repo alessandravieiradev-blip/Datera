@@ -48,13 +48,13 @@ export interface WriteRowsOptions extends WriteOptions {
 
 export const DEFAULT_PENDING_NAME = "Pendências";
 
-function sourceOf(input: Input, options: ReadOptions): SourceConfig {
+export function sourceOf(input: Input, options: ReadOptions): SourceConfig {
     return typeof input === "string"
         ? sourceFromPath(input, options)
         : parseWith(sourceSchema, input, "A fonte");
 }
 
-function destinationOf(
+export function destinationOf(
     output: Output,
     options: WriteOptions,
 ): DestinationConfig {
