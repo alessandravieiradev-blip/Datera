@@ -1,7 +1,9 @@
 import { TableRow } from "../types";
+import { SheetRows } from "./tabs";
 
 export interface Source {
     read(): Promise<TableRow[]>;
+    readTabs?(): Promise<SheetRows[]>;
     close?(): Promise<void>;
 }
 

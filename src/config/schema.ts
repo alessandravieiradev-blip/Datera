@@ -42,6 +42,20 @@ export const etlConfigSchema = z
     )
     .refine(
         (config) =>
+            !(
+                (config.source?.type === "excel" ||
+                    config.source?.type === "sheets") &&
+                config.source.allSheets === true &&
+                config.source.sheet !== undefined
+            ),
+        {
+            message:
+                'Use "sheet" pra ler uma aba só ou "allSheets": true pra ler todas, mas não os dois juntos.',
+            path: ["source", "allSheets"],
+        },
+    )
+    .refine(
+        (config) =>
             config.destination !== undefined ||
             config.spreadsheetId !== undefined,
         {

@@ -38,19 +38,28 @@ function quoteSheetTitle(title: string): string {
 async function listSheets(
     sheets: sheets_v4.Sheets,
     spreadsheetId: string,
-): Promise<TargetSheet[]> {
+): Promise<(TargetSheet & { hidden: boolean })[]> {
     const response = await sheets.spreadsheets.get({
         spreadsheetId,
-        fields: "sheets.properties(sheetId,title)",
+        fields: "sheets.properties(sheetId,title,hidden)",
     });
-    const found: TargetSheet[] = [];
+    const found: (TargetSheet & { hidden: boolean })[] = [];
     for (const sheet of response.data.sheets ?? []) {
-        const { title, sheetId } = sheet.properties ?? {};
+        const { title, sheetId, hidden } = sheet.properties ?? {};
         if (title && sheetId !== null && sheetId !== undefined) {
-            found.push({ title, sheetId });
+            found.push({ title, sheetId, hidden: hidden === true });
         }
     }
     return found;
+}
+
+export async function visibleSheetTitles(
+    sheets: sheets_v4.Sheets,
+    spreadsheetId: string,
+): Promise<string[]> {
+    return (await listSheets(sheets, spreadsheetId))
+        .filter((sheet) => !sheet.hidden)
+        .map((sheet) => sheet.title);
 }
 
 async function resolveSheet(

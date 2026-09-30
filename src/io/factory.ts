@@ -120,6 +120,10 @@ export function createSource(
                 createSheetsClient(credentialsPath),
                 source.spreadsheetId,
                 source.sheet,
+                {
+                    allSheets: source.allSheets,
+                    sheetColumn: source.sheetColumn,
+                },
             );
         }
         case "custom":

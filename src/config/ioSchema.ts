@@ -16,6 +16,11 @@ const serverFields = {
     table: z.string().optional(),
 };
 
+const tabFields = {
+    allSheets: z.boolean().optional(),
+    sheetColumn: z.string().trim().min(1).optional(),
+};
+
 export const sourceSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("mysql"),
@@ -62,12 +67,14 @@ export const sourceSchema = z.discriminatedUnion("type", [
         type: z.literal("excel"),
         path: z.string(),
         sheet: z.string().min(1).optional(),
+        ...tabFields,
     }),
     z.object({
         type: z.literal("sheets"),
         spreadsheetId: z.string().min(1),
         credentialsPath: z.string().optional(),
         sheet: z.string().min(1).optional(),
+        ...tabFields,
     }),
     z.object({
         type: z.literal("custom"),

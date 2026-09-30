@@ -35,6 +35,11 @@ function assertSheetsAreSafe(config: EtlConfig): void {
     const destinationId = destination.spreadsheetId ?? config.spreadsheetId;
     if (source.spreadsheetId !== destinationId) return;
 
+    if (source.allSheets) {
+        throw new Error(
+            "A fonte lê todas as abas, então o resultado precisa ir pra outra planilha. Senão ele leria também a aba do resultado.",
+        );
+    }
     if (source.sheet === undefined) {
         throw new Error(
             'A fonte e o destino são a mesma planilha. Coloque "sheet" na fonte com o nome da aba dos dados originais, senão ele pode ler e apagar a mesma aba.',
