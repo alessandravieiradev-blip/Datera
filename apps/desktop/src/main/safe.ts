@@ -43,8 +43,15 @@ function realOrSame(target: string): string {
 }
 
 function realPath(target: string): string {
-    if (fs.existsSync(target)) return realOrSame(target);
-    return path.join(realOrSame(path.dirname(target)), path.basename(target));
+    const missing: string[] = [];
+    let current = target;
+    while (!fs.existsSync(current)) {
+        const parent = path.dirname(current);
+        if (parent === current) return target;
+        missing.unshift(path.basename(current));
+        current = parent;
+    }
+    return path.join(realOrSame(current), ...missing);
 }
 
 export function isInsideFolder(folder: string, target: string): boolean {

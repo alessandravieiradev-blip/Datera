@@ -48,6 +48,19 @@ describe("isInsideFolder", () => {
         expect(isInsideFolder(folder, folder)).toBe(false);
     });
 
+    it("aceita subpasta que ainda não existe, mesmo com a pasta escrita de outro jeito", () => {
+        const real = fs.mkdtempSync(path.join(os.tmpdir(), "datera-real-"));
+        const atalho = `${real}-atalho`;
+        try {
+            fs.symlinkSync(real, atalho, "dir");
+        } catch {
+            return;
+        }
+        const pasta = fs.mkdtempSync(path.join(atalho, "datera-"));
+        expect(isInsideFolder(pasta, "codigo/novo/adapters.cjs")).toBe(true);
+        expect(isInsideFolder(pasta, "codigo/../../fora.cjs")).toBe(false);
+    });
+
     it("aceita nome que só começa com dois pontos", () => {
         expect(isInsideFolder(folder, "..normalizadores.cjs")).toBe(true);
     });
