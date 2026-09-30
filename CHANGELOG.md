@@ -13,6 +13,7 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 ### Adicionado
 
 - converter vários arquivos de uma vez: `datera convert "matriculas/*.xlsx" --to csv --out-dir convertidos`, aceitando pasta, `*` no nome e lista de arquivos, e o `convertMany` na API (com `findFiles` e `planOutputs`)
+- ler todas as abas de um Excel ou de uma planilha do Google de uma vez (`"allSheets": true`, `--all-sheets`), com uma coluna dizendo de qual aba veio cada linha. Com `--to`, cada aba vira um arquivo. Na API, o `readSheets` devolve aba por aba. No app, a opção **Ler todas as abas** no passo a passo, e no Datera Dev, os trechos na paleta
 - `datera run regras.json --input "matriculas/*.xlsx" --out-dir limpos` aplica as mesmas regras em cada arquivo, cada um com o seu resultado
 
 ## [0.2.1] - 2026-09-30

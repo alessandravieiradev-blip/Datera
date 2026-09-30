@@ -27,19 +27,27 @@ Por dentro, tudo vira a mesma coisa: uma lista de linhas, e cada linha é um obj
 
 ## Fontes (`source`)
 
-| `type`      | Campos                                                                                         | Observações                                                                                                                                  |
-| ----------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mysql`     | `host`, `port`, `user`, `password`, `database`, `table`, `ssl?`                                | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                                   |
-| `postgres`  | `host`, `port`, `user`, `password`, `database`, `table`, `ssl?`                                | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `5432`. Veja [Bancos de dados](#bancos-de-dados)                          |
-| `sqlserver` | `host`, `port`, `user`, `password`, `database`, `table`, `encrypt?`, `trustServerCertificate?` | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `1433`. Veja [Bancos de dados](#bancos-de-dados)                          |
-| `sqlite`    | `path`, `table`                                                                                | Um arquivo `.db` ou `.sqlite`. Ele só lê, o arquivo nunca é alterado                                                                         |
-| `csv`       | `path`, `delimiter?`, `encoding?`                                                              | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                                  |
-| `json`      | `path`, `recordsPath?`                                                                         | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"`                   |
-| `xml`       | `path`, `recordsPath?`                                                                         | Cada registro vira uma linha. O `recordsPath` começa pelo elemento principal, tipo `"escola.alunos.aluno"`. Veja [XML](#xml)                 |
-| `parquet`   | `path`                                                                                         | Arquivo `.parquet`. Veja [Parquet](#parquet)                                                                                                 |
-| `excel`     | `path`, `sheet?`                                                                               | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. A primeira linha tem que ser o cabeçalho                                                |
-| `sheets`    | `spreadsheetId`, `sheet?`, `credentialsPath?`                                                  | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Sem `credentialsPath`, usa o mesmo das outras configs                                |
-| `custom`    | `adapter`, `options?`                                                                          | Um adapter seu, carregado pelo `adapterModules`. Veja [E se o meu formato não tá aqui?](fontes-e-destinos.md#e-se-o-meu-formato-não-tá-aqui) |
+| `type`      | Campos                                                                                         | Observações                                                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mysql`     | `host`, `port`, `user`, `password`, `database`, `table`, `ssl?`                                | Todos opcionais: o que faltar vem das variáveis do `.env` ou dos campos antigos (`dbHost`, `tableName`...)                                       |
+| `postgres`  | `host`, `port`, `user`, `password`, `database`, `table`, `ssl?`                                | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `5432`. Veja [Bancos de dados](#bancos-de-dados)                              |
+| `sqlserver` | `host`, `port`, `user`, `password`, `database`, `table`, `encrypt?`, `trustServerCertificate?` | O que faltar pode vir das variáveis `DB_*` do `.env`. Porta padrão `1433`. Veja [Bancos de dados](#bancos-de-dados)                              |
+| `sqlite`    | `path`, `table`                                                                                | Um arquivo `.db` ou `.sqlite`. Ele só lê, o arquivo nunca é alterado                                                                             |
+| `csv`       | `path`, `delimiter?`, `encoding?`                                                              | Sem `delimiter` ele descobre sozinho (`,`, `;`, tab ou `\|`). `encoding` é `"utf-8"` (padrão) ou `"latin1"`                                      |
+| `json`      | `path`, `recordsPath?`                                                                         | O arquivo tem que ser uma lista de objetos. Se a lista tá dentro de outras chaves, usa `recordsPath` tipo `"dados.alunos"`                       |
+| `xml`       | `path`, `recordsPath?`                                                                         | Cada registro vira uma linha. O `recordsPath` começa pelo elemento principal, tipo `"escola.alunos.aluno"`. Veja [XML](#xml)                     |
+| `parquet`   | `path`                                                                                         | Arquivo `.parquet`. Veja [Parquet](#parquet)                                                                                                     |
+| `excel`     | `path`, `sheet?`, `allSheets?`, `sheetColumn?`                                                 | Arquivo `.xlsx`. Sem `sheet`, ele lê a primeira aba. Com `"allSheets": true`, lê todas. A primeira linha tem que ser o cabeçalho                 |
+| `sheets`    | `spreadsheetId`, `sheet?`, `credentialsPath?`, `allSheets?`, `sheetColumn?`                    | Uma planilha do Google. Sem `sheet`, lê a primeira aba. Com `"allSheets": true`, lê todas. Sem `credentialsPath`, usa o mesmo das outras configs |
+| `custom`    | `adapter`, `options?`                                                                          | Um adapter seu, carregado pelo `adapterModules`. Veja [E se o meu formato não tá aqui?](fontes-e-destinos.md#e-se-o-meu-formato-não-tá-aqui)     |
+
+Com `"allSheets": true` no Excel ou no Google Sheets, ele lê todas as abas visíveis e junta tudo numa lista só, com uma coluna dizendo de qual aba veio cada linha. A coluna se chama `aba`, ou o nome que você colocar em `sheetColumn`:
+
+```json
+"source": { "type": "excel", "path": "./matriculas.xlsx", "allSheets": true, "sheetColumn": "mes" }
+```
+
+Dá pra usar essa coluna nas regras como qualquer outra, tipo pra saber em que mês cada aluno apareceu depois de um merge. Não dá pra usar `sheet` e `allSheets` juntos, e se a fonte e o destino forem a mesma planilha do Google, o destino precisa ser outra planilha (senão ele leria a aba do resultado também).
 
 Umas coisas que eu aprendi apanhando:
 

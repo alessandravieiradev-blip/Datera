@@ -142,6 +142,7 @@ datera convert janeiro.xlsx fevereiro.xlsx --to json --out-dir saida
 - passando uma pasta, ele pega todos os arquivos que ele conhece (CSV, JSON, XML, Excel, Parquet, SQLite) e pula o resto
 - no PowerShell e no terminal do Mac e do Linux, coloca o padrão entre aspas, senão o terminal tenta resolver o `*` antes do Datera
 - os formatos do `--to` são `csv`, `tsv`, `json`, `xml`, `xlsx`, `parquet` e `db`
+- com `--all-sheets`, cada aba de cada Excel vira um arquivo: `matriculas.xlsx` com as abas Janeiro e Fevereiro vira `matriculas-Janeiro.csv` e `matriculas-Fevereiro.csv`. Caractere que o Windows não aceita em nome de arquivo vira `_`
 - antes de começar, ele confere se dois arquivos não iam virar o mesmo (tipo `janeiro.csv` e `janeiro.xml` indo pra `janeiro.json`) e se nenhum ia gravar por cima de outra entrada. Se der erro no meio, ele diz em qual arquivo parou
 
 ### `datera dedupe`
@@ -215,6 +216,8 @@ Os comandos que leem arquivo (`convert`, `dedupe`, `merge`, `columns`, `preview`
 | -------------------------- | ------------------------------------------------------- |
 | `--table <tabela>`         | tabela do SQLite                                        |
 | `--sheet <aba>`            | aba do Excel de entrada                                 |
+| `--all-sheets`             | lê todas as abas do Excel, com uma coluna `aba`         |
+| `--sheet-column <nome>`    | outro nome pra coluna da aba (com `--all-sheets`)       |
 | `--records-path <caminho>` | onde estão os registros no JSON ou XML                  |
 | `--delimiter <separador>`  | separador do CSV de entrada (sem ele, descobre sozinho) |
 | `--encoding latin1`        | CSV antigo com acento estranho                          |
@@ -296,6 +299,28 @@ const feitos = await convertMany(["matriculas/*.xlsx", "extras"], {
 ```
 
 Ele devolve uma lista com a entrada, a saída e quantas linhas cada arquivo teve, tipo `{ input: "matriculas/janeiro.xlsx", output: "convertidos/janeiro.csv", rows: 42 }`.
+
+### Todas as abas de uma planilha
+
+Quando cada mês (ou cada turma) está numa aba, dá pra ler todas de uma vez. As linhas viram uma lista só, e uma coluna `aba` diz de onde veio cada uma:
+
+```bash
+datera preview matriculas.xlsx --all-sheets
+datera convert matriculas.xlsx todas.csv --all-sheets --sheet-column mes
+datera convert matriculas.xlsx --all-sheets --to csv --out-dir por-mes
+```
+
+Com uma saída só, fica tudo junto com a coluna. Com `--to`, cada aba vira um arquivo, como se fossem arquivos separados. No código:
+
+```ts
+const tudo = await readRows("matriculas.xlsx", {
+    allSheets: true,
+    sheetColumn: "mes",
+});
+const porAba = await readSheets("matriculas.xlsx");
+```
+
+O `readSheets` devolve uma lista com o nome de cada aba e as linhas dela. Abas escondidas ficam de fora, porque normalmente guardam listas de apoio e não dados. Se alguma aba já tiver uma coluna com o mesmo nome da coluna da aba, ele avisa pra você escolher outro nome.
 
 Se quiser só saber quais arquivos ele pegaria, sem converter nada, tem o `findFiles("matriculas/*.xlsx")`, e o `planOutputs(arquivos, "csv", "convertidos")` mostra o nome de saída de cada um.
 
