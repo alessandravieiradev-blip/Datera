@@ -54,3 +54,23 @@ export type { AlignOptions } from "../filters/align";
 export { joinFiles, splitFile, splitRows } from "./join";
 export type { JoinOptions, SplitOptions } from "./join";
 export type { RowGroup } from "../pipeline/groups";
+export { summarizeFile, compareFiles } from "./compare";
+export type { SummaryOptions, CompareOptions } from "./compare";
+export { summarize, COUNT_COLUMN } from "../pipeline/summary";
+export {
+    compareRows,
+    comparisonRows,
+    countComparison,
+    describeChanges,
+    STATUS_COLUMN,
+    CHANGES_COLUMN,
+} from "../pipeline/compare";
+export type {
+    Comparison,
+    ComparisonCounts,
+    ChangedRow,
+    CellChange,
+    CompareStatus,
+    CompareRowsOptions,
+    ComparisonRowsOptions,
+} from "../pipeline/compare";

@@ -79,6 +79,26 @@ export type CliOptions =
           read: ReadOptions;
           write: WriteOptions;
       }
+    | {
+          command: "summary";
+          input: string;
+          output?: string | undefined;
+          by: string[];
+          read: ReadOptions;
+          write: WriteOptions;
+      }
+    | {
+          command: "compare";
+          before: string;
+          after: string;
+          key: string[];
+          ignore: string[];
+          output?: string | undefined;
+          keepUnchanged: boolean;
+          sheetBy?: string | undefined;
+          read: ReadOptions;
+          write: WriteOptions;
+      }
     | { command: "columns"; input: string; read: ReadOptions }
     | { command: "preview"; input: string; rows: number; read: ReadOptions }
     | { command: "normalizers" }
@@ -673,6 +693,108 @@ export function buildProgram(
                 read: readOptions(flags),
                 write: writeOptions(flags),
             }),
+    );
+
+    withWriteFlags(
+        withReadFlags(
+            program
+                .command("summary")
+                .description(
+                    'Conta quantas linhas tem cada valor de uma ou mais colunas (tipo "datera summary alunos.xlsx --by plano").',
+                )
+                .argument("<entrada>", "Arquivo de entrada.")
+                .argument(
+                    "[saida]",
+                    "Arquivo pra gravar o resumo. Sem ele, o resumo aparece na tela.",
+                )
+                .requiredOption(
+                    "--by <colunas>",
+                    'Coluna (ou colunas separadas por vírgula, tipo "plano,cidade") pra contar.',
+                    list,
+                ),
+        ),
+    ).action(
+        (
+            input: string,
+            output: string | undefined,
+            flags: ReadFlags & WriteFlags & { by: string[] },
+        ) =>
+            onCommand({
+                command: "summary",
+                input,
+                output,
+                by: flags.by,
+                read: readOptions(flags),
+                write: writeOptions(flags),
+            }),
+    );
+
+    withWriteFlags(
+        withReadFlags(
+            program
+                .command("compare")
+                .description(
+                    'Compara dois arquivos pela chave e mostra quem entrou, quem saiu e quem mudou (tipo "datera compare agosto.xlsx setembro.xlsx --key matricula").',
+                )
+                .argument("<antes>", "O arquivo mais antigo.")
+                .argument("<depois>", "O arquivo mais novo.")
+                .requiredOption(
+                    "--key <colunas>",
+                    'Coluna que identifica cada linha (ou colunas separadas por vírgula, tipo "nome,turma").',
+                    list,
+                )
+                .option(
+                    "--ignore <colunas>",
+                    "Colunas pra não comparar, separadas por vírgula.",
+                    list,
+                )
+                .option(
+                    "--out <arquivo>",
+                    "Grava as diferenças num arquivo, com as colunas situação e mudanças.",
+                )
+                .option(
+                    "--keep-unchanged",
+                    'No arquivo, inclui também as linhas que ficaram iguais (com situação "igual").',
+                )
+                .option(
+                    "--sheet-by <coluna>",
+                    'No arquivo, uma aba pra cada valor dessa coluna (tipo "--sheet-by situação").',
+                ),
+        ),
+    ).action(
+        (
+            before: string,
+            after: string,
+            flags: ReadFlags &
+                WriteFlags & {
+                    key: string[];
+                    ignore?: string[];
+                    out?: string;
+                    keepUnchanged?: boolean;
+                    sheetBy?: string;
+                },
+            command: Command,
+        ) => {
+            if (flags.out === undefined) {
+                if (flags.keepUnchanged || flags.sheetBy !== undefined) {
+                    command.error(
+                        "erro: --keep-unchanged e --sheet-by só servem junto com --out.",
+                    );
+                }
+            }
+            onCommand({
+                command: "compare",
+                before,
+                after,
+                key: flags.key,
+                ignore: flags.ignore ?? [],
+                output: flags.out,
+                keepUnchanged: flags.keepUnchanged ?? false,
+                sheetBy: flags.sheetBy,
+                read: readOptions(flags),
+                write: writeOptions(flags),
+            });
+        },
     );
 
     program

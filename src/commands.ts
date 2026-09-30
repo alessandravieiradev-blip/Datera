@@ -11,6 +11,11 @@ import {
     findSimilarColumns,
     joinFiles,
     splitFile,
+    summarizeFile,
+    compareFiles,
+    countComparison,
+    describeChanges,
+    Comparison,
     planOutputs,
     describeColumns,
     destinationFromPath,
@@ -25,6 +30,8 @@ import {
     WriteOptions,
 } from "./api";
 import { Logger } from "./logger";
+import { cellOf } from "./cells";
+import { TableRow } from "./types";
 import { assertSourceIsSafe } from "./io/safety";
 import { EtlReport, formatReport, parseMode, runEtl } from "./pipeline";
 
@@ -46,6 +53,47 @@ function assertSafeOutput(cli: {
 
 function plural(count: number, one: string, many: string): string {
     return `${count} ${count === 1 ? one : many}`;
+}
+
+const SHOWN_PER_GROUP = 10;
+
+function keyText(row: TableRow, key: string[]): string {
+    return key.map((column) => String(cellOf(row, column) ?? "")).join(" | ");
+}
+
+function showComparison(comparison: Comparison, logger: Logger): void {
+    const counts = countComparison(comparison);
+    logger.info(
+        `${plural(counts.added, "entrou", "entraram")}, ${plural(counts.removed, "saiu", "saíram")}, ${plural(counts.changed, "mudou", "mudaram")} e ${plural(counts.unchanged, "ficou igual", "ficaram iguais")}.`,
+    );
+    const groups: [string, string[]][] = [
+        [
+            "Entraram",
+            comparison.added.map((row) => keyText(row, comparison.key)),
+        ],
+        [
+            "Saíram",
+            comparison.removed.map((row) => keyText(row, comparison.keyBefore)),
+        ],
+        [
+            "Mudaram",
+            comparison.changed.map(
+                (item) => `${item.key}: ${describeChanges(item.changes)}`,
+            ),
+        ],
+    ];
+    for (const [title, lines] of groups) {
+        if (lines.length === 0) continue;
+        logger.info(`${title}:`);
+        for (const line of lines.slice(0, SHOWN_PER_GROUP)) {
+            logger.info(`  ${line}`);
+        }
+        if (lines.length > SHOWN_PER_GROUP) {
+            logger.info(
+                `  e mais ${lines.length - SHOWN_PER_GROUP}. Use --out pra ver tudo num arquivo.`,
+            );
+        }
+    }
 }
 
 function isBatch(cli: RunOptions): boolean {
@@ -351,6 +399,43 @@ export async function runCommand(
             logger.info(
                 `${plural(report.rowsOut, "linha separada", "linhas separadas")} pela coluna "${cli.by}".`,
             );
+            return 0;
+        }
+
+        case "summary": {
+            const summary = await summarizeFile(cli.input, cli.by, {
+                read: cli.read,
+                write: cli.write,
+                output: cli.output,
+                logger,
+            });
+            if (cli.output !== undefined) {
+                logger.info(
+                    `Resumo com ${plural(summary.length, "linha", "linhas")} gravado em ${cli.output}.`,
+                );
+            } else if (summary.length === 0) {
+                logger.info(`${cli.input} está vazio.`);
+            } else {
+                console.table(summary);
+            }
+            return 0;
+        }
+
+        case "compare": {
+            const comparison = await compareFiles(cli.before, cli.after, {
+                key: cli.key,
+                ignore: cli.ignore,
+                output: cli.output,
+                keepUnchanged: cli.keepUnchanged,
+                sheetBy: cli.sheetBy,
+                read: cli.read,
+                write: cli.write,
+                logger,
+            });
+            showComparison(comparison, logger);
+            if (cli.output !== undefined) {
+                logger.info(`Diferenças gravadas em ${cli.output}.`);
+            }
             return 0;
         }
 
