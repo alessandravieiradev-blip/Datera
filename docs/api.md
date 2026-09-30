@@ -145,6 +145,34 @@ datera convert janeiro.xlsx fevereiro.xlsx --to json --out-dir saida
 - com `--all-sheets`, cada aba de cada Excel vira um arquivo: `matriculas.xlsx` com as abas Janeiro e Fevereiro vira `matriculas-Janeiro.csv` e `matriculas-Fevereiro.csv`. Caractere que o Windows não aceita em nome de arquivo vira `_`
 - antes de começar, ele confere se dois arquivos não iam virar o mesmo (tipo `janeiro.csv` e `janeiro.xml` indo pra `janeiro.json`) e se nenhum ia gravar por cima de outra entrada. Se der erro no meio, ele diz em qual arquivo parou
 
+### `datera join` e `datera split`
+
+O `join` junta vários arquivos num só. O último caminho é a saída, e os outros (pasta, `*` no nome ou lista) são as entradas:
+
+```bash
+datera join "matriculas/*.xlsx" todas.xlsx
+datera join matriculas todas.csv --blocks
+datera join "matriculas/*.xlsx" por-plano.xlsx --sheet-by plano
+```
+
+- cada linha ganha uma coluna `origem` com o nome do arquivo de onde veio. Dá pra trocar o nome com `--origin-column mes` ou desligar com `--no-origin`
+- com `--blocks`, em vez da coluna, cada arquivo vira um bloco com uma linha de título (o nome do arquivo) antes dele
+- com `--sheet-by plano`, sai uma aba pra cada valor da coluna (mensal, trimestral, anual). Com `--split-by cidade`, um arquivo pra cada valor
+- as colunas que só mudam em maiúscula, acento ou espaço são juntadas sozinhas (`E-mail` e `email`). Pra não juntar, use `--no-align`. O `--rename` e o `--all-sheets` também valem aqui
+- a ordem é a do nome dos arquivos, então vale numerar: `01-janeiro.xlsx`, `02-fevereiro.xlsx`
+
+O `split` faz o contrário: separa um arquivo pelo valor de uma coluna.
+
+```bash
+datera split alunos.csv por-plano.xlsx --by plano
+datera split alunos.csv cidades.csv --by cidade
+datera split alunos.xlsx cidades.xlsx --by cidade --files
+```
+
+No Excel (e no Google Sheets) sai uma aba por valor. Nos formatos que não têm aba, sai um arquivo por valor: `cidades-Pelotas.csv`, `cidades-Rio Grande.csv`. Com `--files`, até no Excel sai um arquivo por valor. Linha com a coluna vazia vai pro grupo `(vazio)`, e o nome da coluna não liga pra maiúscula nem acento.
+
+Pra ninguém separar sem querer por uma coluna tipo e-mail e ganhar mil arquivos, ele para se passar de 200 grupos. E se dois valores virarem o mesmo nome de aba ou de arquivo (tipo `Turma A` e `turma a`), ele avisa antes de gravar.
+
 ### `datera dedupe`
 
 Tira as linhas repetidas olhando uma coluna:
@@ -441,6 +469,21 @@ const juntos = merge(alunos, "matricula", {
 ```
 
 O `merge` sem `columns` junta todas as colunas com `concat` (separador `" | "`, ou o que vier em `separator`), menos as que você colocar em `overwrite` ou `extraColumn`. Se quiser as regras completas (`distribute`, `byGroup`, `unkeyed`), passa `columns` do mesmo jeito que o `mergeColumns` da config. O `mergeColumnsFor(linhas, chave, opções)` monta essa lista pra você partir dela.
+
+### Juntar e separar
+
+```ts
+await joinFiles("matriculas/*.xlsx", "todas.xlsx", {
+    originColumn: "mes",
+    sheetBy: "plano",
+});
+
+await splitFile("alunos.csv", "cidades.csv", "cidade");
+
+const grupos = splitRows(alunos, "cidade");
+```
+
+O `joinFiles` e o `splitFile` gravam e devolvem o mesmo resumo do `runEtl`. O `splitRows` só separa na memória e devolve uma lista com o valor e as linhas de cada grupo. As opções são as mesmas do terminal: `blocks`, `sheetBy`, `splitBy`, `originColumn`, `align` e `files`.
 
 ### Olhar os dados
 

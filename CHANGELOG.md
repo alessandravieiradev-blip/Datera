@@ -10,6 +10,12 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 ## [Não lançado]
 
+### Adicionado
+
+- juntar vários arquivos num só com `datera join` e com `"sources"` na config, com a coluna `origem` (ou `originColumn`) ou em blocos com uma linha de título (`--blocks`, `blocksBy`), alinhando as colunas sozinho
+- uma aba (ou tabela de banco) por valor de uma coluna com `--sheet-by` e `sheetBy`, e um arquivo (ou tabela) por valor com `--split-by` e `splitBy`
+- `datera split` separa um arquivo pelo valor de uma coluna. Na API, `joinFiles`, `splitFile` e `splitRows`, e no Datera Dev, os trechos na paleta
+
 ## [0.3.0] - 2026-09-30
 
 ### Adicionado

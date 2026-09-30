@@ -14,7 +14,7 @@ src/
   env.ts                  # lê variável de ambiente
   main.ts                 # o que o npm start e o comando datera rodam: lê a config, chama o runEtl e mostra o resumo
   commands.ts             # o que cada comando do terminal faz (convert, dedupe, merge, columns...)
-  api/                    # as funções pra usar no código: readRows, writeRows, convert, clean, dedupe, merge...
+  api/                    # as funções pra usar no código: readRows, writeRows, convert, convertMany, joinFiles, splitFile, clean, dedupe, merge...
   index.ts                # o que dá pra importar de fora (runEtl, loadConfig, registrar adapter...)
   logger.ts               # pra onde vão as mensagens (console, silencioso ou memória)
   types.ts                # TableRow, o formato de linha que todo mundo usa
@@ -23,6 +23,7 @@ src/
     steps.ts              # monta a lista de etapas a partir da config
     modes.ts              # raw, dedupe e merge
     report.ts             # monta o resumo do final
+    groups.ts             # organiza o resultado: uma aba, um arquivo ou uma tabela por valor, ou blocos com título
     types.ts              # Step e EtlReport
   config/
     index.ts              # o que o resto do projeto importa da config
@@ -46,6 +47,8 @@ src/
     sqlserver/            # sqlServerSource.ts e sqlServerSink.ts
     sqlite/               # sqliteSource.ts e sqliteSink.ts (usam o SQLite que já vem no Node)
     sql/                  # o que os bancos dividem: converter os valores, proteger os nomes e o writer.ts, que grava a tabela numa transação e só mexe nas tabelas que o Datera criou
+    multiSource.ts        # junta várias fontes numa só, com a coluna de origem
+    tabs.ts               # junta as abas de uma planilha, com a coluna da aba
     optional.ts           # carrega os pacotes opcionais (Excel, Parquet, bancos) e explica o que instalar quando falta
     sheets/               # client.ts (leitura e escrita em abas), sheetsSource.ts e sheetsSink.ts
     csv/                  # csvFormat.ts (leitor e escritor), csvSource.ts, csvSink.ts
@@ -56,6 +59,7 @@ src/
     custom/               # registry.ts e loader.ts dos adapters que vêm de arquivo seu
   filters/
     types.ts              # interface Filter
+    align.ts              # junta as colunas que são a mesma escrita de jeitos diferentes
     fillEmpty.ts          # preenche célula vazia
     combine.ts            # junta colunas da mesma linha
     validate.ts           # separa as linhas com problema
