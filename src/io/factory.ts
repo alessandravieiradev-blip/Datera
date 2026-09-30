@@ -1,3 +1,8 @@
+import fs from "fs";
+import path from "path";
+import { SourceConfig } from "../config/ioSchema";
+import { findFiles } from "../api/files";
+import { DEFAULT_ORIGIN_COLUMN, MultiSource } from "./multiSource";
 import { EtlConfig } from "../config";
 import { createSheetsClient } from "./sheets/client";
 import { Sink, Source } from "./types";
@@ -23,7 +28,7 @@ import { ExcelSink } from "./excel/excelSink";
 import { SheetsSource } from "./sheets/sheetsSource";
 import { createCustomSink, createCustomSource } from "./custom/registry";
 import { consoleLogger, Logger } from "../logger";
-import { assertSourceIsSafe } from "./safety";
+import { assertSourceIsSafe, isSameFile } from "./safety";
 import { destinationSharesSource, serverOf } from "./servers";
 
 const SERVER_NAMES = {
@@ -39,10 +44,81 @@ function required<T>(value: T | undefined, what: string): T {
     return value;
 }
 
+function hasPath(
+    source: SourceConfig,
+): source is Extract<SourceConfig, { path: string }> {
+    return "path" in source && typeof source.path === "string";
+}
+
+export function expandSources(sources: SourceConfig[]): SourceConfig[] {
+    const expanded: SourceConfig[] = [];
+    for (const source of sources) {
+        if (!hasPath(source)) {
+            expanded.push(source);
+            continue;
+        }
+        const isPattern =
+            /[*?]/.test(source.path) ||
+            (fs.existsSync(source.path) &&
+                fs.statSync(source.path).isDirectory());
+        if (!isPattern) {
+            expanded.push(source);
+            continue;
+        }
+        for (const file of findFiles(source.path)) {
+            expanded.push({ ...source, path: file });
+        }
+    }
+    return expanded;
+}
+
+function assertSourcesAreSafe(config: EtlConfig): void {
+    const destination = config.destination;
+    if (!config.sources || !destination || !("path" in destination)) return;
+    for (const part of expandSources(config.sources)) {
+        if (hasPath(part) && isSameFile(part.path, destination.path)) {
+            throw new Error(
+                `${part.path} é uma das fontes e também o destino. O destino é apagado antes de gravar, então escolha outro arquivo pra saída.`,
+            );
+        }
+    }
+}
+
+export function sourceLabel(source: SourceConfig): string {
+    if (hasPath(source)) {
+        return path.basename(source.path, path.extname(source.path));
+    }
+    if (source.type === "sheets") return source.spreadsheetId;
+    if (source.type === "custom") return source.adapter;
+    return source.table ?? source.type;
+}
+
 export function createSource(
     config: EtlConfig,
     logger: Logger = consoleLogger,
 ): Source {
+    if (config.sources) {
+        const parts = expandSources(config.sources);
+        const labels = parts.map(sourceLabel);
+        return new MultiSource(
+            parts.map((part, index) => {
+                const label = labels[index]!;
+                const repeated =
+                    labels.indexOf(label) !== labels.lastIndexOf(label);
+                return {
+                    label:
+                        repeated && hasPath(part)
+                            ? path.relative(process.cwd(), part.path)
+                            : label,
+                    source: createSource(
+                        { ...config, sources: undefined, source: part },
+                        logger,
+                    ),
+                };
+            }),
+            config.originColumn ?? DEFAULT_ORIGIN_COLUMN,
+        );
+    }
     const source = config.source ?? { type: "mysql" as const };
 
     switch (source.type) {
@@ -140,6 +216,7 @@ export function createSink(
     logger: Logger = consoleLogger,
 ): Sink {
     assertSourceIsSafe(config);
+    assertSourcesAreSafe(config);
     const destination = config.destination ?? { type: "sheets" as const };
 
     switch (destination.type) {

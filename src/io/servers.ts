@@ -20,6 +20,7 @@ export interface ServerPlace {
 }
 
 function sourceServer(config: EtlConfig): ServerPlace | undefined {
+    if (config.sources !== undefined) return undefined;
     const source: SourceConfig = config.source ?? { type: "mysql" };
     if (
         source.type !== "mysql" &&

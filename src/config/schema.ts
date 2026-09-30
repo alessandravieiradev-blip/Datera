@@ -11,6 +11,13 @@ import { validationSchema } from "./validationSchema";
 export const etlConfigSchema = z
     .object({
         source: sourceSchema.optional(),
+        sources: z.array(sourceSchema).min(1).optional(),
+        originColumn: z
+            .union([z.string().trim().min(1), z.literal(false)])
+            .optional(),
+        splitBy: z.string().trim().min(1).optional(),
+        sheetBy: z.string().trim().min(1).optional(),
+        blocksBy: z.string().trim().min(1).optional(),
         destination: destinationSchema.optional(),
         tableName: z.string().optional(),
         spreadsheetId: z.string().optional(),
@@ -38,11 +45,33 @@ export const etlConfigSchema = z
     })
     .refine(
         (config) =>
-            config.source !== undefined || config.tableName !== undefined,
+            config.source !== undefined ||
+            config.sources !== undefined ||
+            config.tableName !== undefined,
         {
             message:
-                'Faltou dizer de onde ler: coloque "source" ou os campos antigos do MySQL.',
+                'Faltou dizer de onde ler: coloque "source", "sources" ou os campos antigos do MySQL.',
             path: ["source"],
+        },
+    )
+    .refine(
+        (config) =>
+            !(config.source !== undefined && config.sources !== undefined),
+        {
+            message:
+                'Use "source" pra ler de um lugar só ou "sources" pra juntar vários, mas não os dois.',
+            path: ["sources"],
+        },
+    )
+    .refine(
+        (config) =>
+            [config.splitBy, config.sheetBy, config.blocksBy].filter(
+                (value) => value !== undefined,
+            ).length <= 1,
+        {
+            message:
+                'Escolha um jeito de organizar o resultado: "splitBy", "sheetBy" ou "blocksBy".',
+            path: ["splitBy"],
         },
     )
     .refine(

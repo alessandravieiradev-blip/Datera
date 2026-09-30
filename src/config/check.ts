@@ -43,6 +43,12 @@ function missingFiles(config: EtlConfig, folder: string): ConfigProblem[] {
     const files: { where: string; file: string }[] = [];
     const sourcePath = filePathOf(config.source);
     if (sourcePath) files.push({ where: "source.path", file: sourcePath });
+    (config.sources ?? []).forEach((source, index) => {
+        const file = filePathOf(source);
+        if (file && !/[*?]/.test(file)) {
+            files.push({ where: `sources[${index}].path`, file });
+        }
+    });
     const credentials =
         (config.source?.type === "sheets"
             ? config.source.credentialsPath
