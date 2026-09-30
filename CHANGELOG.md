@@ -10,6 +10,8 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 ## [Não lançado]
 
+## [0.3.0] - 2026-09-30
+
 ### Adicionado
 
 - converter vários arquivos de uma vez: `datera convert "matriculas/*.xlsx" --to csv --out-dir convertidos`, aceitando pasta, `*` no nome e lista de arquivos, e o `convertMany` na API (com `findFiles` e `planOutputs`)

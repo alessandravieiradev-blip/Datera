@@ -1,6 +1,6 @@
 {
     "name": "datera",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "Limpa, unifica e organiza dados bagunçados de bancos de dados, planilhas, CSV, JSON, XML e Parquet, e grava em bancos de dados, Google Sheets, Excel, CSV, JSON, XML ou Parquet.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
