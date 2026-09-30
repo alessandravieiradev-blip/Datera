@@ -1,12 +1,22 @@
 export { detectFormat, sourceFromPath, destinationFromPath } from "./formats";
 export type { FileFormat, ReadOptions, WriteOptions } from "./formats";
-export { readRows, writeRows, convert, DEFAULT_PENDING_NAME } from "./rows";
+export {
+    readRows,
+    writeRows,
+    convert,
+    convertMany,
+    DEFAULT_PENDING_NAME,
+} from "./rows";
+export { findFiles, planOutputs, extensionFor } from "./files";
+export type { PlannedFile } from "./files";
 export type {
     Input,
     Output,
     ReadRowsOptions,
     WriteRowsOptions,
     ConvertOptions,
+    ConvertManyOptions,
+    ConvertedFile,
 } from "./rows";
 export {
     clean,

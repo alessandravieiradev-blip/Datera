@@ -16,6 +16,7 @@ import {
     WriteOptions,
 } from "./formats";
 import { parseWith } from "./parse";
+import { findFiles, planOutputs } from "./files";
 
 export type Input = string | SourceConfig;
 export type Output = string | DestinationConfig;
@@ -103,4 +104,38 @@ export async function convert(
     } finally {
         await reader.close?.();
     }
+}
+
+export interface ConvertManyOptions extends ConvertOptions {
+    to: string;
+    outDir?: string | undefined;
+}
+
+export interface ConvertedFile {
+    input: string;
+    output: string;
+    rows: number;
+}
+
+export async function convertMany(
+    inputs: string | string[],
+    options: ConvertManyOptions,
+): Promise<ConvertedFile[]> {
+    const plan = planOutputs(findFiles(inputs), options.to, options.outDir);
+    const results: ConvertedFile[] = [];
+    for (const { input, output } of plan) {
+        try {
+            const rows = await convert(input, output, options);
+            results.push({ input, output, rows });
+        } catch (error) {
+            const reason =
+                error instanceof Error ? error.message : String(error);
+            const done =
+                results.length === 0
+                    ? ""
+                    : ` Os ${results.length} anteriores já foram convertidos.`;
+            throw new Error(`Parei em ${input}: ${reason}${done}`);
+        }
+    }
+    return results;
 }
