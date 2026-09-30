@@ -83,4 +83,26 @@ describe("confirmação de para onde os dados vão", () => {
         });
         expect(/[\n\u202e]/.test(disfarce.destination)).toBe(false);
     });
+
+    it("mostra e protege a fonte do compare", () => {
+        const base = {
+            mode: "raw",
+            source: { type: "csv", path: "./setembro.csv" },
+            compare: {
+                with: { type: "csv", path: "./agosto.csv" },
+                key: "matricula",
+            },
+            destination: { type: "excel", path: "./diferencas.xlsx" },
+        };
+        expect(rota(base).source).toContain("comparando com Arquivo CSV");
+        expect(rota(base).source).toContain("agosto.csv");
+        const outro = {
+            ...base,
+            compare: {
+                ...base.compare,
+                with: { type: "csv", path: "./julho.csv" },
+            },
+        };
+        expect(chave(base) === chave(outro)).toBe(false);
+    });
 });

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import path from "path";
 import { EtlConfig } from "../../../../src";
-import { serverOf } from "../../../../src/io/servers";
+import { compareSourceOf, serverOf } from "../../../../src/io/servers";
 
 const SERVER_LABELS: Record<string, string> = {
     mysql: "Banco MySQL",
@@ -86,16 +86,29 @@ function describeSources(
         .join(" + ");
 }
 
+function describeCompare(config: EtlConfig, folder: string): string {
+    const other = compareSourceOf(config);
+    if (other === undefined) return "";
+    const side = describeSide(
+        { ...config, source: other, sources: undefined, compare: undefined },
+        "source",
+        other,
+        folder,
+    );
+    return `, comparando com ${side}`;
+}
+
 export function describeRoute(config: EtlConfig, folder: string): Route {
+    const main = config.sources
+        ? describeSources(config, config.sources, folder)
+        : describeSide(
+              config,
+              "source",
+              config.source ?? { type: "mysql" },
+              folder,
+          );
     const route = {
-        source: config.sources
-            ? describeSources(config, config.sources, folder)
-            : describeSide(
-                  config,
-                  "source",
-                  config.source ?? { type: "mysql" },
-                  folder,
-              ),
+        source: `${main}${describeCompare(config, folder)}`,
         destination: describeSide(
             config,
             "destination",
@@ -114,6 +127,8 @@ export function routeKey(route: Route, config: EtlConfig): string {
         route,
         source: withoutPassword(config.source),
         sources: (config.sources ?? []).map(withoutPassword),
+        compare: withoutPassword(config.compare?.with),
+        summary: config.summary ?? null,
         output: {
             splitBy: config.splitBy ?? null,
             sheetBy: config.sheetBy ?? null,

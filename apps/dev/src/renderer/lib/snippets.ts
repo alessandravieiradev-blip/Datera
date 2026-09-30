@@ -136,6 +136,16 @@ export const SNIPPETS: Snippet[] = [
         text: '"blocksBy": "origem"',
     },
     {
+        id: "resumo-categoria",
+        label: "Resumo por categoria (summary)",
+        text: '"summary": [{ "by": "plano" }, { "by": ["cidade", "plano"], "name": "Por cidade" }]',
+    },
+    {
+        id: "comparar-arquivos",
+        label: "Comparar com outro arquivo (compare)",
+        text: '"compare": { "with": { "type": "excel", "path": "./agosto.xlsx" }, "key": "matricula", "ignore": ["telefone"] }',
+    },
+    {
         id: "regra-vazio",
         label: "Regra: campo obrigatório",
         text: '{ "column": "coluna", "rule": "required", "message": "Campo vazio" }',

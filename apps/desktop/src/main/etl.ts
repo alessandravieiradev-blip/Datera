@@ -101,7 +101,9 @@ function describe(config: EtlConfig): { source: string; destination: string } {
     return {
         source: config.sources
             ? "Vários arquivos"
-            : (SOURCE_LABELS[source] ?? source),
+            : config.compare
+              ? `${SOURCE_LABELS[source] ?? source} (comparação)`
+              : (SOURCE_LABELS[source] ?? source),
         destination: SOURCE_LABELS[destination] ?? destination,
     };
 }
