@@ -11,7 +11,7 @@ export interface ExcelSinkOptions {
     sheet?: string | undefined;
 }
 
-const DEFAULT_SHEET = "Dados";
+export const DEFAULT_SHEET = "Dados";
 const MAX_SHEET_NAME = 31;
 
 export function safeSheetName(name: string): string {

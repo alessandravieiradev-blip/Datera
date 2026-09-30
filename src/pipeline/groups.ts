@@ -4,13 +4,16 @@ import { DestinationConfig } from "../config/ioSchema";
 import { createSink } from "../io/factory";
 import { Sink } from "../io/types";
 import { buildHeader } from "../io/header";
-import { safeSheetName } from "../io/excel/excelSink";
+import { DEFAULT_SHEET, safeSheetName } from "../io/excel/excelSink";
+import { slugify } from "../io/files";
+import { pendingTableOf } from "../io/sql/target";
 import { fileSafeName } from "../api/files";
 import { DEFAULT_PENDING_SHEET } from "../filters/validate";
 import { cellOf, hasCell, setCell } from "../cells";
 import { columnKey } from "../filters/align";
 import { Logger } from "../logger";
 import { TableRow } from "../types";
+import { summarize, summaryPlans } from "./summary";
 
 export const MAX_GROUPS = 200;
 export const EMPTY_GROUP = "(vazio)";
@@ -135,6 +138,8 @@ function derived(config: EtlConfig, destination: DestinationConfig): EtlConfig {
         splitBy: undefined,
         sheetBy: undefined,
         blocksBy: undefined,
+        summary: undefined,
+        compare: undefined,
     };
 }
 
@@ -143,7 +148,7 @@ async function writeTabs(
     destination: Extract<DestinationConfig, { type: "excel" | "sheets" }>,
     groups: RowGroup[],
     logger: Logger,
-): Promise<void> {
+): Promise<string[]> {
     const names = groups.map((group) =>
         destination.type === "excel" ? safeSheetName(group.value) : group.value,
     );
@@ -166,7 +171,7 @@ async function writeTabs(
         );
     }
     const [first, ...rest] = groups;
-    if (!first) return;
+    if (!first) return [];
     const sink = createSink(
         derived(config, { ...destination, sheet: names[0] }),
         logger,
@@ -175,6 +180,7 @@ async function writeTabs(
     for (const [index, group] of rest.entries()) {
         await sink.write(group.rows, { name: names[index + 1] });
     }
+    return names;
 }
 
 async function writeTables(
@@ -185,7 +191,7 @@ async function writeTables(
     >,
     groups: RowGroup[],
     logger: Logger,
-): Promise<void> {
+): Promise<string[]> {
     const base = destination.table?.trim();
     if (!base) throw new Error("Faltou a tabela do destino.");
     const names = groups.map((group) => `${base}_${tableSuffix(group.value)}`);
@@ -194,12 +200,25 @@ async function writeTables(
         groups.map((group) => group.value),
         "tabelas",
     );
+    if (config.validation) {
+        const pending = pendingTableOf({
+            table: base,
+            pendingTable: destination.pendingTable,
+        }).toLowerCase();
+        const clash = names.find((name) => name.toLowerCase() === pending);
+        if (clash !== undefined) {
+            throw new Error(
+                `A tabela "${clash}" ia se misturar com a tabela das pendências. Troque o nome da tabela das pendências (pendingTable).`,
+            );
+        }
+    }
     for (const [index, group] of groups.entries()) {
         await createSink(
             derived(config, { ...destination, table: names[index]! }),
             logger,
         ).write(group.rows);
     }
+    return names;
 }
 
 async function writeFiles(
@@ -234,15 +253,15 @@ export async function writeResult(
     rows: TableRow[],
     sink: Sink,
     logger: Logger,
-): Promise<void> {
+): Promise<string[]> {
     if (config.blocksBy) {
         await sink.write(blockRows(rows, config.blocksBy));
-        return;
+        return [];
     }
     const by = config.sheetBy ?? config.splitBy;
     if (by === undefined) {
         await sink.write(rows);
-        return;
+        return [];
     }
     const destination = config.destination;
     if (!destination) {
@@ -252,17 +271,138 @@ export async function writeResult(
     }
     const groups = groupRows(rows, by);
     const kind = kindFor(destination, config.sheetBy !== undefined);
+    let names: string[] = [];
     if (kind === "table" && "table" in destination) {
-        await writeTables(config, destination, groups, logger);
+        names = await writeTables(config, destination, groups, logger);
     } else if (
         kind === "tab" &&
         (destination.type === "excel" || destination.type === "sheets")
     ) {
-        await writeTabs(config, destination, groups, logger);
+        names = await writeTabs(config, destination, groups, logger);
     } else if ("path" in destination) {
         await writeFiles(config, destination, groups, logger);
     }
     logger.info(
         `Resultado separado pela coluna "${by}" em ${groups.length} ${kind === "tab" ? "abas" : kind === "table" ? "tabelas" : "arquivos"}.`,
     );
+    return names;
+}
+
+function isTableDestination(
+    destination: DestinationConfig,
+): destination is Extract<
+    DestinationConfig,
+    { type: "mysql" | "postgres" | "sqlserver" | "sqlite" }
+> {
+    return (
+        destination.type === "mysql" ||
+        destination.type === "postgres" ||
+        destination.type === "sqlserver" ||
+        destination.type === "sqlite"
+    );
+}
+
+function summaryTable(
+    destination: Extract<
+        DestinationConfig,
+        { type: "mysql" | "postgres" | "sqlserver" | "sqlite" }
+    >,
+    name: string,
+): string {
+    const base = destination.table?.trim();
+    if (!base) throw new Error("Faltou a tabela do destino.");
+    return `${base}_${tableSuffix(name)}`;
+}
+
+function slotOf(destination: DestinationConfig, name: string): string {
+    if (isTableDestination(destination)) {
+        return summaryTable(destination, name).toLowerCase();
+    }
+    if (destination.type === "excel") return safeSheetName(name).toLowerCase();
+    if ("path" in destination) return slugify(name) || "extra";
+    return name.trim().toLowerCase();
+}
+
+function takenSlots(config: EtlConfig, groupNames: string[]): string[] {
+    const destination = config.destination ?? { type: "sheets" as const };
+    const taken = groupNames.map((name) => name.toLowerCase());
+    const grouped =
+        config.sheetBy !== undefined || config.splitBy !== undefined;
+    if (isTableDestination(destination)) {
+        const table = destination.table?.trim();
+        if (table && !grouped) taken.push(table.toLowerCase());
+        if (table && config.validation) {
+            taken.push(
+                pendingTableOf({
+                    table,
+                    pendingTable: destination.pendingTable,
+                }).toLowerCase(),
+            );
+        }
+        return taken;
+    }
+    if (!grouped && destination.type === "excel") {
+        taken.push(
+            safeSheetName(destination.sheet ?? DEFAULT_SHEET).toLowerCase(),
+        );
+    }
+    if (!grouped && destination.type === "sheets" && destination.sheet) {
+        taken.push(destination.sheet.trim().toLowerCase());
+    }
+    if (config.validation) {
+        taken.push(
+            slotOf(
+                destination,
+                config.validation.pendingSheet ?? DEFAULT_PENDING_SHEET,
+            ),
+        );
+    }
+    return taken;
+}
+
+export function checkSummaries(
+    config: EtlConfig,
+    groupNames: string[] = [],
+): void {
+    const destination = config.destination ?? { type: "sheets" as const };
+    const taken = new Set(takenSlots(config, groupNames));
+    for (const plan of summaryPlans(config.summary)) {
+        const slot = slotOf(destination, plan.name);
+        if (taken.has(slot)) {
+            throw new Error(
+                `O resumo "${plan.name}" ia ficar com o mesmo nome de outra parte do resultado. Dê outro "name" pra ele.`,
+            );
+        }
+        taken.add(slot);
+    }
+}
+
+export async function writeSummaries(
+    config: EtlConfig,
+    rows: TableRow[],
+    sink: Sink,
+    logger: Logger,
+    groupNames: string[] = [],
+): Promise<void> {
+    const plans = summaryPlans(config.summary);
+    if (plans.length === 0) return;
+    const destination = config.destination ?? { type: "sheets" as const };
+    checkSummaries(config, groupNames);
+    for (const plan of plans) {
+        const summary = summarize(rows, plan.by);
+        if (isTableDestination(destination)) {
+            await createSink(
+                derived(config, {
+                    ...destination,
+                    table: summaryTable(destination, plan.name),
+                }),
+                logger,
+            ).write(summary);
+        } else {
+            await sink.write(summary, { name: plan.name });
+        }
+        logger.info(
+            `Resumo "${plan.name}" gravado com ${summary.length} ${summary.length === 1 ? "linha" : "linhas"}.`,
+        );
+    }
 }
