@@ -10,6 +10,11 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 ## [Não lançado]
 
+### Adicionado
+
+- converter vários arquivos de uma vez: `datera convert "matriculas/*.xlsx" --to csv --out-dir convertidos`, aceitando pasta, `*` no nome e lista de arquivos, e o `convertMany` na API (com `findFiles` e `planOutputs`)
+- `datera run regras.json --input "matriculas/*.xlsx" --out-dir limpos` aplica as mesmas regras em cada arquivo, cada um com o seu resultado
+
 ## [0.2.1] - 2026-09-30
 
 ### Corrigido

@@ -82,6 +82,7 @@ Hoje ele consegue:
 - ler e escrever em formatos diferentes sem mudar nada das regras
 - gravar o resultado numa tabela nova de banco, sem nunca mexer numa tabela que não foi ele que criou
 - converter um arquivo de um formato pra outro, tirar repetidos ou juntar cadastros com um comando só, sem montar config
+- converter uma pasta inteira de uma vez, ou aplicar as mesmas regras em cada planilha do mês
 - mostrar um raio-x das colunas de um arquivo (quantas vazias, quantos valores diferentes) antes de montar as regras
 - ser usado dentro de outro projeto em JavaScript ou TypeScript, com as mesmas regras da config
 

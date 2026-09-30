@@ -98,6 +98,15 @@ datera run regras.json --input matriculas-marco.csv --output saida/marco.xlsx
 
 Nesse caso a config nem precisa ter `source` e `destination`.
 
+E se cada mês vem num arquivo, dá pra aplicar as mesmas regras em todos de uma vez. Cada arquivo ganha o seu resultado, com o mesmo nome, na pasta do `--out-dir`:
+
+```bash
+datera run regras.json --input "matriculas/*.xlsx" --out-dir limpos
+datera run regras.json --input matriculas --out-dir limpos --to csv
+```
+
+O formato de cada resultado é o do destino da config. Se o destino não for um arquivo (ou se quiser outro formato), é só dizer com `--to`.
+
 ### `datera init`
 
 Cria uma `config.json` pra começar:
@@ -120,6 +129,20 @@ datera convert alunos.xml alunos.json --records-path escola.alunos.aluno
 datera convert escola.db alunos.csv --table alunos
 datera convert alunos.json alunos.xml --root alunos --record aluno
 ```
+
+Pra converter vários de uma vez, troque a saída por `--to` com o formato. Cada arquivo vira um novo com o mesmo nome, do lado dele ou na pasta do `--out-dir`:
+
+```bash
+datera convert "matriculas/*.xlsx" --to csv
+datera convert matriculas --to parquet --out-dir convertidos
+datera convert janeiro.xlsx fevereiro.xlsx --to json --out-dir saida
+```
+
+- o `*` vale no nome do arquivo (`matriculas/*.xlsx`, `matriculas/2026-*.csv`), não no nome da pasta
+- passando uma pasta, ele pega todos os arquivos que ele conhece (CSV, JSON, XML, Excel, Parquet, SQLite) e pula o resto
+- no PowerShell e no terminal do Mac e do Linux, coloca o padrão entre aspas, senão o terminal tenta resolver o `*` antes do Datera
+- os formatos do `--to` são `csv`, `tsv`, `json`, `xml`, `xlsx`, `parquet` e `db`
+- antes de começar, ele confere se dois arquivos não iam virar o mesmo (tipo `janeiro.csv` e `janeiro.xml` indo pra `janeiro.json`) e se nenhum ia gravar por cima de outra entrada. Se der erro no meio, ele diz em qual arquivo parou
 
 ### `datera dedupe`
 
@@ -261,6 +284,20 @@ const linhas = await convert("./alunos.xml", "./alunos.csv", {
 ```
 
 Devolve quantas linhas passaram.
+
+Pra vários arquivos, o `convertMany` recebe um caminho, uma pasta, um padrão com `*` ou uma lista com qualquer um deles:
+
+```ts
+const feitos = await convertMany(["matriculas/*.xlsx", "extras"], {
+    to: "csv",
+    outDir: "convertidos",
+    write: { delimiter: ";" },
+});
+```
+
+Ele devolve uma lista com a entrada, a saída e quantas linhas cada arquivo teve, tipo `{ input: "matriculas/janeiro.xlsx", output: "convertidos/janeiro.csv", rows: 42 }`.
+
+Se quiser só saber quais arquivos ele pegaria, sem converter nada, tem o `findFiles("matriculas/*.xlsx")`, e o `planOutputs(arquivos, "csv", "convertidos")` mostra o nome de saída de cada um.
 
 ### Limpar tudo de uma vez: `clean`
 
