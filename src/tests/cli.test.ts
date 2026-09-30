@@ -193,3 +193,26 @@ describe("convert com vários arquivos", () => {
         });
     });
 });
+
+describe("todas as abas", () => {
+    it("convert, preview e columns aceitam --all-sheets e --sheet-column", () => {
+        expect(
+            cli(
+                "preview",
+                "matriculas.xlsx",
+                "--all-sheets",
+                "--sheet-column",
+                "mes",
+            ),
+        ).toMatchObject({
+            command: "preview",
+            read: { allSheets: true, sheetColumn: "mes" },
+        });
+        expect(
+            cli("convert", "matriculas.xlsx", "--all-sheets", "--to", "csv"),
+        ).toMatchObject({
+            command: "convert-many",
+            read: { allSheets: true },
+        });
+    });
+});

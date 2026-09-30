@@ -5,9 +5,17 @@ export {
     writeRows,
     convert,
     convertMany,
+    readSheets,
     DEFAULT_PENDING_NAME,
 } from "./rows";
-export { findFiles, planOutputs, extensionFor } from "./files";
+export {
+    findFiles,
+    planOutputs,
+    planSheetOutputs,
+    extensionFor,
+} from "./files";
+export { DEFAULT_SHEET_COLUMN } from "../io/tabs";
+export type { SheetRows } from "../io/tabs";
 export type { PlannedFile } from "./files";
 export type {
     Input,

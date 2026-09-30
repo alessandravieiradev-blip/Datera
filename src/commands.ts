@@ -277,8 +277,12 @@ export async function runCommand(
                 write: cli.write,
             });
             for (const item of results) {
+                const from =
+                    item.sheet === undefined
+                        ? item.input
+                        : `${item.input} (aba ${item.sheet})`;
                 logger.info(
-                    `${item.input} → ${item.output} (${plural(item.rows, "linha", "linhas")})`,
+                    `${from} → ${item.output} (${plural(item.rows, "linha", "linhas")})`,
                 );
             }
             logger.info(

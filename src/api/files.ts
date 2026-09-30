@@ -19,6 +19,7 @@ const TARGETS: Record<string, string> = {
 export interface PlannedFile {
     input: string;
     output: string;
+    sheet?: string | undefined;
 }
 
 function hasWildcard(text: string): boolean {
@@ -107,20 +108,20 @@ export function extensionFor(target: string): string {
     return TARGETS[key]!;
 }
 
-export function planOutputs(
-    files: string[],
-    target: string,
-    outDir?: string,
-): PlannedFile[] {
-    const extension = extensionFor(target);
-    const plan = files.map((input) => ({
-        input,
-        output: path.join(
-            outDir ?? path.dirname(input),
-            `${path.basename(input, path.extname(input))}${extension}`,
-        ),
-    }));
+function fileSafe(name: string): string {
+    const clean = name
+        .replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_")
+        .trim()
+        .replace(/[. ]+$/, "");
+    if (clean === "") return "aba";
+    return /^(con|prn|aux|nul|com\d|lpt\d)$/i.test(clean) ? `_${clean}` : clean;
+}
 
+export function checkPlan(plan: PlannedFile[]): PlannedFile[] {
+    const label = (item: PlannedFile) =>
+        item.sheet === undefined
+            ? item.input
+            : `a aba "${item.sheet}" de ${item.input}`;
     plan.forEach((item, index) => {
         const twin = plan.find(
             (other, otherIndex) =>
@@ -128,7 +129,7 @@ export function planOutputs(
         );
         if (twin) {
             throw new Error(
-                `${twin.input} e ${item.input} iam virar o mesmo arquivo (${item.output}). Renomeie um deles ou converta em pastas separadas.`,
+                `${label(twin)} e ${label(item)} iam virar o mesmo arquivo (${item.output}). Renomeie um deles ou converta em pastas separadas.`,
             );
         }
         const overwritten = plan.find((other) =>
@@ -136,9 +137,49 @@ export function planOutputs(
         );
         if (overwritten) {
             throw new Error(
-                `Converter ${item.input} ia gravar por cima de ${overwritten.input}, que é uma das entradas. Escolha outro formato ou use --out-dir com outra pasta.`,
+                `Converter ${label(item)} ia gravar por cima de ${overwritten.input}, que é uma das entradas. Escolha outro formato ou use --out-dir com outra pasta.`,
             );
         }
     });
     return plan;
+}
+
+function outputPath(
+    input: string,
+    extension: string,
+    outDir: string | undefined,
+    suffix: string = "",
+): string {
+    return path.join(
+        outDir ?? path.dirname(input),
+        `${path.basename(input, path.extname(input))}${suffix}${extension}`,
+    );
+}
+
+export function planOutputs(
+    files: string[],
+    target: string,
+    outDir?: string,
+): PlannedFile[] {
+    const extension = extensionFor(target);
+    return checkPlan(
+        files.map((input) => ({
+            input,
+            output: outputPath(input, extension, outDir),
+        })),
+    );
+}
+
+export function planSheetOutputs(
+    input: string,
+    sheets: string[],
+    target: string,
+    outDir?: string,
+): PlannedFile[] {
+    const extension = extensionFor(target);
+    return sheets.map((sheet) => ({
+        input,
+        sheet,
+        output: outputPath(input, extension, outDir, `-${fileSafe(sheet)}`),
+    }));
 }

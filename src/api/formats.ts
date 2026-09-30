@@ -20,6 +20,8 @@ const EXTENSIONS: Record<string, FileFormat> = {
 export interface ReadOptions {
     table?: string | undefined;
     sheet?: string | undefined;
+    allSheets?: boolean | undefined;
+    sheetColumn?: string | undefined;
     recordsPath?: string | undefined;
     delimiter?: string | undefined;
     encoding?: "utf-8" | "latin1" | undefined;
@@ -88,7 +90,11 @@ export function sourceFromPath(
             return defined({
                 type: "excel",
                 path: filePath,
-                sheet: options.sheet,
+                sheet: options.allSheets ? undefined : options.sheet,
+                allSheets: options.allSheets || undefined,
+                sheetColumn: options.allSheets
+                    ? options.sheetColumn
+                    : undefined,
             });
         case "parquet":
             return { type: "parquet", path: filePath };

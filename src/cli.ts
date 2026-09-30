@@ -76,6 +76,8 @@ export function dateraVersion(): string {
 interface ReadFlags {
     table?: string;
     sheet?: string;
+    allSheets?: boolean;
+    sheetColumn?: string;
     recordsPath?: string;
     delimiter?: string;
     encoding?: "utf-8" | "latin1";
@@ -93,6 +95,14 @@ function withReadFlags(command: Command): Command {
     return command
         .option("--table <tabela>", "Tabela a ler, quando a entrada é SQLite.")
         .option("--sheet <aba>", "Aba a ler, quando a entrada é Excel.")
+        .option(
+            "--all-sheets",
+            'Lê todas as abas do Excel, com uma coluna "aba" dizendo de onde veio cada linha. Com --to, cada aba vira um arquivo.',
+        )
+        .option(
+            "--sheet-column <nome>",
+            'Nome da coluna que guarda a aba, com --all-sheets (padrão: "aba").',
+        )
         .option(
             "--records-path <caminho>",
             "Onde estão os registros no JSON ou XML (ex.: escola.alunos.aluno).",
@@ -125,6 +135,8 @@ function readOptions(flags: ReadFlags): ReadOptions {
     return {
         table: flags.table,
         sheet: flags.sheet,
+        allSheets: flags.allSheets,
+        sheetColumn: flags.sheetColumn,
         recordsPath: flags.recordsPath,
         delimiter: flags.delimiter,
         encoding: flags.encoding,

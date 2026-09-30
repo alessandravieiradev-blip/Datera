@@ -16,7 +16,16 @@ import {
     WriteOptions,
 } from "./formats";
 import { parseWith } from "./parse";
-import { findFiles, planOutputs } from "./files";
+import {
+    checkPlan,
+    extensionFor,
+    findFiles,
+    PlannedFile,
+    planOutputs,
+    planSheetOutputs,
+} from "./files";
+import { SheetRows } from "../io/tabs";
+import { detectFormat } from "./formats";
 
 export type Input = string | SourceConfig;
 export type Output = string | DestinationConfig;
@@ -106,6 +115,25 @@ export async function convert(
     }
 }
 
+export async function readSheets(
+    input: Input,
+    options: ReadRowsOptions = {},
+): Promise<SheetRows[]> {
+    registerBuiltinKeyNormalizers();
+    const config: EtlConfig = { mode: "raw", source: sourceOf(input, options) };
+    const source = createSource(config, options.logger ?? silentLogger);
+    try {
+        if (!source.readTabs) {
+            throw new Error(
+                "Só dá pra ler aba por aba de um arquivo Excel ou de uma planilha do Google.",
+            );
+        }
+        return await source.readTabs();
+    } finally {
+        await source.close?.();
+    }
+}
+
 export interface ConvertManyOptions extends ConvertOptions {
     to: string;
     outDir?: string | undefined;
@@ -115,18 +143,68 @@ export interface ConvertedFile {
     input: string;
     output: string;
     rows: number;
+    sheet?: string | undefined;
 }
 
 export async function convertMany(
     inputs: string | string[],
     options: ConvertManyOptions,
 ): Promise<ConvertedFile[]> {
-    const plan = planOutputs(findFiles(inputs), options.to, options.outDir);
+    const files = findFiles(inputs);
+    const byTab = options.read?.allSheets === true;
+    if (!byTab) {
+        return convertPlan(
+            planOutputs(files, options.to, options.outDir),
+            options,
+            new Map(),
+        );
+    }
+
+    extensionFor(options.to);
+    const tabs = new Map<string, SheetRows>();
+    const plan: PlannedFile[] = [];
+    for (const file of files) {
+        if (detectFormat(file) !== "excel") {
+            plan.push(...planOutputs([file], options.to, options.outDir));
+            continue;
+        }
+        const sheets = await readSheets(file, {
+            ...options.read,
+            logger: options.logger,
+        });
+        const planned = planSheetOutputs(
+            file,
+            sheets.map((tab) => tab.sheet),
+            options.to,
+            options.outDir,
+        );
+        planned.forEach((item, index) => tabs.set(item.output, sheets[index]!));
+        plan.push(...planned);
+    }
+    return convertPlan(checkPlan(plan), options, tabs);
+}
+
+async function convertPlan(
+    plan: PlannedFile[],
+    options: ConvertManyOptions,
+    tabs: Map<string, SheetRows>,
+): Promise<ConvertedFile[]> {
+    const read = { ...options.read, allSheets: undefined };
     const results: ConvertedFile[] = [];
-    for (const { input, output } of plan) {
+    for (const { input, output, sheet } of plan) {
         try {
-            const rows = await convert(input, output, options);
-            results.push({ input, output, rows });
+            const tab = tabs.get(output);
+            let rows: number;
+            if (tab) {
+                await writeRows(tab.rows, output, {
+                    ...options.write,
+                    logger: options.logger,
+                });
+                rows = tab.rows.length;
+            } else {
+                rows = await convert(input, output, { ...options, read });
+            }
+            results.push({ input, output, rows, sheet });
         } catch (error) {
             const reason =
                 error instanceof Error ? error.message : String(error);
@@ -134,7 +212,9 @@ export async function convertMany(
                 results.length === 0
                     ? ""
                     : ` Os ${results.length} anteriores já foram convertidos.`;
-            throw new Error(`Parei em ${input}: ${reason}${done}`);
+            const where =
+                sheet === undefined ? input : `${input} (aba ${sheet})`;
+            throw new Error(`Parei em ${where}: ${reason}${done}`);
         }
     }
     return results;
