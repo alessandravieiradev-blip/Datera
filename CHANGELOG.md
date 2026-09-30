@@ -10,6 +10,11 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 ## [Não lançado]
 
+### Corrigido
+
+- no Windows, o app recusava arquivo de código numa subpasta que ainda não existia, quando a pasta da configuração tinha um nome curto do Windows (tipo `RUNNER~1`) ou passava por um atalho
+- as actions do GitHub foram pra versões que rodam no Node 24
+
 ## [0.2.0] - 2026-09-29
 
 ### Adicionado
