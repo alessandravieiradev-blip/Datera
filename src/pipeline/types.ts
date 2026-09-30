@@ -1,5 +1,6 @@
 import { TableRow } from "../types";
 import { Mode } from "./modes";
+import { ComparisonCounts } from "./compare";
 
 export interface StepOutput {
     rows: TableRow[];
@@ -36,4 +37,5 @@ export interface EtlReport {
     durationMs: number;
     preview: TableRow[];
     pendingPreview: TableRow[];
+    comparison?: ComparisonCounts | undefined;
 }

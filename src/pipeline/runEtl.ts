@@ -14,7 +14,15 @@ import { consoleLogger, Logger } from "../logger";
 import { TableRow } from "../types";
 import { Mode } from "./modes";
 import { buildSteps } from "./steps";
-import { writeResult } from "./groups";
+import { checkSummaries, writeResult, writeSummaries } from "./groups";
+import {
+    compareRows,
+    comparisonRows,
+    comparisonWarnings,
+    ComparisonCounts,
+    countComparison,
+} from "./compare";
+import { compareSourceOf } from "../io/servers";
 import { EtlReport, PendingReason, Step, StepReport } from "./types";
 import { cellOf } from "../cells";
 
@@ -74,6 +82,46 @@ export function applySteps(
     return { rows, pending, steps: reports };
 }
 
+async function compareWithOld(
+    config: EtlConfig,
+    steps: Step[],
+    rows: TableRow[],
+    logger: Logger,
+): Promise<{ rows: TableRow[]; counts: ComparisonCounts }> {
+    const compare = config.compare!;
+    const source = createSource(
+        {
+            ...config,
+            source: compareSourceOf(config),
+            sources: undefined,
+            compare: undefined,
+        },
+        logger,
+    );
+    try {
+        const oldRows = applySteps(steps, await source.read()).rows;
+        logger.info(`${oldRows.length} linhas lidas pra comparar.`);
+        const comparison = compareRows(oldRows, rows, compare.key, {
+            ignore: compare.ignore,
+        });
+        for (const warning of comparisonWarnings(comparison)) {
+            logger.warn(warning);
+        }
+        const counts = countComparison(comparison);
+        logger.info(
+            `Comparação: ${counts.added} entraram, ${counts.removed} saíram, ${counts.changed} mudaram e ${counts.unchanged} ficaram iguais.`,
+        );
+        return {
+            rows: comparisonRows(comparison, {
+                keepUnchanged: compare.keepUnchanged,
+            }),
+            counts,
+        };
+    } finally {
+        await source.close?.();
+    }
+}
+
 export interface RunEtlOptions {
     mode?: Mode | undefined;
     dryRun?: boolean | undefined;
@@ -109,20 +157,26 @@ export async function runEtl(
         const rawRows = await source.read();
         logger.info(`${rawRows.length} linhas lidas.`);
 
-        const {
-            rows,
-            pending,
-            steps: stepReports,
-        } = applySteps(steps, rawRows, options.onStep);
+        const applied = applySteps(steps, rawRows, options.onStep);
+        const { pending, steps: stepReports } = applied;
+        let rows = applied.rows;
+        let comparison: ComparisonCounts | undefined;
+        if (config.compare) {
+            const compared = await compareWithOld(config, steps, rows, logger);
+            rows = compared.rows;
+            comparison = compared.counts;
+        }
 
         if (!dryRun) {
-            await writeResult(config, rows, sink, logger);
+            checkSummaries(config);
+            const names = await writeResult(config, rows, sink, logger);
             if (config.validation) {
                 await sink.write(pending, {
                     name:
                         config.validation.pendingSheet ?? DEFAULT_PENDING_SHEET,
                 });
             }
+            await writeSummaries(config, rows, sink, logger, names);
         }
 
         return {
@@ -144,6 +198,7 @@ export async function runEtl(
             pendingPreview: dryRun
                 ? pending.slice(0, options.previewSize ?? DEFAULT_PREVIEW_SIZE)
                 : [],
+            comparison,
         };
     } finally {
         if (ownsSource) await source.close?.();

@@ -73,6 +73,14 @@ export function expandSources(sources: SourceConfig[]): SourceConfig[] {
 }
 
 function assertSourcesAreSafe(config: EtlConfig): void {
+    if (config.compare) {
+        assertSourceIsSafe({
+            ...config,
+            source: config.compare.with,
+            sources: undefined,
+            compare: undefined,
+        });
+    }
     const destination = config.destination;
     if (!config.sources || !destination || !("path" in destination)) return;
     for (const part of expandSources(config.sources)) {

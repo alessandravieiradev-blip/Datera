@@ -104,3 +104,30 @@ export function destinationSharesSource(config: EtlConfig): boolean {
         return false;
     return isSameServer(source, destination);
 }
+
+export function compareSourceOf(config: EtlConfig): SourceConfig | undefined {
+    const other = config.compare?.with;
+    if (
+        other === undefined ||
+        (other.type !== "mysql" &&
+            other.type !== "postgres" &&
+            other.type !== "sqlserver")
+    )
+        return other;
+    const main = sourceServer(config);
+    if (
+        main === undefined ||
+        main.type !== other.type ||
+        (other.host !== undefined && !sameHost(main.host, other.host)) ||
+        (other.port ?? main.port) !== main.port
+    )
+        return other;
+    return {
+        ...other,
+        host: other.host ?? main.host,
+        port: other.port ?? main.port,
+        user: other.user ?? main.user,
+        password: other.password ?? main.password,
+        database: other.database ?? main.database,
+    };
+}
