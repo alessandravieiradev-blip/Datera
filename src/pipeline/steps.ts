@@ -1,5 +1,6 @@
 import { EtlConfig } from "../config";
 import { FillEmptyFilter } from "../filters/fillEmpty";
+import { alignOptionsOf, alignRows } from "../filters/align";
 import { CombineFilter } from "../filters/combine";
 import { RowValidator } from "../filters/validate";
 import { buildModeStep, Mode } from "./modes";
@@ -7,6 +8,14 @@ import { Step } from "./types";
 
 export function buildSteps(config: EtlConfig, mode: Mode): Step[] {
     const steps: Step[] = [];
+
+    const align = alignOptionsOf(config.alignColumns);
+    if (align) {
+        steps.push({
+            name: "alignColumns",
+            run: (rows) => ({ rows: alignRows(rows, align) }),
+        });
+    }
 
     if (config.fillEmpty) {
         const filter = new FillEmptyFilter(config.fillEmpty);

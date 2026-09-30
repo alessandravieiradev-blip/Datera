@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { destinationSchema, sourceSchema } from "./ioSchema";
 import { mergeColumnSchema } from "./mergeSchema";
-import { combineColumnsSchema, fillEmptySchema } from "./prepareSchema";
+import {
+    alignColumnsSchema,
+    combineColumnsSchema,
+    fillEmptySchema,
+} from "./prepareSchema";
 import { validationSchema } from "./validationSchema";
 
 export const etlConfigSchema = z
@@ -27,6 +31,7 @@ export const etlConfigSchema = z
         mergeKeyNormalizer: z.string().optional(),
         normalizerModules: z.array(z.string()).optional(),
         adapterModules: z.array(z.string()).optional(),
+        alignColumns: alignColumnsSchema.optional(),
         fillEmpty: z.array(fillEmptySchema).optional(),
         combineColumns: z.array(combineColumnsSchema).optional(),
         validation: validationSchema.optional(),
