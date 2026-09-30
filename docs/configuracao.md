@@ -67,6 +67,7 @@ Os campos de preparação são opcionais e funcionam em qualquer modo:
 
 | Campo            | O que faz                                                                                                                                                                                    |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alignColumns`   | `true` ou `{ auto?, rename? }`. Junta as colunas que são a mesma escrita de jeitos diferentes. Veja [Alinhar colunas](preparacao-e-pendencias.md#alinhar-colunas-aligncolumns)               |
 | `fillEmpty`      | Lista de `{ column, fallbackColumns?, default? }`. Preenche célula vazia com outra coluna ou com um valor padrão. Veja [Preparando os dados](preparacao-e-pendencias.md#preparando-os-dados) |
 | `combineColumns` | Lista de `{ into, columns, separator?, keepSources? }`. Junta várias colunas da mesma linha numa só. Veja [Preparando os dados](preparacao-e-pendencias.md#preparando-os-dados)              |
 | `validation`     | `{ rules, pendingSheet?, reasonColumn? }`. Manda as linhas com problema pra uma aba separada. Veja [Separar as pendências](preparacao-e-pendencias.md#separar-as-pendências-validation)      |

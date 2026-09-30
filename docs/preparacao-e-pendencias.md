@@ -12,7 +12,39 @@ Tudo que acontece com as linhas antes do modo rodar, e como separar as que têm 
 
 ## Preparando os dados
 
-Antes do modo rodar dá pra arrumar as linhas com duas etapas opcionais, primeiro o `fillEmpty` e depois o `combineColumns`. As duas aparecem juntas no [exemplo 7](exemplos.md#7-arrumar-antes-de-tudo-fillempty-e-combinecolumns).
+Antes do modo rodar dá pra arrumar as linhas com três etapas opcionais, nessa ordem: `alignColumns`, `fillEmpty` e `combineColumns`. As duas últimas aparecem juntas no [exemplo 7](exemplos.md#7-arrumar-antes-de-tudo-fillempty-e-combinecolumns).
+
+### Alinhar colunas (`alignColumns`)
+
+Quando os dados vêm de lugares diferentes (as abas de cada mês, planilhas de pessoas diferentes), a mesma coluna aparece escrita de vários jeitos: `E-mail` num lugar, `email` no outro, `Email` no terceiro. Pro Datera, são três colunas diferentes, e cada linha fica com duas delas vazias.
+
+Com `"alignColumns": true`, ele junta sozinho as colunas que só mudam em maiúscula, acento, espaço ou pontuação. O nome que fica é o primeiro que apareceu:
+
+```json
+{ "alignColumns": true }
+```
+
+| Matrícula | E-mail          |     | matricula | email            |
+| --------- | --------------- | --- | --------- | ---------------- |
+| 2024-0042 | `lia@email.com` | +   | 2024-0051 | `theo@email.com` |
+
+viram uma tabela só, com as colunas `Matrícula` e `E-mail`.
+
+Quando o nome muda de verdade (`Email do aluno`, `Contato`), o Datera não tem como adivinhar. Aí você diz com o `rename`, e o nome que você escolher é o que fica:
+
+```json
+{
+    "alignColumns": {
+        "rename": { "Email do aluno": "email", "Nome completo": "nome" }
+    }
+}
+```
+
+O `rename` também não liga pra maiúscula e acento, então `"email do aluno"` pega `Email do Aluno`. Se quiser só o `rename`, sem juntar nada sozinho, coloca `"auto": false`.
+
+Essa etapa roda antes de todas as outras, então as regras (`fillEmpty`, `validation`, `mergeColumns`...) já usam o nome final. E se uma linha tiver as duas colunas preenchidas com valores diferentes, nada se perde: os dois ficam juntos, separados por `|`.
+
+Pra ver antes quais colunas ele juntaria, o `datera columns` avisa: "As colunas "E-mail", "email" parecem a mesma".
 
 ### Preencher vazios (`fillEmpty`)
 

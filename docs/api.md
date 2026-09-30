@@ -212,15 +212,17 @@ datera normalize digitsOnly "2024-0042"
 
 Os comandos que leem arquivo (`convert`, `dedupe`, `merge`, `columns`, `preview`) aceitam:
 
-| Opção                      | Pra quê                                                 |
-| -------------------------- | ------------------------------------------------------- |
-| `--table <tabela>`         | tabela do SQLite                                        |
-| `--sheet <aba>`            | aba do Excel de entrada                                 |
-| `--all-sheets`             | lê todas as abas do Excel, com uma coluna `aba`         |
-| `--sheet-column <nome>`    | outro nome pra coluna da aba (com `--all-sheets`)       |
-| `--records-path <caminho>` | onde estão os registros no JSON ou XML                  |
-| `--delimiter <separador>`  | separador do CSV de entrada (sem ele, descobre sozinho) |
-| `--encoding latin1`        | CSV antigo com acento estranho                          |
+| Opção                      | Pra quê                                                   |
+| -------------------------- | --------------------------------------------------------- |
+| `--table <tabela>`         | tabela do SQLite                                          |
+| `--sheet <aba>`            | aba do Excel de entrada                                   |
+| `--all-sheets`             | lê todas as abas do Excel, com uma coluna `aba`           |
+| `--sheet-column <nome>`    | outro nome pra coluna da aba (com `--all-sheets`)         |
+| `--align-columns`          | junta colunas que só mudam em maiúscula, acento ou espaço |
+| `--rename "de=para"`       | diz que uma coluna é outra. Pode repetir                  |
+| `--records-path <caminho>` | onde estão os registros no JSON ou XML                    |
+| `--delimiter <separador>`  | separador do CSV de entrada (sem ele, descobre sozinho)   |
+| `--encoding latin1`        | CSV antigo com acento estranho                            |
 
 E os que gravam (`convert`, `dedupe`, `merge`):
 
@@ -332,6 +334,7 @@ O `clean` roda o mesmo pipeline do `run`, só que direto na memória, sem fonte 
 import { clean, defineRules } from "datera";
 
 const regras = defineRules({
+    alignColumns: { rename: { "Email do aluno": "email" } },
     fillEmpty: [{ column: "cidade", default: "não informada" }],
     validation: {
         rules: [
@@ -395,7 +398,18 @@ Se alguma regra estiver errada, ele lança um erro em português dizendo qual.
 Quando você só precisa de uma coisa:
 
 ```ts
-import { fillEmpty, combineColumns, validate, dedupe, merge } from "datera";
+import {
+    alignColumns,
+    fillEmpty,
+    combineColumns,
+    validate,
+    dedupe,
+    merge,
+} from "datera";
+
+const alinhados = alignColumns(alunos, {
+    rename: { "Email do aluno": "email" },
+});
 
 const completos = fillEmpty(alunos, [
     { column: "cidade", fallbackColumns: ["bairro"], default: "não informada" },
