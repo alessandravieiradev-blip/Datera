@@ -1,39 +1,81 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+    test:
+        runs-on: ubuntu-latest
 
-    env:
-      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+        env:
+            ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
 
-    strategy:
-      matrix:
-        node-version: [22, 24]
+        strategy:
+            matrix:
+                node-version: [22, 24]
 
-    steps:
-      - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: npm
 
-      - run: npm ci
+            - run: npm ci
 
-      - name: Type-check
-        run: npm run typecheck
+            - name: Type-check
+              run: npm run typecheck
 
-      - name: Type-check dos apps
-        run: |
-          npm run typecheck -w apps/desktop
-          npm run typecheck -w apps/dev
+            - name: Type-check dos apps
+              run: |
+                  npm run typecheck -w apps/desktop
+                  npm run typecheck -w apps/dev
 
-      - name: Testes
-        run: npx vitest run
+            - name: Testes
+              run: npm test
+
+            - name: Build do pacote
+              run: npm run build
+
+    telas:
+        runs-on: ubuntu-latest
+
+        env:
+            ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+
+        steps:
+            - uses: actions/checkout@v5
+
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Instala o Chromium
+              run: npx playwright install --with-deps chromium
+
+            - name: Type-check dos testes de tela
+              run: npm run typecheck:telas
+
+            - name: Testes de tela
+              run: npm run test:telas
+
+            - name: Guarda as fotos e o relatório
+              if: always()
+              uses: actions/upload-artifact@v5
+              with:
+                  name: telas
+                  path: |
+                      e2e/resultados/
+                      e2e/relatorio/
+                  if-no-files-found: ignore
+                  retention-days: 14
