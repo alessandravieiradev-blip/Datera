@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { EtlConfig, etlConfigSchema } from "../config";
 import { mergeColumnSchema } from "../config/mergeSchema";
-import { combineColumnsSchema, fillEmptySchema } from "../config/prepareSchema";
+import {
+    alignColumnsSchema,
+    combineColumnsSchema,
+    fillEmptySchema,
+} from "../config/prepareSchema";
+import { AlignOptions, similarColumns } from "../filters/align";
 import { validationSchema } from "../config/validationSchema";
 import { registerBuiltinKeyNormalizers } from "../normalizers";
 import {
@@ -17,6 +22,7 @@ import { parseWith } from "./parse";
 
 export const rulesSchema = z
     .object({
+        alignColumns: alignColumnsSchema.optional(),
         fillEmpty: z.array(fillEmptySchema).optional(),
         combineColumns: z.array(combineColumnsSchema).optional(),
         validation: validationSchema.optional(),
@@ -72,6 +78,7 @@ function configOf(rules: z.infer<typeof rulesSchema>): {
     const mode: Mode = rules.merge ? "merge" : rules.dedupe ? "dedupe" : "raw";
     const config: EtlConfig = {
         mode,
+        alignColumns: rules.alignColumns,
         fillEmpty: rules.fillEmpty,
         combineColumns: rules.combineColumns,
         validation: rules.validation,
@@ -121,6 +128,21 @@ export function fillEmpty(
     rules: FillEmptyRule[],
 ): TableRow[] {
     return clean(rows, { fillEmpty: rules }).rows;
+}
+
+export function alignColumns(
+    rows: TableRow[],
+    options: AlignOptions = {},
+): TableRow[] {
+    return clean(rows, { alignColumns: options }).rows;
+}
+
+export function findSimilarColumns(rows: TableRow[]): string[][] {
+    const names = new Set<string>();
+    for (const row of rows) {
+        for (const name of Object.keys(row)) names.add(name);
+    }
+    return similarColumns([...names]);
 }
 
 export function combineColumns(

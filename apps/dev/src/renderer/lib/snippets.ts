@@ -151,6 +151,11 @@ export const SNIPPETS: Snippet[] = [
         text: '{ "column": "item 1", "strategy": "concat", "distribute": { "columns": ["item 1", "item 2"], "overflowInto": "outros" } }',
     },
     {
+        id: "alinhar-colunas",
+        label: "Alinhar colunas (alignColumns)",
+        text: '"alignColumns": { "rename": { "Email do aluno": "email" } }',
+    },
+    {
         id: "fill-empty",
         label: "Preencher vazio (fillEmpty)",
         text: '{ "column": "coluna", "fallbackColumns": ["outra"], "default": "não informado" }',

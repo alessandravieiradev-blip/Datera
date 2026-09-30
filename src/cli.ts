@@ -78,6 +78,8 @@ interface ReadFlags {
     sheet?: string;
     allSheets?: boolean;
     sheetColumn?: string;
+    alignColumns?: boolean;
+    rename?: [string, string][];
     recordsPath?: string;
     delimiter?: string;
     encoding?: "utf-8" | "latin1";
@@ -102,6 +104,15 @@ function withReadFlags(command: Command): Command {
         .option(
             "--sheet-column <nome>",
             'Nome da coluna que guarda a aba, com --all-sheets (padrão: "aba").',
+        )
+        .option(
+            "--align-columns",
+            "Junta as colunas que só mudam em maiúscula, acento ou espaço (E-mail, email, Email).",
+        )
+        .option(
+            "--rename <de=para>",
+            'Diz que uma coluna é outra (tipo --rename "Email do aluno=email"). Pode repetir.',
+            renamePair,
         )
         .option(
             "--records-path <caminho>",
@@ -137,6 +148,15 @@ function readOptions(flags: ReadFlags): ReadOptions {
         sheet: flags.sheet,
         allSheets: flags.allSheets,
         sheetColumn: flags.sheetColumn,
+        alignColumns:
+            flags.alignColumns || flags.rename
+                ? {
+                      auto: flags.alignColumns ?? false,
+                      ...(flags.rename
+                          ? { rename: Object.fromEntries(flags.rename) }
+                          : {}),
+                  }
+                : undefined,
         recordsPath: flags.recordsPath,
         delimiter: flags.delimiter,
         encoding: flags.encoding,
@@ -151,6 +171,21 @@ function writeOptions(flags: WriteFlags): WriteOptions {
         root: flags.root,
         record: flags.record,
     };
+}
+
+function renamePair(
+    value: string,
+    previous: [string, string][] = [],
+): [string, string][] {
+    const index = value.indexOf("=");
+    const from = index < 0 ? "" : value.slice(0, index).trim();
+    const to = index < 0 ? "" : value.slice(index + 1).trim();
+    if (from === "" || to === "") {
+        throw new InvalidArgumentError(
+            'use o formato "coluna antiga=coluna nova", tipo "Email do aluno=email".',
+        );
+    }
+    return [...previous, [from, to]];
 }
 
 function list(value: string, previous: string[] = []): string[] {

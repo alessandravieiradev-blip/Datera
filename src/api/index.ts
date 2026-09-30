@@ -28,6 +28,8 @@ export type {
 } from "./rows";
 export {
     clean,
+    alignColumns,
+    findSimilarColumns,
     fillEmpty,
     combineColumns,
     validate,
@@ -48,3 +50,4 @@ export type {
 } from "./clean";
 export { describeColumns, listNormalizers, normalize } from "./inspect";
 export type { ColumnInfo, ColumnKind } from "./inspect";
+export type { AlignOptions } from "../filters/align";

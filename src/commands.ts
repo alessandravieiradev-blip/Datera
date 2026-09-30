@@ -8,6 +8,7 @@ import {
     convertMany,
     dedupe,
     findFiles,
+    findSimilarColumns,
     planOutputs,
     describeColumns,
     destinationFromPath,
@@ -326,6 +327,11 @@ export async function runCommand(
             logger.info(
                 `${cli.input}: ${plural(rows.length, "linha", "linhas")}.`,
             );
+            for (const group of findSimilarColumns(rows)) {
+                logger.warn(
+                    `As colunas ${group.map((name) => `"${name}"`).join(", ")} parecem a mesma. Pra juntar, use --align-columns.`,
+                );
+            }
             console.table(
                 describeColumns(rows).map((column) => ({
                     coluna: column.name,

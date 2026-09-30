@@ -1,5 +1,6 @@
 import path from "path";
 import { DestinationConfig, SourceConfig } from "../config/ioSchema";
+import { AlignOptions } from "../filters/align";
 
 export type FileFormat =
     "csv" | "json" | "xml" | "excel" | "parquet" | "sqlite";
@@ -22,6 +23,7 @@ export interface ReadOptions {
     sheet?: string | undefined;
     allSheets?: boolean | undefined;
     sheetColumn?: string | undefined;
+    alignColumns?: boolean | AlignOptions | undefined;
     recordsPath?: string | undefined;
     delimiter?: string | undefined;
     encoding?: "utf-8" | "latin1" | undefined;

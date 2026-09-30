@@ -26,6 +26,12 @@ import {
 } from "./files";
 import { SheetRows } from "../io/tabs";
 import { detectFormat } from "./formats";
+import { alignOptionsOf, alignRows } from "../filters/align";
+
+function aligned(rows: TableRow[], options: ReadOptions): TableRow[] {
+    const align = alignOptionsOf(options.alignColumns);
+    return align ? alignRows(rows, align) : rows;
+}
 
 export type Input = string | SourceConfig;
 export type Output = string | DestinationConfig;
@@ -65,7 +71,7 @@ export async function readRows(
     const config: EtlConfig = { mode: "raw", source: sourceOf(input, options) };
     const source = createSource(config, options.logger ?? silentLogger);
     try {
-        return await source.read();
+        return aligned(await source.read(), options);
     } finally {
         await source.close?.();
     }
@@ -107,7 +113,7 @@ export async function convert(
     const reader = createSource(config, logger);
     const sink = createSink(config, logger);
     try {
-        const rows = await reader.read();
+        const rows = aligned(await reader.read(), options.read ?? {});
         await sink.write(rows);
         return rows.length;
     } finally {
@@ -128,7 +134,10 @@ export async function readSheets(
                 "Só dá pra ler aba por aba de um arquivo Excel ou de uma planilha do Google.",
             );
         }
-        return await source.readTabs();
+        return (await source.readTabs()).map((tab) => ({
+            sheet: tab.sheet,
+            rows: aligned(tab.rows, options),
+        }));
     } finally {
         await source.close?.();
     }
