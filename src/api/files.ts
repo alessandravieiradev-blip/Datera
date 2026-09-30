@@ -108,7 +108,7 @@ export function extensionFor(target: string): string {
     return TARGETS[key]!;
 }
 
-function fileSafe(name: string): string {
+export function fileSafeName(name: string): string {
     const clean = name
         .replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_")
         .trim()
@@ -180,6 +180,6 @@ export function planSheetOutputs(
     return sheets.map((sheet) => ({
         input,
         sheet,
-        output: outputPath(input, extension, outDir, `-${fileSafe(sheet)}`),
+        output: outputPath(input, extension, outDir, `-${fileSafeName(sheet)}`),
     }));
 }

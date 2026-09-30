@@ -14,6 +14,7 @@ import { consoleLogger, Logger } from "../logger";
 import { TableRow } from "../types";
 import { Mode } from "./modes";
 import { buildSteps } from "./steps";
+import { writeResult } from "./groups";
 import { EtlReport, PendingReason, Step, StepReport } from "./types";
 import { cellOf } from "../cells";
 
@@ -115,7 +116,7 @@ export async function runEtl(
         } = applySteps(steps, rawRows, options.onStep);
 
         if (!dryRun) {
-            await sink.write(rows);
+            await writeResult(config, rows, sink, logger);
             if (config.validation) {
                 await sink.write(pending, {
                     name:
