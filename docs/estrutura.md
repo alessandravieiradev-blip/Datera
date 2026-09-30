@@ -14,7 +14,7 @@ src/
   env.ts                  # lê variável de ambiente
   main.ts                 # o que o npm start e o comando datera rodam: lê a config, chama o runEtl e mostra o resumo
   commands.ts             # o que cada comando do terminal faz (convert, dedupe, merge, columns...)
-  api/                    # as funções pra usar no código: readRows, writeRows, convert, convertMany, joinFiles, splitFile, clean, dedupe, merge...
+  api/                    # as funções pra usar no código: readRows, writeRows, convert, convertMany, joinFiles, splitFile, summarizeFile, compareFiles, clean, dedupe, merge...
   index.ts                # o que dá pra importar de fora (runEtl, loadConfig, registrar adapter...)
   logger.ts               # pra onde vão as mensagens (console, silencioso ou memória)
   types.ts                # TableRow, o formato de linha que todo mundo usa
@@ -24,6 +24,8 @@ src/
     modes.ts              # raw, dedupe e merge
     report.ts             # monta o resumo do final
     groups.ts             # organiza o resultado: uma aba, um arquivo ou uma tabela por valor, ou blocos com título
+    summary.ts            # conta as linhas por valor de uma ou mais colunas
+    compare.ts            # compara dois lados pela chave: quem entrou, saiu e mudou
     types.ts              # Step e EtlReport
   config/
     index.ts              # o que o resto do projeto importa da config

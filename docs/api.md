@@ -173,6 +173,33 @@ No Excel (e no Google Sheets) sai uma aba por valor. Nos formatos que não têm 
 
 Pra ninguém separar sem querer por uma coluna tipo e-mail e ganhar mil arquivos, ele para se passar de 200 grupos. E se dois valores virarem o mesmo nome de aba ou de arquivo (tipo `Turma A` e `turma a`), ele avisa antes de gravar.
 
+### `datera summary` e `datera compare`
+
+O `summary` conta quantas linhas tem cada valor de uma coluna:
+
+```bash
+datera summary alunos.xlsx --by plano
+datera summary alunos.xlsx --by cidade,plano
+datera summary alunos.xlsx por-plano.csv --by plano
+```
+
+Sem arquivo de saída, o resumo aparece na tela. Com duas colunas, ele conta cada combinação (mensal em Pelotas, anual em Pelotas...). A lista vem do maior pro menor, e as linhas com a coluna vazia contam juntas como `(vazio)`.
+
+O `compare` olha dois arquivos pela chave e mostra quem entrou, quem saiu e quem mudou:
+
+```bash
+datera compare agosto.xlsx setembro.xlsx --key matricula
+datera compare agosto.xlsx setembro.xlsx --key matricula --out diferencas.xlsx --sheet-by situação
+datera compare agosto.xlsx setembro.xlsx --key nome,turma --ignore telefone
+```
+
+- o primeiro arquivo é o de antes e o segundo, o de depois
+- na tela ele mostra as contas e até 10 linhas de cada grupo, tipo `2024-0042: plano: mensal → anual`
+- com `--out`, grava tudo num arquivo com duas colunas a mais: `situação` (entrou, saiu ou mudou) e `mudanças`. Com `--sheet-by situação` no Excel, cada situação vira uma aba. Com `--keep-unchanged`, as linhas iguais entram também
+- a chave não liga pra maiúscula nem acento no nome da coluna, e `10` e `10.0` contam como o mesmo valor
+- se a chave aparecer repetida num dos arquivos, ele para e avisa, porque aí não dá pra saber qual linha comparar com qual. Linha com a chave vazia fica de fora, com um aviso
+- coluna que só existe num dos arquivos fica fora da comparação, e ele avisa quais
+
 ### `datera dedupe`
 
 Tira as linhas repetidas olhando uma coluna:
@@ -484,6 +511,29 @@ const grupos = splitRows(alunos, "cidade");
 ```
 
 O `joinFiles` e o `splitFile` gravam e devolvem o mesmo resumo do `runEtl`. O `splitRows` só separa na memória e devolve uma lista com o valor e as linhas de cada grupo. As opções são as mesmas do terminal: `blocks`, `sheetBy`, `splitBy`, `originColumn`, `align` e `files`.
+
+### Resumo e comparação
+
+```ts
+const porPlano = summarize(alunos, "plano");
+await summarizeFile("alunos.xlsx", ["cidade", "plano"], {
+    output: "resumo.csv",
+});
+
+const diferencas = await compareFiles("agosto.xlsx", "setembro.xlsx", {
+    key: "matricula",
+    ignore: ["telefone"],
+    output: "diferencas.xlsx",
+    sheetBy: "situação",
+});
+diferencas.added;
+diferencas.removed;
+diferencas.changed;
+
+const linhas = comparisonRows(compareRows(antes, depois, "matricula"));
+```
+
+O `summarize` devolve uma linha por valor com a coluna `quantidade`. O `compareFiles` devolve as listas `added` (entraram), `removed` (saíram), `changed` (mudaram, com o que mudou em cada coluna) e `unchanged` (iguais). Com `output`, ele grava as diferenças também. O `compareRows` faz a mesma comparação com linhas que você já tem na memória, e o `comparisonRows` transforma o resultado nas linhas com `situação` e `mudanças`.
 
 ### Olhar os dados
 

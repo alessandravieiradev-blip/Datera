@@ -15,6 +15,12 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 - juntar vários arquivos num só com `datera join` e com `"sources"` na config, com a coluna `origem` (ou `originColumn`) ou em blocos com uma linha de título (`--blocks`, `blocksBy`), alinhando as colunas sozinho
 - uma aba (ou tabela de banco) por valor de uma coluna com `--sheet-by` e `sheetBy`, e um arquivo (ou tabela) por valor com `--split-by` e `splitBy`
 - `datera split` separa um arquivo pelo valor de uma coluna. Na API, `joinFiles`, `splitFile` e `splitRows`, e no Datera Dev, os trechos na paleta
+- resumo por categoria: `datera summary alunos.xlsx --by plano` conta as linhas por valor, e o `"summary"` na config grava o resumo como aba, arquivo ou tabela a mais. Na API, `summarize` e `summarizeFile`
+- comparar dois arquivos: `datera compare agosto.xlsx setembro.xlsx --key matricula` mostra quem entrou, quem saiu e quem mudou, e com `--out` grava as diferenças. Na config, o `"compare"`. Na API, `compareFiles`, `compareRows` e `comparisonRows`. No Datera Dev, os trechos na paleta, e no app, a fonte da comparação aparece na confirmação do destino
+
+### Corrigido
+
+- com `sheetBy` num banco, um valor que virasse o mesmo nome da tabela de pendências misturava as duas. Agora ele avisa antes de gravar
 
 ## [0.3.0] - 2026-09-30
 

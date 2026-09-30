@@ -84,6 +84,7 @@ Hoje ele consegue:
 - converter um arquivo de um formato pra outro, tirar repetidos ou juntar cadastros com um comando só, sem montar config
 - converter uma pasta inteira de uma vez, ou aplicar as mesmas regras em cada planilha do mês
 - juntar as planilhas de cada mês numa só, ou separar uma planilha em abas ou arquivos por cidade, plano ou qualquer coluna
+- contar quantos alunos tem em cada plano ou cidade, e comparar a planilha de um mês com a do outro pra ver quem entrou, quem saiu e quem mudou de plano
 - mostrar um raio-x das colunas de um arquivo (quantas vazias, quantos valores diferentes) antes de montar as regras
 - ser usado dentro de outro projeto em JavaScript ou TypeScript, com as mesmas regras da config
 
