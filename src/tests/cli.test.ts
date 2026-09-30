@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { dateraVersion, parseCli } from "../cli";
+import { convertRequest, dateraVersion, parseCli } from "../cli";
 
 function cli(...args: string[]) {
     return parseCli(["node", "datera", ...args]);
@@ -136,5 +136,60 @@ describe("parseCli dos comandos novos", () => {
         expect(
             cli("run", "regras.json", "--input", "a.csv", "--output", "b.xlsx"),
         ).toMatchObject({ input: "a.csv", output: "b.xlsx" });
+    });
+});
+
+describe("convert com vários arquivos", () => {
+    it("com --to, todos os argumentos são entradas", () => {
+        expect(
+            cli(
+                "convert",
+                "matriculas/janeiro.xlsx",
+                "matriculas/fevereiro.xlsx",
+                "--to",
+                "csv",
+                "--out-dir",
+                "saida",
+            ),
+        ).toMatchObject({
+            command: "convert-many",
+            inputs: ["matriculas/janeiro.xlsx", "matriculas/fevereiro.xlsx"],
+            to: "csv",
+            outDir: "saida",
+        });
+    });
+
+    it("sem --to continua sendo entrada e saída, e explica quando falta ou sobra", () => {
+        expect(convertRequest(["a.csv", "b.xlsx"], {})).toMatchObject({
+            command: "convert",
+            input: "a.csv",
+            output: "b.xlsx",
+        });
+        expect(() => convertRequest(["a.csv"], {})).toThrow(
+            "Faltou dizer a saída",
+        );
+        expect(() => convertRequest(["a.csv", "b.csv", "c.csv"], {})).toThrow(
+            "use --to",
+        );
+        expect(() => convertRequest(["a.csv"], { outDir: "saida" })).toThrow(
+            "diga também o formato",
+        );
+    });
+
+    it("run aceita --out-dir e --to", () => {
+        expect(
+            cli(
+                "run",
+                "config.json",
+                "--input",
+                "meses/*.csv",
+                "--out-dir",
+                "limpos",
+            ),
+        ).toMatchObject({
+            command: "run",
+            input: "meses/*.csv",
+            outDir: "limpos",
+        });
     });
 });

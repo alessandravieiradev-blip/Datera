@@ -10,6 +10,8 @@ export type CliOptions =
           mode?: string | undefined;
           dryRun: boolean;
           input?: string | undefined;
+          outDir?: string | undefined;
+          to?: string | undefined;
           output?: string | undefined;
       }
     | { command: "validate"; config: string }
@@ -23,6 +25,14 @@ export type CliOptions =
           command: "convert";
           input: string;
           output: string;
+          read: ReadOptions;
+          write: WriteOptions;
+      }
+    | {
+          command: "convert-many";
+          inputs: string[];
+          to: string;
+          outDir?: string | undefined;
           read: ReadOptions;
           write: WriteOptions;
       }
@@ -182,6 +192,46 @@ function translateError(text: string): string {
     );
 }
 
+export function convertRequest(
+    files: string[],
+    flags: ReadFlags & WriteFlags & { to?: string; outDir?: string },
+): CliOptions {
+    const read = readOptions(flags);
+    const write = writeOptions(flags);
+    if (flags.to !== undefined) {
+        return {
+            command: "convert-many",
+            inputs: files,
+            to: flags.to,
+            outDir: flags.outDir,
+            read,
+            write,
+        };
+    }
+    if (flags.outDir !== undefined) {
+        throw new Error(
+            "Com --out-dir, diga também o formato da saída com --to (tipo --to csv).",
+        );
+    }
+    if (files.length === 1) {
+        throw new Error(
+            'Faltou dizer a saída. Use "datera convert entrada.csv saida.xlsx" ou "datera convert entrada.csv --to xlsx".',
+        );
+    }
+    if (files.length > 2) {
+        throw new Error(
+            "Pra converter vários arquivos, use --to com o formato (e --out-dir se quiser outra pasta).",
+        );
+    }
+    return {
+        command: "convert",
+        input: files[0]!,
+        output: files[1]!,
+        read,
+        write,
+    };
+}
+
 export function buildProgram(
     onCommand: (options: CliOptions) => void,
 ): Command {
@@ -219,6 +269,14 @@ export function buildProgram(
             "--output <arquivo>",
             "Grava nesse arquivo em vez do destino da config.",
         )
+        .option(
+            "--out-dir <pasta>",
+            'Com vários arquivos no --input (tipo "matriculas/*.xlsx"), grava um resultado pra cada um nessa pasta.',
+        )
+        .option(
+            "--to <formato>",
+            "Formato de cada resultado quando são vários arquivos (csv, xlsx, json, xml, parquet ou db).",
+        )
         .action(
             (
                 config: string | undefined,
@@ -228,6 +286,8 @@ export function buildProgram(
                     dryRun?: boolean;
                     input?: string;
                     output?: string;
+                    outDir?: string;
+                    to?: string;
                 },
             ) =>
                 onCommand({
@@ -237,6 +297,8 @@ export function buildProgram(
                     dryRun: flags.dryRun ?? false,
                     input: flags.input,
                     output: flags.output,
+                    outDir: flags.outDir,
+                    to: flags.to,
                 }),
         );
 
@@ -273,22 +335,35 @@ export function buildProgram(
             program
                 .command("convert")
                 .description(
-                    "Converte de um formato pra outro, sem mexer nos dados.",
+                    'Converte de um formato pra outro, sem mexer nos dados. Com --to, converte vários de uma vez (tipo "matriculas/*.xlsx").',
                 )
-                .argument("<entrada>", "Arquivo de entrada.")
                 .argument(
-                    "<saida>",
-                    "Arquivo de saída. O formato vem da extensão.",
+                    "<arquivos...>",
+                    "A entrada e a saída, ou só as entradas quando usar --to. Aceita pasta e * no nome do arquivo.",
+                )
+                .option(
+                    "--to <formato>",
+                    "Formato da saída de cada arquivo (csv, xlsx, json, xml, parquet ou db).",
+                )
+                .option(
+                    "--out-dir <pasta>",
+                    "Pasta onde gravar os convertidos. Sem ela, ficam do lado de cada entrada.",
                 ),
         ),
-    ).action((input: string, output: string, flags: ReadFlags & WriteFlags) =>
-        onCommand({
-            command: "convert",
-            input,
-            output,
-            read: readOptions(flags),
-            write: writeOptions(flags),
-        }),
+    ).action(
+        (
+            files: string[],
+            flags: ReadFlags & WriteFlags & { to?: string; outDir?: string },
+            command: Command,
+        ) => {
+            try {
+                onCommand(convertRequest(files, flags));
+            } catch (error) {
+                command.error(
+                    `erro: ${error instanceof Error ? error.message : String(error)}`,
+                );
+            }
+        },
     );
 
     withWriteFlags(

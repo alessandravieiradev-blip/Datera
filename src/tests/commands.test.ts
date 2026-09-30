@@ -168,3 +168,79 @@ describe("cuidados com arquivos", () => {
         ).rejects.toThrow("o mesmo arquivo");
     });
 });
+
+describe("run com vários arquivos", () => {
+    it("aplica a mesma config em cada arquivo e grava um resultado pra cada", async () => {
+        const dir = tempDir();
+        const meses = path.join(dir, "meses");
+        fs.mkdirSync(meses);
+        for (const mes of ["janeiro", "fevereiro"]) {
+            fs.copyFileSync(alunos(dir), path.join(meses, `${mes}.csv`));
+        }
+        const config = path.join(dir, "config.json");
+        fs.writeFileSync(
+            config,
+            JSON.stringify({
+                source: { type: "csv", path: "./alunos.csv" },
+                destination: { type: "json", path: "./saida.json" },
+                mode: "dedupe",
+                dedupeColumn: "matricula",
+            }),
+        );
+        const logger = createMemoryLogger();
+        const cwd = process.cwd();
+        try {
+            expect(
+                await runCommand(
+                    {
+                        command: "run",
+                        config,
+                        dryRun: false,
+                        input: path.join(meses, "*.csv"),
+                        outDir: path.join(dir, "limpos"),
+                    },
+                    logger,
+                ),
+            ).toBe(0);
+        } finally {
+            process.chdir(cwd);
+        }
+
+        expect(fs.readdirSync(path.join(dir, "limpos")).sort()).toEqual([
+            "fevereiro.json",
+            "janeiro.json",
+        ]);
+        expect(
+            logger.messages.some((line) =>
+                line.includes("2 arquivos processados"),
+            ),
+        ).toBe(true);
+    });
+
+    it("recusa --output junto com vários arquivos", async () => {
+        const dir = tempDir();
+        alunos(dir);
+        const config = path.join(dir, "config.json");
+        fs.writeFileSync(
+            config,
+            JSON.stringify({
+                source: { type: "csv", path: "./alunos.csv" },
+                destination: { type: "json", path: "./saida.json" },
+                mode: "raw",
+            }),
+        );
+
+        await expect(
+            runCommand(
+                {
+                    command: "run",
+                    config,
+                    dryRun: false,
+                    input: path.join(dir, "*.csv"),
+                    output: path.join(dir, "x.json"),
+                },
+                createMemoryLogger(),
+            ),
+        ).rejects.toThrow("use --out-dir em vez de --output");
+    });
+});

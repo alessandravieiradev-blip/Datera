@@ -5,7 +5,10 @@ import { CliOptions } from "./cli";
 import { checkConfigFile, formatCheck, parseConfig } from "./config";
 import {
     convert,
+    convertMany,
     dedupe,
+    findFiles,
+    planOutputs,
     describeColumns,
     destinationFromPath,
     detectFormat,
@@ -20,7 +23,7 @@ import {
 } from "./api";
 import { Logger } from "./logger";
 import { assertSourceIsSafe } from "./io/safety";
-import { formatReport, parseMode, runEtl } from "./pipeline";
+import { EtlReport, formatReport, parseMode, runEtl } from "./pipeline";
 
 type RunOptions = Extract<CliOptions, { command: "run" }>;
 type InitOptions = Extract<CliOptions, { command: "init" }>;
@@ -42,27 +45,41 @@ function plural(count: number, one: string, many: string): string {
     return `${count} ${count === 1 ? one : many}`;
 }
 
-async function runConfig(cli: RunOptions, logger: Logger): Promise<number> {
-    const configPath = path.resolve(cli.config);
-    if (!fs.existsSync(configPath)) {
-        throw new Error(
-            `Não achei a config ${cli.config}. Se era pra ser um comando, veja a lista com "datera --help".`,
-        );
+function isBatch(cli: RunOptions): boolean {
+    if (cli.outDir !== undefined || cli.to !== undefined) return true;
+    if (cli.input === undefined) return false;
+    return (
+        /[*?]/.test(cli.input) ||
+        (fs.existsSync(cli.input) && fs.statSync(cli.input).isDirectory())
+    );
+}
+
+function sameType(
+    base: unknown,
+    next: { type: string; path?: string },
+): Record<string, unknown> {
+    if (
+        typeof base === "object" &&
+        base !== null &&
+        (base as { type?: unknown }).type === next.type
+    ) {
+        return { ...(base as Record<string, unknown>), path: next.path };
     }
-    const folder = path.dirname(configPath);
-    const input = cli.input === undefined ? undefined : path.resolve(cli.input);
-    const output =
-        cli.output === undefined ? undefined : path.resolve(cli.output);
+    return next as unknown as Record<string, unknown>;
+}
 
-    dotenv.config({ path: path.join(folder, ".env"), quiet: true });
-    const raw = JSON.parse(fs.readFileSync(configPath, "utf-8")) as Record<
-        string,
-        unknown
-    >;
-    if (input) raw.source = sourceFromPath(input);
-    if (output) raw.destination = destinationFromPath(output);
-    process.chdir(folder);
+function configTarget(raw: Record<string, unknown>): string | undefined {
+    const destination = raw.destination as { path?: unknown } | undefined;
+    return typeof destination?.path === "string"
+        ? path.extname(destination.path)
+        : undefined;
+}
 
+async function runOnce(
+    raw: Record<string, unknown>,
+    cli: RunOptions,
+    logger: Logger,
+): Promise<EtlReport> {
     const config = parseConfig(raw);
     const report = await runEtl(config, {
         mode: cli.mode === undefined ? undefined : parseMode(cli.mode),
@@ -76,6 +93,93 @@ async function runConfig(cli: RunOptions, logger: Logger): Promise<number> {
     }
     logger.info("");
     for (const line of formatReport(report)) logger.info(line);
+    return report;
+}
+
+async function runConfig(cli: RunOptions, logger: Logger): Promise<number> {
+    const configPath = path.resolve(cli.config);
+    if (!fs.existsSync(configPath)) {
+        throw new Error(
+            `Não achei a config ${cli.config}. Se era pra ser um comando, veja a lista com "datera --help".`,
+        );
+    }
+    const folder = path.dirname(configPath);
+    dotenv.config({ path: path.join(folder, ".env"), quiet: true });
+    const raw = JSON.parse(fs.readFileSync(configPath, "utf-8")) as Record<
+        string,
+        unknown
+    >;
+
+    if (isBatch(cli)) {
+        if (cli.input === undefined) {
+            throw new Error(
+                'Com --out-dir ou --to, diga os arquivos com --input (tipo --input "matriculas/*.xlsx").',
+            );
+        }
+        if (cli.output !== undefined) {
+            throw new Error(
+                "Com vários arquivos, use --out-dir em vez de --output, porque cada arquivo ganha o seu resultado.",
+            );
+        }
+        const target = cli.to ?? configTarget(raw);
+        if (target === undefined) {
+            throw new Error(
+                "O destino da config não é um arquivo, então diga o formato de cada resultado com --to (tipo --to xlsx).",
+            );
+        }
+        const plan = planOutputs(
+            findFiles(path.resolve(cli.input)),
+            target,
+            cli.outDir === undefined ? undefined : path.resolve(cli.outDir),
+        );
+        process.chdir(folder);
+        let rows = 0;
+        for (const [index, item] of plan.entries()) {
+            logger.info("");
+            logger.info(
+                `Arquivo ${index + 1} de ${plan.length}: ${item.input}`,
+            );
+            const report = await runOnce(
+                {
+                    ...raw,
+                    source: sameType(
+                        raw.source,
+                        sourceFromPath(
+                            item.input,
+                            (raw.source ?? {}) as ReadOptions,
+                        ),
+                    ),
+                    destination: sameType(
+                        raw.destination,
+                        destinationFromPath(
+                            item.output,
+                            (raw.destination ?? {}) as WriteOptions,
+                        ),
+                    ),
+                },
+                cli,
+                logger,
+            );
+            rows += report.rowsOut;
+        }
+        logger.info("");
+        logger.info(
+            `${plural(plan.length, "arquivo processado", "arquivos processados")}, ${plural(rows, "linha no resultado", "linhas no resultado")} ao todo.`,
+        );
+        logger.info(
+            cli.dryRun ? "Teste concluído." : "ETL concluído com sucesso!",
+        );
+        return 0;
+    }
+
+    const input = cli.input === undefined ? undefined : path.resolve(cli.input);
+    const output =
+        cli.output === undefined ? undefined : path.resolve(cli.output);
+    if (input) raw.source = sourceFromPath(input);
+    if (output) raw.destination = destinationFromPath(output);
+    process.chdir(folder);
+
+    const report = await runOnce(raw, cli, logger);
     logger.info(
         report.written ? "ETL concluído com sucesso!" : "Teste concluído.",
     );
@@ -161,6 +265,24 @@ export async function runCommand(
             });
             logger.info(
                 `${plural(count, "linha convertida", "linhas convertidas")} de ${cli.input} pra ${cli.output}.`,
+            );
+            return 0;
+        }
+
+        case "convert-many": {
+            const results = await convertMany(cli.inputs, {
+                to: cli.to,
+                outDir: cli.outDir,
+                read: cli.read,
+                write: cli.write,
+            });
+            for (const item of results) {
+                logger.info(
+                    `${item.input} → ${item.output} (${plural(item.rows, "linha", "linhas")})`,
+                );
+            }
+            logger.info(
+                `${plural(results.length, "arquivo convertido", "arquivos convertidos")}.`,
             );
             return 0;
         }
