@@ -8,6 +8,21 @@ import {
 } from "./prepareSchema";
 import { validationSchema } from "./validationSchema";
 
+const columnName = z.string().trim().min(1);
+const columnList = z.union([columnName, z.array(columnName).min(1)]);
+
+export const summarySchema = z.object({
+    by: columnList,
+    name: columnName.optional(),
+});
+
+export const compareSchema = z.object({
+    with: sourceSchema,
+    key: columnList,
+    ignore: z.array(columnName).optional(),
+    keepUnchanged: z.boolean().optional(),
+});
+
 export const etlConfigSchema = z
     .object({
         source: sourceSchema.optional(),
@@ -42,6 +57,10 @@ export const etlConfigSchema = z
         fillEmpty: z.array(fillEmptySchema).optional(),
         combineColumns: z.array(combineColumnsSchema).optional(),
         validation: validationSchema.optional(),
+        summary: z
+            .union([summarySchema, z.array(summarySchema).min(1)])
+            .optional(),
+        compare: compareSchema.optional(),
     })
     .refine(
         (config) =>
@@ -100,3 +119,5 @@ export const etlConfigSchema = z
     );
 
 export type EtlConfig = z.infer<typeof etlConfigSchema>;
+export type SummaryConfig = z.infer<typeof summarySchema>;
+export type CompareConfig = z.infer<typeof compareSchema>;
