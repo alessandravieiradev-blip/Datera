@@ -76,14 +76,26 @@ function withoutPassword(value: unknown): unknown {
     );
 }
 
+function describeSources(
+    config: EtlConfig,
+    sources: NonNullable<EtlConfig["sources"]>,
+    folder: string,
+): string {
+    return sources
+        .map((source) => describeSide(config, "source", source, folder))
+        .join(" + ");
+}
+
 export function describeRoute(config: EtlConfig, folder: string): Route {
     const route = {
-        source: describeSide(
-            config,
-            "source",
-            config.source ?? { type: "mysql" },
-            folder,
-        ),
+        source: config.sources
+            ? describeSources(config, config.sources, folder)
+            : describeSide(
+                  config,
+                  "source",
+                  config.source ?? { type: "mysql" },
+                  folder,
+              ),
         destination: describeSide(
             config,
             "destination",
@@ -101,6 +113,12 @@ export function routeKey(route: Route, config: EtlConfig): string {
     const settings = {
         route,
         source: withoutPassword(config.source),
+        sources: (config.sources ?? []).map(withoutPassword),
+        output: {
+            splitBy: config.splitBy ?? null,
+            sheetBy: config.sheetBy ?? null,
+            blocksBy: config.blocksBy ?? null,
+        },
         destination: withoutPassword(config.destination),
         pendingSheet: config.validation?.pendingSheet ?? null,
         legacy: withoutPassword({

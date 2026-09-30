@@ -66,6 +66,11 @@ export const SNIPPETS: Snippet[] = [
         text: '"source": { "type": "sqlite", "path": "./escola.db", "table": "alunos" }',
     },
     {
+        id: "fontes-varias",
+        label: "Fontes: juntar vários arquivos",
+        text: '"sources": [{ "type": "excel", "path": "./matriculas/*.xlsx" }], "originColumn": "mes", "alignColumns": true',
+    },
+    {
         id: "destino-excel",
         label: "Destino: Excel",
         text: '"destination": { "type": "excel", "path": "./saida/resultado.xlsx" }',
@@ -114,6 +119,21 @@ export const SNIPPETS: Snippet[] = [
         id: "destino-sqlserver",
         label: "Destino: SQL Server",
         text: '"destination": { "type": "sqlserver", "host": "localhost", "port": 1433, "user": "usuario", "database": "banco", "table": "dbo.alunos_organizados" }',
+    },
+    {
+        id: "separar-abas",
+        label: "Resultado: uma aba por valor (sheetBy)",
+        text: '"sheetBy": "plano"',
+    },
+    {
+        id: "separar-arquivos",
+        label: "Resultado: um arquivo por valor (splitBy)",
+        text: '"splitBy": "cidade"',
+    },
+    {
+        id: "separar-blocos",
+        label: "Resultado: blocos com título (blocksBy)",
+        text: '"blocksBy": "origem"',
     },
     {
         id: "regra-vazio",

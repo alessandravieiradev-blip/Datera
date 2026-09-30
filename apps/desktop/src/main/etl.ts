@@ -99,7 +99,9 @@ function describe(config: EtlConfig): { source: string; destination: string } {
     const source = config.source?.type ?? "mysql";
     const destination = config.destination?.type ?? "sheets";
     return {
-        source: SOURCE_LABELS[source] ?? source,
+        source: config.sources
+            ? "Vários arquivos"
+            : (SOURCE_LABELS[source] ?? source),
         destination: SOURCE_LABELS[destination] ?? destination,
     };
 }

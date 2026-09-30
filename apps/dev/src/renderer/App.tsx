@@ -80,9 +80,12 @@ function describeFlow(value: unknown): string {
     if (typeof value !== "object" || value === null) return "";
     const config = value as {
         source?: { type?: string };
+        sources?: unknown[];
         destination?: { type?: string };
     };
-    const source = SOURCE_NAMES[config.source?.type ?? "mysql"] ?? "?";
+    const source = Array.isArray(config.sources)
+        ? `${config.sources.length} fontes`
+        : (SOURCE_NAMES[config.source?.type ?? "mysql"] ?? "?");
     const destination =
         SOURCE_NAMES[config.destination?.type ?? "sheets"] ?? "?";
     return `${source} → ${destination}`;
