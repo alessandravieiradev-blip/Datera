@@ -16,6 +16,11 @@ export const SNIPPETS: Snippet[] = [
         text: '"source": { "type": "excel", "path": "./dados.xlsx", "sheet": "Planilha1" }',
     },
     {
+        id: "fonte-excel-abas",
+        label: "Fonte: Excel, todas as abas",
+        text: '"source": { "type": "excel", "path": "./matriculas.xlsx", "allSheets": true, "sheetColumn": "mes" }',
+    },
+    {
         id: "fonte-json",
         label: "Fonte: JSON",
         text: '"source": { "type": "json", "path": "./dados.json" }',
@@ -34,6 +39,11 @@ export const SNIPPETS: Snippet[] = [
         id: "fonte-sheets",
         label: "Fonte: Google Planilhas",
         text: '"source": { "type": "sheets", "spreadsheetId": "ID_DA_PLANILHA", "sheet": "Aba" }',
+    },
+    {
+        id: "fonte-sheets-abas",
+        label: "Fonte: Google Planilhas, todas as abas",
+        text: '"source": { "type": "sheets", "spreadsheetId": "ID_DA_PLANILHA", "allSheets": true, "sheetColumn": "mes" }',
     },
     {
         id: "fonte-mysql",

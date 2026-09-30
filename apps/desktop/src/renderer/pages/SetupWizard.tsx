@@ -553,6 +553,51 @@ function ServerFields({
     );
 }
 
+function SheetChoice({
+    draft,
+    set,
+}: {
+    draft: WizardDraft;
+    set: (change: Partial<WizardDraft>) => void;
+}) {
+    return (
+        <>
+            <label className="checkbox">
+                <input
+                    type="checkbox"
+                    checked={draft.allSheets}
+                    onChange={(event) =>
+                        set({ allSheets: event.target.checked })
+                    }
+                />
+                Ler todas as abas
+            </label>
+            {draft.allSheets ? (
+                <p className="muted small">
+                    As linhas de todas as abas viram uma lista só, com uma
+                    coluna "aba" dizendo de onde veio cada uma. Abas escondidas
+                    ficam de fora.
+                </p>
+            ) : (
+                <Field
+                    label="Aba (opcional)"
+                    hint="Se deixar vazio, ele lê a primeira aba."
+                >
+                    <input
+                        className="field"
+                        spellCheck={false}
+                        autoComplete="off"
+                        value={draft.sourceSheet}
+                        onChange={(event) =>
+                            set({ sourceSheet: event.target.value })
+                        }
+                    />
+                </Field>
+            )}
+        </>
+    );
+}
+
 function DetailsStep({
     draft,
     set,
@@ -596,20 +641,7 @@ function DetailsStep({
                         </Field>
                     )}
                     {draft.source === "excel" && (
-                        <Field
-                            label="Aba (opcional)"
-                            hint="Se deixar vazio, ele lê a primeira aba."
-                        >
-                            <input
-                                className="field"
-                                spellCheck={false}
-                                autoComplete="off"
-                                value={draft.sourceSheet}
-                                onChange={(event) =>
-                                    set({ sourceSheet: event.target.value })
-                                }
-                            />
-                        </Field>
+                        <SheetChoice draft={draft} set={set} />
                     )}
                     {draft.source === "sheets" && (
                         <>
@@ -629,20 +661,7 @@ function DetailsStep({
                                     }
                                 />
                             </Field>
-                            <Field
-                                label="Aba (opcional)"
-                                hint="Se deixar vazio, ele lê a primeira aba."
-                            >
-                                <input
-                                    className="field"
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    value={draft.sourceSheet}
-                                    onChange={(event) =>
-                                        set({ sourceSheet: event.target.value })
-                                    }
-                                />
-                            </Field>
+                            <SheetChoice draft={draft} set={set} />
                         </>
                     )}
                     {draft.source === "sqlite" && (
@@ -830,6 +849,11 @@ function SummaryStep({ draft }: { draft: WizardDraft }) {
                         {draft.sourcePath && (
                             <strong> ({fileName(draft.sourcePath)})</strong>
                         )}
+                        {draft.allSheets &&
+                            (draft.source === "excel" ||
+                                draft.source === "sheets") && (
+                                <strong>, todas as abas</strong>
+                            )}
                         {(draft.source === "database" ||
                             draft.source === "sqlite") && (
                             <strong> (tabela {draft.table})</strong>

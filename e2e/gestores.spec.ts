@@ -123,6 +123,33 @@ test.describe("app de gestores", () => {
         });
     });
 
+    test("o passo a passo lê todas as abas do Excel", async ({ abrir }) => {
+        const page = await abrir("gestores", "novo");
+        await page.getByRole("button", { name: "Criar configuração" }).click();
+
+        await page.getByRole("radio", { name: /Arquivo Excel/ }).click();
+        await page.getByRole("button", { name: /Próximo/ }).click();
+        await page.getByRole("radio", { name: /Arquivo CSV/ }).click();
+        await page.getByRole("button", { name: /Próximo/ }).click();
+
+        await page.getByRole("button", { name: "Escolher arquivo" }).click();
+        await page
+            .getByRole("button", { name: "Escolher onde salvar" })
+            .click();
+        await expect(page.getByLabel("Aba (opcional)")).toBeVisible();
+        await page.getByRole("checkbox", { name: "Ler todas as abas" }).check();
+        await expect(page.getByLabel("Aba (opcional)")).toHaveCount(0);
+        await page.getByRole("button", { name: /Próximo/ }).click();
+
+        await expect(page.getByText("todas as abas")).toBeVisible();
+        await page.getByRole("button", { name: "Salvar configuração" }).click();
+        const salva = await page.evaluate(() => window.datera.readConfig());
+        expect(salva).toMatchObject({
+            ok: true,
+            config: { source: { type: "excel", allSheets: true } },
+        });
+    });
+
     test("a prévia mostra o resultado sem gravar", async ({ abrir, foto }) => {
         const page = await abrir("gestores");
         await page

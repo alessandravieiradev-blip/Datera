@@ -31,6 +31,7 @@ export interface WizardDraft {
     destination: DestinationKind | null;
     sourcePath: string;
     sourceSheet: string;
+    allSheets: boolean;
     sourceRecords: string;
     sourceLink: string;
     destinationPath: string;
@@ -59,6 +60,7 @@ export const EMPTY_DRAFT: WizardDraft = {
     destination: null,
     sourcePath: "",
     sourceSheet: "",
+    allSheets: false,
     sourceRecords: "",
     sourceLink: "",
     destinationPath: "",
@@ -156,6 +158,9 @@ export function detailsProblem(draft: WizardDraft): string | null {
         spreadsheetIdFrom(draft.sourceLink) ===
             spreadsheetIdFrom(draft.destinationLink)
     ) {
+        if (draft.allSheets) {
+            return "Para ler todas as abas, salve o resultado em outra planilha. Senão ele leria também a aba do resultado.";
+        }
         if (!draft.sourceSheet.trim() || !draft.destinationSheet.trim()) {
             return "É a mesma planilha, então diga o nome da aba de onde ler e da aba do resultado.";
         }
@@ -179,7 +184,9 @@ function sourceOf(draft: WizardDraft): RawConfig {
             return {
                 type: "excel",
                 path: draft.sourcePath,
-                ...optional("sheet", draft.sourceSheet),
+                ...(draft.allSheets
+                    ? { allSheets: true }
+                    : optional("sheet", draft.sourceSheet)),
             };
         case "csv":
             return { type: "csv", path: draft.sourcePath };
@@ -199,7 +206,9 @@ function sourceOf(draft: WizardDraft): RawConfig {
             return {
                 type: "sheets",
                 spreadsheetId: spreadsheetIdFrom(draft.sourceLink),
-                ...optional("sheet", draft.sourceSheet),
+                ...(draft.allSheets
+                    ? { allSheets: true }
+                    : optional("sheet", draft.sourceSheet)),
             };
         default:
             return {
