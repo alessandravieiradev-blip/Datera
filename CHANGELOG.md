@@ -10,6 +10,8 @@ Os números seguem o [versionamento semântico](https://semver.org/lang/pt-BR/):
 
 ## [Não lançado]
 
+## [0.2.1] - 2026-09-30
+
 ### Corrigido
 
 - no Windows, o app recusava arquivo de código numa subpasta que ainda não existia, quando a pasta da configuração tinha um nome curto do Windows (tipo `RUNNER~1`) ou passava por um atalho

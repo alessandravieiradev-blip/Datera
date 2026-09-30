@@ -1,6 +1,6 @@
 {
     "name": "@datera/dev",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "private": true,
     "description": "Datera para desenvolvedores: editor da configuração, saída detalhada e atalhos.",
     "author": "Alessandra Vieira",
