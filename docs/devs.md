@@ -49,6 +49,8 @@ Quem faz tudo isso é a `examples/config.csv.json`. Vale abrir ela do lado dos a
 
 Se você prefere ver em Excel, roda `npm run example:excel`. Ele faz a mesma coisa mas gera um `examples/saida/resultado.xlsx`, com os alunos numa aba e as pendências em outra. E pra ver com XML, roda `npm run example:xml`, que lê o `examples/alunos.xml` (os mesmos alunos, só que em XML) e gera um `examples/saida/resultado.xml`.
 
+Se estiver no Windows, o [guia de ambiente local](ambiente-local.md) mostra como rodar pelo PowerShell e configurar as conexões.
+
 ## Instalação
 
 Dentro da pasta do repositório:
