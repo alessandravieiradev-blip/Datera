@@ -1,3 +1,4 @@
+import { SaveSummary } from "../components/SaveSummary";
 import { LineChart } from "../components/LineChart";
 import { Metrics } from "../components/Metrics";
 import { Notice } from "../components/Notice";
@@ -89,13 +90,21 @@ export function HomePage({ datera, onNavigate }: HomePageProps) {
                 title="Início"
                 meta={meta}
                 actions={
-                    <button
-                        type="button"
-                        className="button primary"
-                        onClick={() => onNavigate("exportar")}
-                    >
-                        Ir para Exportar
-                    </button>
+                    <>
+                        {current?.ok && current.report && (
+                            <SaveSummary
+                                key={current.id}
+                                recordId={current.id}
+                            />
+                        )}
+                        <button
+                            type="button"
+                            className="button primary"
+                            onClick={() => onNavigate("exportar")}
+                        >
+                            Ir para Exportar
+                        </button>
+                    </>
                 }
             />
 

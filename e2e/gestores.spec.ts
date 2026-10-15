@@ -10,6 +10,83 @@ const TELAS = [
 ];
 
 test.describe("app de gestores", () => {
+    test("salva o resumo pelo Início e pelo Histórico", async ({ abrir }) => {
+        const page = await abrir("gestores");
+        const ids = await page.evaluate(() => {
+            const calls: string[] = [];
+            window.datera.saveSummary = async (recordId) => {
+                calls.push(recordId);
+                return { ok: true, path: "resumo-datera.txt" };
+            };
+            Object.assign(window, { summaryCalls: calls });
+            return window.datera
+                .listHistory()
+                .then((records) =>
+                    records
+                        .filter((record) => record.ok && record.report)
+                        .map((record) => record.id),
+                );
+        });
+        await page
+            .getByRole("button", { name: "Salvar resumo", exact: true })
+            .click();
+        await expect(
+            page.getByRole("status").filter({ hasText: "Resumo salvo." }),
+        ).toBeVisible();
+        await page
+            .getByRole("navigation")
+            .getByRole("button", { name: "Histórico", exact: true })
+            .click();
+        const buttons = page.getByRole("button", {
+            name: "Salvar resumo",
+            exact: true,
+        });
+        await expect(buttons).toHaveCount(ids.length);
+        await buttons.last().click();
+        await expect(
+            page.getByRole("status").filter({ hasText: "Resumo salvo." }),
+        ).toBeVisible();
+        const calls = await page.evaluate(
+            () => Reflect.get(window, "summaryCalls") as string[],
+        );
+        expect(calls).toEqual([ids[0], ids[ids.length - 1]]);
+    });
+
+    test("cancelar o resumo não mostra sucesso e uma falha permite tentar de novo", async ({
+        abrir,
+    }) => {
+        const page = await abrir("gestores");
+        await page.evaluate(() => {
+            window.datera.saveSummary = async () => null;
+        });
+        const button = page.getByRole("button", {
+            name: "Salvar resumo",
+            exact: true,
+        });
+        await button.click();
+        await expect(button).toBeEnabled();
+        await expect(page.getByText("Resumo salvo.")).toHaveCount(0);
+        await page.evaluate(() => {
+            window.datera.saveSummary = async () => ({
+                ok: false,
+                error: "Não consegui salvar o resumo.",
+            });
+        });
+        await button.click();
+        await expect(page.getByRole("alert")).toContainText(
+            "Não consegui salvar o resumo.",
+        );
+        await page.evaluate(() => {
+            window.datera.saveSummary = async () => ({
+                ok: true,
+                path: "resumo.txt",
+            });
+        });
+        await button.click();
+        await expect(page.getByText("Resumo salvo.")).toBeVisible();
+        await expect(page.getByRole("alert")).toHaveCount(0);
+    });
+
     test("todas as telas abrem pelo menu", async ({ abrir, foto }) => {
         const page = await abrir("gestores");
         const menu = page.getByRole("navigation");

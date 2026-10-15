@@ -32,6 +32,7 @@ import {
 } from "./settings";
 import { applyTheme } from "./theme";
 import { addToHistory, readHistory } from "./history";
+import { saveRunSummary } from "./summary";
 import { readColumns, runWithConfig } from "./etl";
 import {
     createNormalizerTemplate,
@@ -139,6 +140,25 @@ export function registerIpc(pagePath: string): void {
     appPage = pagePath;
 
     handle(IPC.getSettings, () => readSettings());
+
+    handle(IPC.saveSummary, async (event, recordId: unknown) => {
+        const record =
+            typeof recordId === "string"
+                ? readHistory().find((saved) => saved.id === recordId)
+                : undefined;
+        if (!record?.ok || !record.report) {
+            return {
+                ok: false,
+                error: "Essa execução não tem um resumo para salvar.",
+            };
+        }
+        const target = await saveDialog(event, {
+            title: "Onde salvar o resumo",
+            defaultPath: "resumo-datera.txt",
+            filters: [{ name: "Arquivo de texto", extensions: ["txt"] }],
+        });
+        return target === null ? null : saveRunSummary(record, target);
+    });
 
     handle(IPC.chooseConfig, async (event) => {
         const window = BrowserWindow.fromWebContents(event.sender);

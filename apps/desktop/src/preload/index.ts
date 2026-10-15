@@ -6,6 +6,7 @@ const api: DateraApi = {
     chooseConfig: () => ipcRenderer.invoke(IPC.chooseConfig),
     run: (request) => ipcRenderer.invoke(IPC.run, request),
     listHistory: () => ipcRenderer.invoke(IPC.listHistory),
+    saveSummary: (recordId) => ipcRenderer.invoke(IPC.saveSummary, recordId),
     openHelp: (section) => ipcRenderer.invoke(IPC.openHelp, section),
     listNormalizers: () => ipcRenderer.invoke(IPC.listNormalizers),
     createNormalizerFile: () => ipcRenderer.invoke(IPC.createNormalizerFile),

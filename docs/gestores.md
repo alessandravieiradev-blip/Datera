@@ -16,6 +16,7 @@ Esse é o guia do Datera com tela, o app para quem cuida dos dados e não quer m
 - [Regras](#regras)
 - [Cadastros repetidos](#cadastros-repetidos)
 - [Prévia e exportação](#prévia-e-exportação)
+- [Salvar o resumo](#salvar-o-resumo)
 - [Atalhos](#atalhos)
 - [Cuidados](#cuidados)
 - [Quando precisar de ajuda](#quando-precisar-de-ajuda)
@@ -104,6 +105,10 @@ Antes de gravar, use a **prévia** (`Ctrl+P`). Ela faz tudo igual, só que não 
 - as primeiras linhas do resultado
 
 Se estiver tudo certo, clique em **Exportar agora** (`Ctrl+E`) e confirme. O resultado e as pendências são gravados no destino que você escolheu, e a exportação entra no Histórico e nos gráficos do Início.
+
+## Salvar o resumo
+
+No Início, clique em **Salvar resumo** para guardar os números da execução mostrada na tela num arquivo de texto. Para uma execução anterior, vá ao **Histórico** e use **Salvar resumo** na linha dela. Escolha onde salvar e confirme. O arquivo traz a data, o tipo da execução (prévia ou exportação), as quantidades de linhas, as etapas, o tempo e os motivos das pendências. Não leva os registros da prévia nem a configuração.
 
 ## Atalhos
 

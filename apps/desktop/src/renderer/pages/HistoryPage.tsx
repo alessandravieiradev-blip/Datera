@@ -1,3 +1,4 @@
+import { SaveSummary } from "../components/SaveSummary";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
@@ -40,6 +41,7 @@ export function HistoryPage({ history }: HistoryPageProps) {
                                     <th className="number">Pendências</th>
                                     <th className="number">Tempo</th>
                                     <th>Situação</th>
+                                    <th>Resumo</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -109,6 +111,13 @@ export function HistoryPage({ history }: HistoryPageProps) {
                                                         </span>
                                                     )}
                                                 </>
+                                            )}
+                                        </td>
+                                        <td>
+                                            {record.ok && record.report && (
+                                                <SaveSummary
+                                                    recordId={record.id}
+                                                />
                                             )}
                                         </td>
                                     </tr>

@@ -69,6 +69,16 @@ export function criarDatera(cenario: Cenario, tema: Theme): DateraApi {
             return record;
         },
         listHistory: async () => execucoes,
+        saveSummary: async (recordId) =>
+            execucoes.some(
+                (record) =>
+                    record.id === recordId && record.ok && record.report,
+            )
+                ? { ok: true, path: "resumo-datera.txt" }
+                : {
+                      ok: false,
+                      error: "Essa execução não tem um resumo para salvar.",
+                  },
         openHelp: async () => undefined,
         listNormalizers: async () => ({
             ok: true,

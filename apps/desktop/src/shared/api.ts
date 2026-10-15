@@ -5,6 +5,7 @@ export const IPC = {
     chooseConfig: "settings:choose-config",
     run: "etl:run",
     listHistory: "history:list",
+    saveSummary: "history:save-summary",
     openHelp: "help:open",
     readConfig: "config:read",
     saveConfig: "config:save",
@@ -99,6 +100,7 @@ export interface DateraApi {
     chooseConfig(): Promise<Settings>;
     run(request: RunRequest): Promise<RunRecord>;
     listHistory(): Promise<RunRecord[]>;
+    saveSummary(recordId: string): Promise<TemplateResult | null>;
     openHelp(section?: HelpSection): Promise<void>;
     listNormalizers(): Promise<NormalizersResult>;
     createNormalizerFile(): Promise<TemplateResult>;
