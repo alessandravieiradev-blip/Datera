@@ -46,3 +46,6 @@ saida/
 e2e/.build/
 e2e/resultados/
 e2e/relatorio/
+
+# Cache do npm
+.local-npm-cache/
